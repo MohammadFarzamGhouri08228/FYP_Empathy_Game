@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
@@ -30,6 +31,19 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         
+        // Verify components exist
+        if (rb == null)
+        {
+            Debug.LogError("PlayerController: Rigidbody2D component not found!");
+            return;
+        }
+        
+        if (spriteRenderer == null)
+        {
+            Debug.LogError("PlayerController: SpriteRenderer component not found!");
+            return;
+        }
+        
         // Create ground check point if not assigned
         if (groundCheck == null)
         {
@@ -37,6 +51,7 @@ public class PlayerController : MonoBehaviour
             groundCheckObj.transform.SetParent(transform);
             groundCheckObj.transform.localPosition = new Vector3(0, -0.5f, 0);
             groundCheck = groundCheckObj.transform;
+            Debug.Log("PlayerController: GroundCheck created automatically");
         }
         
         // Set initial sprite
@@ -48,13 +63,41 @@ public class PlayerController : MonoBehaviour
     
     void Update()
     {
-        // Get input
-        moveInput = Input.GetAxisRaw("Horizontal");
+        // Safety check
+        if (rb == null) return;
         
-        // Jump input
-        if (Input.GetButtonDown("Jump") && isGrounded)
+        // Get input using new Input System
+        moveInput = 0f;
+        
+        // Check keyboard input using new Input System
+        if (Keyboard.current != null)
         {
-            Jump();
+            // Left movement
+            if (Keyboard.current.leftArrowKey.isPressed || Keyboard.current.aKey.isPressed)
+            {
+                moveInput = -1f;
+            }
+            // Right movement
+            else if (Keyboard.current.rightArrowKey.isPressed || Keyboard.current.dKey.isPressed)
+            {
+                moveInput = 1f;
+            }
+            
+            // Jump input - Space key or Up Arrow
+            if ((Keyboard.current.spaceKey.wasPressedThisFrame || Keyboard.current.upArrowKey.wasPressedThisFrame) && isGrounded)
+            {
+                Jump();
+            }
+        }
+        
+        // Check if grounded (check in Update for responsive jump)
+        if (groundCheck != null)
+        {
+            isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+        }
+        else
+        {
+            isGrounded = false; // If no ground check, assume not grounded
         }
         
         // Update sprite based on state
@@ -63,20 +106,31 @@ public class PlayerController : MonoBehaviour
     
     void FixedUpdate()
     {
-        // Check if grounded
-        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+        // Safety check
+        if (rb == null) return;
         
-        // Move player
-        rb.linearVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
+        // Move player in FixedUpdate for smooth physics
+        // Apply movement regardless of grounded state (movement should work even in air)
+        Vector2 newVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
+        rb.linearVelocity = newVelocity;
+        
+        // Debug: Log movement when input is detected (remove after testing)
+        if (Mathf.Abs(moveInput) > 0.1f)
+        {
+            Debug.Log($"PlayerController: Moving! Input: {moveInput}, Velocity: {rb.linearVelocity}");
+        }
         
         // Flip sprite based on movement direction
-        if (moveInput > 0)
+        if (spriteRenderer != null)
         {
-            spriteRenderer.flipX = false;
-        }
-        else if (moveInput < 0)
-        {
-            spriteRenderer.flipX = true;
+            if (moveInput > 0)
+            {
+                spriteRenderer.flipX = false;
+            }
+            else if (moveInput < 0)
+            {
+                spriteRenderer.flipX = true;
+            }
         }
         
         // Update walking state
@@ -86,7 +140,12 @@ public class PlayerController : MonoBehaviour
     
     void Jump()
     {
+        // Safety check
+        if (rb == null) return;
+        
+        // Apply jump force directly
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+        Debug.Log("PlayerController: Jump executed!");
     }
     
     void UpdateSprite()
