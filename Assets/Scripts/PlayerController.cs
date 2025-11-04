@@ -17,6 +17,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Sprite walkSprite1;
     [SerializeField] private Sprite walkSprite2;
     [SerializeField] private Sprite jumpSprite;
+    [SerializeField] private Sprite hangSprite;
     
     private Rigidbody2D rb;
     private SpriteRenderer spriteRenderer;
@@ -25,6 +26,7 @@ public class PlayerController : MonoBehaviour
     private float walkAnimationTimer = 0f;
     private bool isWalking = false;
     private bool isJumping = false;
+    private bool isJumpingHorizontally = false;
     
     void Start()
     {
@@ -136,6 +138,11 @@ public class PlayerController : MonoBehaviour
         // Update walking state
         isWalking = Mathf.Abs(moveInput) > 0.1f && isGrounded;
         isJumping = !isGrounded;
+        
+        // Check if jumping horizontally (has horizontal movement or velocity while in air)
+        // Check both input and velocity to handle momentum
+        float horizontalVelocity = Mathf.Abs(rb.linearVelocity.x);
+        isJumpingHorizontally = isJumping && (Mathf.Abs(moveInput) > 0.1f || horizontalVelocity > 0.5f);
     }
     
     void Jump()
@@ -152,9 +159,15 @@ public class PlayerController : MonoBehaviour
     {
         if (isJumping)
         {
-            // Show jump sprite
-            if (jumpSprite != null)
+            // Check if jumping horizontally (left or right)
+            if (isJumpingHorizontally && hangSprite != null)
             {
+                // Show hang sprite when jumping left or right
+                spriteRenderer.sprite = hangSprite;
+            }
+            else if (jumpSprite != null)
+            {
+                // Show regular jump sprite when jumping straight up
                 spriteRenderer.sprite = jumpSprite;
             }
         }

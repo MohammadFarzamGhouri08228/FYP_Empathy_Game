@@ -486,10 +486,11 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 1
-  idleSprite: {fileID: 0}
-  walkSprite1: {fileID: 0}
-  walkSprite2: {fileID: 0}
-  jumpSprite: {fileID: 0}
+  idleSprite: {fileID: -5115618752126089108, guid: 6fc03813c5b3f0d4f84da6d38cffd7e6, type: 3}
+  walkSprite1: {fileID: 2565330977505109439, guid: 7cdf7dc0fe5f2204fa78159b03e09173, type: 3}
+  walkSprite2: {fileID: -6119263236114623818, guid: 7c839e19c938bf04f876b5ad14578bf2, type: 3}
+  jumpSprite: {fileID: 4330694004763997605, guid: bb9725fb9a0f70e4da583c07976337f8, type: 3}
+  hangSprite: {fileID: 6130671123826414140, guid: ee8e4d20d0629bd49a9f036605113fcd, type: 3}
 --- !u!1 &4000000000
 GameObject:
   m_ObjectHideFlags: 0
