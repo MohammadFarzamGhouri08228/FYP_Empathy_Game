@@ -1,5 +1,6 @@
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.EventSystems;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem.UI;
@@ -10,11 +11,11 @@ public static class SetupMobileButtons
 	[MenuItem("Tools/Buttons/Setup Mobile Control Buttons")]
 	public static void Setup()
 	{
-		// Find PlayerController
-		PlayerController playerController = Object.FindFirstObjectByType<PlayerController>();
-		if (playerController == null)
+		// Find PlayerMovementController
+		PlayerMovementController playerMovementController = Object.FindFirstObjectByType<PlayerMovementController>();
+		if (playerMovementController == null)
 		{
-			EditorUtility.DisplayDialog("Error", "PlayerController not found in the scene! Please add a PlayerController first.", "OK");
+			EditorUtility.DisplayDialog("Error", "PlayerMovementController not found in the scene! Please add a PlayerMovementController first.", "OK");
 			return;
 		}
 
@@ -43,7 +44,7 @@ public static class SetupMobileButtons
 		// Setup Left Button
 		if (leftButton != null)
 		{
-			SetupMovementButton(leftButton.gameObject, playerController, -1f);
+			SetupMovementButton(leftButton.gameObject, playerMovementController, -1f);
 			Debug.Log("Left button setup complete!");
 		}
 		else
@@ -55,7 +56,7 @@ public static class SetupMobileButtons
 		// Setup Right Button
 		if (rightButton != null)
 		{
-			SetupMovementButton(rightButton.gameObject, playerController, 1f);
+			SetupMovementButton(rightButton.gameObject, playerMovementController, 1f);
 			Debug.Log("Right button setup complete!");
 		}
 		else
@@ -67,7 +68,7 @@ public static class SetupMobileButtons
 		// Setup Jump Button
 		if (jumpButton != null)
 		{
-			SetupJumpButton(jumpButton.gameObject, playerController);
+			SetupJumpButton(jumpButton.gameObject, playerMovementController);
 			Debug.Log("Jump button setup complete!");
 		}
 		else
@@ -78,7 +79,7 @@ public static class SetupMobileButtons
 
 		if (setupComplete)
 		{
-			EditorUtility.DisplayDialog("Setup Complete", "All buttons have been configured!\n\nMake sure:\n1. Buttons have SpriteRenderer components\n2. Buttons have Collider2D components (auto-added if missing)\n3. PlayerController is assigned (auto-assigned)", "OK");
+			EditorUtility.DisplayDialog("Setup Complete", "All buttons have been configured!\n\nMake sure:\n1. Buttons have SpriteRenderer components\n2. Buttons have Collider2D components (auto-added if missing)\n3. PlayerMovementController is assigned (auto-assigned)", "OK");
 		}
 		else
 		{
@@ -113,7 +114,7 @@ public static class SetupMobileButtons
 		return null;
 	}
 
-	private static void SetupMovementButton(GameObject buttonObj, PlayerController playerController, float direction)
+	private static void SetupMovementButton(GameObject buttonObj, PlayerMovementController playerMovementController, float direction)
 	{
 		// Remove existing MovementButton if any
 		MovementButton existing = buttonObj.GetComponent<MovementButton>();
@@ -128,7 +129,7 @@ public static class SetupMobileButtons
 		// Set up serialized fields
 		SerializedObject serialized = new SerializedObject(movementButton);
 		serialized.FindProperty("moveDirection").floatValue = direction;
-		serialized.FindProperty("playerController").objectReferenceValue = playerController;
+		serialized.FindProperty("playerMovementController").objectReferenceValue = playerMovementController;
 		
 		// Try to find SpriteRenderer
 		SpriteRenderer sr = buttonObj.GetComponent<SpriteRenderer>();
@@ -149,9 +150,16 @@ public static class SetupMobileButtons
 				col.offset = sr.sprite.bounds.center;
 			}
 		}
+
+		// Ensure Button component exists (for onClick)
+		if (buttonObj.GetComponent<Button>() == null)
+		{
+			buttonObj.AddComponent<Button>();
+			Debug.Log($"Added Button component to {buttonObj.name}");
+		}
 	}
 
-	private static void SetupJumpButton(GameObject buttonObj, PlayerController playerController)
+	private static void SetupJumpButton(GameObject buttonObj, PlayerMovementController playerMovementController)
 	{
 		// Remove existing JumpButton if any
 		JumpButton existing = buttonObj.GetComponent<JumpButton>();
@@ -165,7 +173,7 @@ public static class SetupMobileButtons
 		
 		// Set up serialized fields
 		SerializedObject serialized = new SerializedObject(jumpButton);
-		serialized.FindProperty("playerController").objectReferenceValue = playerController;
+		serialized.FindProperty("playerMovementController").objectReferenceValue = playerMovementController;
 		
 		// Try to find SpriteRenderer
 		SpriteRenderer sr = buttonObj.GetComponent<SpriteRenderer>();
@@ -185,6 +193,13 @@ public static class SetupMobileButtons
 				col.size = sr.sprite.bounds.size;
 				col.offset = sr.sprite.bounds.center;
 			}
+		}
+
+		// Ensure Button component exists (for onClick)
+		if (buttonObj.GetComponent<Button>() == null)
+		{
+			buttonObj.AddComponent<Button>();
+			Debug.Log($"Added Button component to {buttonObj.name}");
 		}
 	}
 }

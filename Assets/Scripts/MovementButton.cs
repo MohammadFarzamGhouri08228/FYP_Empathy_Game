@@ -1,51 +1,103 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
-#if ENABLE_INPUT_SYSTEM
-using UnityEngine.InputSystem.UI;
+using UnityEngine.UI;
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.Events;
 #endif
 
-public class MovementButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
+public class MovementButton : MonoBehaviour
 {
 	[Header("Button Settings")]
 	[SerializeField] private float moveDirection = 1f; // 1 for Right, -1 for Left
-	[SerializeField] private PlayerController playerController;
+	[SerializeField] private PlayerMovementController playerMovementController;
 
 	[Header("Visual Feedback")]
 	[SerializeField] private SpriteRenderer spriteRenderer;
 	[SerializeField] private Color normalColor = Color.white;
 	[SerializeField] private Color pressedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
 
-	private bool isPressed = false;
+	private Button button;
+	private bool isMoving = false;
+
+	void Reset()
+	{
+		#if UNITY_EDITOR
+		// Clean up onClick when component is first added
+		button = GetComponent<Button>();
+		if (button != null)
+		{
+			int eventCount = button.onClick.GetPersistentEventCount();
+			for (int i = eventCount - 1; i >= 0; i--)
+			{
+				UnityEventTools.RemovePersistentListener(button.onClick, i);
+			}
+			UnityEventTools.AddPersistentListener(button.onClick, ToggleMovement);
+			EditorUtility.SetDirty(button);
+		}
+		#endif
+	}
+
+	void OnValidate()
+	{
+		#if UNITY_EDITOR
+		if (!Application.isPlaying)
+		{
+			// Ensure Button component exists
+			button = GetComponent<Button>();
+			if (button == null)
+			{
+				button = gameObject.AddComponent<Button>();
+				EditorUtility.SetDirty(gameObject);
+			}
+
+			// Wire up Button.onClick in edit mode so it's visible in Inspector
+			if (button != null)
+			{
+				// Remove all existing listeners first to clean up empty entries
+				int eventCount = button.onClick.GetPersistentEventCount();
+				for (int i = eventCount - 1; i >= 0; i--)
+				{
+					UnityEventTools.RemovePersistentListener(button.onClick, i);
+				}
+				
+				// Add only our listener
+				UnityEventTools.AddPersistentListener(button.onClick, ToggleMovement);
+				EditorUtility.SetDirty(button);
+			}
+		}
+		#endif
+	}
 
 	void Start()
 	{
-		// Ensure EventSystem exists
-		if (EventSystem.current == null)
+		// Find PlayerMovementController if not assigned (look for it on the Player GameObject)
+		if (playerMovementController == null)
 		{
-			GameObject es = new GameObject("EventSystem");
-			es.AddComponent<EventSystem>();
-			
-			#if ENABLE_INPUT_SYSTEM
-			es.AddComponent<InputSystemUIInputModule>();
-			Debug.Log("MovementButton: Created EventSystem with InputSystemUIInputModule");
-			#else
-			es.AddComponent<StandaloneInputModule>();
-			Debug.Log("MovementButton: Created EventSystem with StandaloneInputModule");
-			#endif
-		}
-
-		// Find PlayerController if not assigned
-		if (playerController == null)
-		{
-			playerController = FindFirstObjectByType<PlayerController>();
-			if (playerController == null)
+			// Try to find Player GameObject first
+			GameObject playerObj = GameObject.Find("Player");
+			if (playerObj != null)
 			{
-				Debug.LogError($"MovementButton [{gameObject.name}]: PlayerController not found! Please assign it in the Inspector or ensure a PlayerController exists in the scene.");
+				playerMovementController = playerObj.GetComponent<PlayerMovementController>();
+			}
+			
+			// If still not found, search all GameObjects
+			if (playerMovementController == null)
+			{
+				playerMovementController = FindFirstObjectByType<PlayerMovementController>();
+			}
+			
+			if (playerMovementController == null)
+			{
+				Debug.LogError($"MovementButton [{gameObject.name}]: PlayerMovementController not found! Please assign it in the Inspector.");
 			}
 			else
 			{
-				Debug.Log($"MovementButton [{gameObject.name}]: Found PlayerController automatically");
+				Debug.Log($"MovementButton [{gameObject.name}]: Found PlayerMovementController automatically on '{playerMovementController.gameObject.name}'");
 			}
+		}
+		else
+		{
+			Debug.Log($"MovementButton [{gameObject.name}]: Using manually assigned PlayerMovementController on '{playerMovementController.gameObject.name}'");
 		}
 
 		// Get SpriteRenderer if not assigned
@@ -54,11 +106,10 @@ public class MovementButton : MonoBehaviour, IPointerDownHandler, IPointerUpHand
 			spriteRenderer = GetComponent<SpriteRenderer>();
 		}
 
-		// Ensure there's a Collider2D for touch detection
+		// Ensure there's a Collider2D for button detection
 		Collider2D col = GetComponent<Collider2D>();
 		if (col == null)
 		{
-			// Add BoxCollider2D if sprite exists
 			if (spriteRenderer != null && spriteRenderer.sprite != null)
 			{
 				BoxCollider2D boxCol = gameObject.AddComponent<BoxCollider2D>();
@@ -73,94 +124,125 @@ public class MovementButton : MonoBehaviour, IPointerDownHandler, IPointerUpHand
 				boxCol.size = Vector2.one;
 			}
 		}
-		else
+
+		// Get or add Button component
+		button = GetComponent<Button>();
+		if (button == null)
 		{
-			Debug.Log($"MovementButton [{gameObject.name}]: Found existing Collider2D ({col.GetType().Name})");
+			// Add Button component for onClick functionality
+			button = gameObject.AddComponent<Button>();
+			Debug.Log($"MovementButton [{gameObject.name}]: Added Button component");
 		}
+
+		// Wire up onClick event
+		button.onClick.RemoveAllListeners();
+		button.onClick.AddListener(ToggleMovement);
+		
+		Debug.Log($"MovementButton [{gameObject.name}]: Button.onClick wired up to ToggleMovement()");
 	}
 
-	public void OnPointerDown(PointerEventData eventData)
+	// Meaningful function name for Button.onClick - Toggles movement on/off
+	public void ToggleMovement()
 	{
-		isPressed = true;
 		string direction = moveDirection > 0 ? "RIGHT" : "LEFT";
 		Debug.Log($"=== BUTTON CLICKED: {direction} BUTTON [{gameObject.name}] ===");
 		Debug.Log($"  - Button Name: {gameObject.name}");
 		Debug.Log($"  - Move Direction: {moveDirection}");
-		Debug.Log($"  - PlayerController Reference: {(playerController != null ? "ASSIGNED" : "NULL - ERROR!")}");
-		Debug.Log($"  - EventSystem: {(EventSystem.current != null ? "EXISTS" : "MISSING")}");
-		Debug.Log($"  - Collider2D: {(GetComponent<Collider2D>() != null ? "EXISTS" : "MISSING")}");
+		Debug.Log($"  - PlayerMovementController Reference: {(playerMovementController != null ? $"ASSIGNED ({playerMovementController.gameObject.name})" : "NULL - ERROR!")}");
+		Debug.Log($"  - Current Movement State: {(isMoving ? "MOVING" : "STOPPED")}");
 		
-		if (playerController != null)
+		if (playerMovementController != null)
 		{
-			playerController.SetMoveInput(moveDirection);
-			Debug.Log($"  ✓ Successfully sent movement command to PlayerController");
+			// Toggle movement: if currently moving in this direction, stop. Otherwise, start moving.
+			if (isMoving)
+			{
+				// Stop movement
+				if (moveDirection > 0)
+				{
+					playerMovementController.OnRightButtonUp();
+				}
+				else
+				{
+					playerMovementController.OnLeftButtonUp();
+				}
+				isMoving = false;
+				Debug.Log($"  ✓ STOPPED movement - Player will stop moving {direction}");
+			}
+			else
+			{
+				// Start movement
+				if (moveDirection > 0)
+				{
+					playerMovementController.OnRightButtonDown();
+				}
+				else
+				{
+					playerMovementController.OnLeftButtonDown();
+				}
+				isMoving = true;
+				Debug.Log($"  ✓ STARTED movement - Player will move {direction}");
+			}
 		}
 		else
 		{
-			Debug.LogError($"  ✗ ERROR: PlayerController is NULL! Cannot move player.");
-			Debug.LogError($"  → SOLUTION: Assign PlayerController in Inspector or ensure one exists in scene.");
+			Debug.LogError($"  ✗ ERROR: PlayerMovementController is NULL! Cannot move player.");
+			Debug.LogError($"  → SOLUTION: Assign PlayerMovementController in Inspector to the Player GameObject.");
 		}
 
 		// Visual feedback
 		if (spriteRenderer != null)
 		{
-			spriteRenderer.color = pressedColor;
+			spriteRenderer.color = isMoving ? pressedColor : normalColor;
 		}
 	}
 
-	public void OnPointerUp(PointerEventData eventData)
+	// Alternative function names for direct assignment (if you want separate start/stop buttons)
+	public void StartMovement()
 	{
-		isPressed = false;
-		string direction = moveDirection > 0 ? "RIGHT" : "LEFT";
-		Debug.Log($"=== BUTTON RELEASED: {direction} BUTTON [{gameObject.name}] ===");
-		
-		if (playerController != null)
+		if (!isMoving && playerMovementController != null)
 		{
-			playerController.SetMoveInput(0f); // Stop movement
-			Debug.Log($"  ✓ Stopped movement command sent to PlayerController");
-		}
-
-		// Visual feedback
-		if (spriteRenderer != null)
-		{
-			spriteRenderer.color = normalColor;
+			if (moveDirection > 0)
+			{
+				playerMovementController.OnRightButtonDown();
+			}
+			else
+			{
+				playerMovementController.OnLeftButtonDown();
+			}
+			isMoving = true;
+			if (spriteRenderer != null)
+			{
+				spriteRenderer.color = pressedColor;
+			}
 		}
 	}
 
-	public void OnPointerExit(PointerEventData eventData)
+	public void StopMovement()
 	{
-		// Stop movement if pointer exits button while pressed
-		if (isPressed)
+		if (isMoving && playerMovementController != null)
 		{
-			OnPointerUp(eventData);
+			if (moveDirection > 0)
+			{
+				playerMovementController.OnRightButtonUp();
+			}
+			else
+			{
+				playerMovementController.OnLeftButtonUp();
+			}
+			isMoving = false;
+			if (spriteRenderer != null)
+			{
+				spriteRenderer.color = normalColor;
+			}
 		}
 	}
 
 	void OnDisable()
 	{
-		// Ensure movement stops when button is disabled
-		if (isPressed && playerController != null)
+		// Stop movement when button is disabled
+		if (isMoving && playerMovementController != null)
 		{
-			playerController.SetMoveInput(0f);
-			isPressed = false;
-		}
-	}
-
-	// For legacy OnMouseDown support (works without EventSystem, but less reliable on mobile)
-	void OnMouseDown()
-	{
-		if (EventSystem.current == null || EventSystem.current.currentSelectedGameObject == null)
-		{
-			OnPointerDown(null);
-		}
-	}
-
-	void OnMouseUp()
-	{
-		if (EventSystem.current == null || EventSystem.current.currentSelectedGameObject == null)
-		{
-			OnPointerUp(null);
+			StopMovement();
 		}
 	}
 }
-

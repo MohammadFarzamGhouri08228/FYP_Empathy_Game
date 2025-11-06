@@ -1,13 +1,15 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
-#if ENABLE_INPUT_SYSTEM
-using UnityEngine.InputSystem.UI;
+using UnityEngine.UI;
+using System.Collections;
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.Events;
 #endif
 
-public class JumpButton : MonoBehaviour, IPointerDownHandler
+public class JumpButton : MonoBehaviour
 {
 	[Header("Button Settings")]
-	[SerializeField] private PlayerController playerController;
+	[SerializeField] private PlayerMovementController playerMovementController;
 
 	[Header("Visual Feedback")]
 	[SerializeField] private SpriteRenderer spriteRenderer;
@@ -15,37 +17,88 @@ public class JumpButton : MonoBehaviour, IPointerDownHandler
 	[SerializeField] private Color pressedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
 	[SerializeField] private float pressDuration = 0.1f;
 
+	private Button button;
 	private float pressTimer = 0f;
+
+	void Reset()
+	{
+		#if UNITY_EDITOR
+		// Clean up onClick when component is first added
+		button = GetComponent<Button>();
+		if (button != null)
+		{
+			int eventCount = button.onClick.GetPersistentEventCount();
+			for (int i = eventCount - 1; i >= 0; i--)
+			{
+				UnityEventTools.RemovePersistentListener(button.onClick, i);
+			}
+			UnityEventTools.AddPersistentListener(button.onClick, ExecuteJump);
+			EditorUtility.SetDirty(button);
+		}
+		#endif
+	}
+
+	void OnValidate()
+	{
+		#if UNITY_EDITOR
+		if (!Application.isPlaying)
+		{
+			// Ensure Button component exists
+			button = GetComponent<Button>();
+			if (button == null)
+			{
+				button = gameObject.AddComponent<Button>();
+				EditorUtility.SetDirty(gameObject);
+			}
+
+			// Wire up Button.onClick in edit mode so it's visible in Inspector
+			if (button != null)
+			{
+				// Remove all existing listeners first to clean up empty entries
+				int eventCount = button.onClick.GetPersistentEventCount();
+				for (int i = eventCount - 1; i >= 0; i--)
+				{
+					UnityEventTools.RemovePersistentListener(button.onClick, i);
+				}
+				
+				// Add only our listener
+				UnityEventTools.AddPersistentListener(button.onClick, ExecuteJump);
+				EditorUtility.SetDirty(button);
+			}
+		}
+		#endif
+	}
 
 	void Start()
 	{
-		// Ensure EventSystem exists
-		if (EventSystem.current == null)
+		// Find PlayerMovementController if not assigned (look for it on the Player GameObject)
+		if (playerMovementController == null)
 		{
-			GameObject es = new GameObject("EventSystem");
-			es.AddComponent<EventSystem>();
-			
-			#if ENABLE_INPUT_SYSTEM
-			es.AddComponent<InputSystemUIInputModule>();
-			Debug.Log("JumpButton: Created EventSystem with InputSystemUIInputModule");
-			#else
-			es.AddComponent<StandaloneInputModule>();
-			Debug.Log("JumpButton: Created EventSystem with StandaloneInputModule");
-			#endif
-		}
-
-		// Find PlayerController if not assigned
-		if (playerController == null)
-		{
-			playerController = FindFirstObjectByType<PlayerController>();
-			if (playerController == null)
+			// Try to find Player GameObject first
+			GameObject playerObj = GameObject.Find("Player");
+			if (playerObj != null)
 			{
-				Debug.LogError($"JumpButton [{gameObject.name}]: PlayerController not found! Please assign it in the Inspector or ensure a PlayerController exists in the scene.");
+				playerMovementController = playerObj.GetComponent<PlayerMovementController>();
+			}
+			
+			// If still not found, search all GameObjects
+			if (playerMovementController == null)
+			{
+				playerMovementController = FindFirstObjectByType<PlayerMovementController>();
+			}
+			
+			if (playerMovementController == null)
+			{
+				Debug.LogError($"JumpButton [{gameObject.name}]: PlayerMovementController not found! Please assign it in the Inspector.");
 			}
 			else
 			{
-				Debug.Log($"JumpButton [{gameObject.name}]: Found PlayerController automatically");
+				Debug.Log($"JumpButton [{gameObject.name}]: Found PlayerMovementController automatically on '{playerMovementController.gameObject.name}'");
 			}
+		}
+		else
+		{
+			Debug.Log($"JumpButton [{gameObject.name}]: Using manually assigned PlayerMovementController on '{playerMovementController.gameObject.name}'");
 		}
 
 		// Get SpriteRenderer if not assigned
@@ -54,11 +107,10 @@ public class JumpButton : MonoBehaviour, IPointerDownHandler
 			spriteRenderer = GetComponent<SpriteRenderer>();
 		}
 
-		// Ensure there's a Collider2D for touch detection
+		// Ensure there's a Collider2D for button detection
 		Collider2D col = GetComponent<Collider2D>();
 		if (col == null)
 		{
-			// Add BoxCollider2D if sprite exists
 			if (spriteRenderer != null && spriteRenderer.sprite != null)
 			{
 				BoxCollider2D boxCol = gameObject.AddComponent<BoxCollider2D>();
@@ -73,10 +125,21 @@ public class JumpButton : MonoBehaviour, IPointerDownHandler
 				boxCol.size = Vector2.one;
 			}
 		}
-		else
+
+		// Get or add Button component
+		button = GetComponent<Button>();
+		if (button == null)
 		{
-			Debug.Log($"JumpButton [{gameObject.name}]: Found existing Collider2D ({col.GetType().Name})");
+			// Add Button component for onClick functionality
+			button = gameObject.AddComponent<Button>();
+			Debug.Log($"JumpButton [{gameObject.name}]: Added Button component");
 		}
+
+		// Wire up onClick event with meaningful function name
+		button.onClick.RemoveAllListeners();
+		button.onClick.AddListener(ExecuteJump);
+		
+		Debug.Log($"JumpButton [{gameObject.name}]: Button.onClick wired up to ExecuteJump()");
 	}
 
 	void Update()
@@ -92,23 +155,27 @@ public class JumpButton : MonoBehaviour, IPointerDownHandler
 		}
 	}
 
-	public void OnPointerDown(PointerEventData eventData)
+	// Meaningful function name for Button.onClick - Executes jump action
+	public void ExecuteJump()
 	{
 		Debug.Log($"=== BUTTON CLICKED: JUMP BUTTON [{gameObject.name}] ===");
 		Debug.Log($"  - Button Name: {gameObject.name}");
-		Debug.Log($"  - PlayerController Reference: {(playerController != null ? "ASSIGNED" : "NULL - ERROR!")}");
-		Debug.Log($"  - EventSystem: {(EventSystem.current != null ? "EXISTS" : "MISSING")}");
-		Debug.Log($"  - Collider2D: {(GetComponent<Collider2D>() != null ? "EXISTS" : "MISSING")}");
+		Debug.Log($"  - PlayerMovementController Reference: {(playerMovementController != null ? $"ASSIGNED ({playerMovementController.gameObject.name})" : "NULL - ERROR!")}");
 		
-		if (playerController != null)
+		if (playerMovementController != null)
 		{
-			playerController.OnJumpButtonPressed();
-			Debug.Log($"  ✓ Successfully sent jump command to PlayerController");
+			// Call jump button down to initiate jump
+			playerMovementController.OnJumpButtonDown();
+			Debug.Log($"  ✓ Jump command sent (OnJumpButtonDown called)");
+			
+			// Call jump button up after a short delay to reset jump state
+			// This ensures the jump happens in FixedUpdate before we reset it
+			StartCoroutine(ResetJumpState());
 		}
 		else
 		{
-			Debug.LogError($"  ✗ ERROR: PlayerController is NULL! Cannot jump.");
-			Debug.LogError($"  → SOLUTION: Assign PlayerController in Inspector or ensure one exists in scene.");
+			Debug.LogError($"  ✗ ERROR: PlayerMovementController is NULL! Cannot jump.");
+			Debug.LogError($"  → SOLUTION: Assign PlayerMovementController in Inspector to the Player GameObject.");
 		}
 
 		// Visual feedback
@@ -119,13 +186,16 @@ public class JumpButton : MonoBehaviour, IPointerDownHandler
 		}
 	}
 
-	// For legacy OnMouseDown support (works without EventSystem, but less reliable on mobile)
-	void OnMouseDown()
+	private IEnumerator ResetJumpState()
 	{
-		if (EventSystem.current == null || EventSystem.current.currentSelectedGameObject == null)
+		// Wait a frame to ensure FixedUpdate has processed the jump
+		yield return new WaitForFixedUpdate();
+		
+		// Reset jump state
+		if (playerMovementController != null)
 		{
-			OnPointerDown(null);
+			playerMovementController.OnJumpButtonUp();
+			Debug.Log($"  ✓ Jump state reset (OnJumpButtonUp called)");
 		}
 	}
 }
-

@@ -24,6 +24,8 @@ public class PlayerController : MonoBehaviour
     private bool isGrounded;
     private float moveInput;
     private float buttonMoveInput = 0f; // Input from buttons (mobile)
+    private float currentButtonMoveDirection = 0f; // Stores the last direction from a button click
+    private bool isMovingWithButton = false; // Tracks if player is currently moving due to button click
     private float walkAnimationTimer = 0f;
     private bool isWalking = false;
     private bool isJumping = false;
@@ -94,11 +96,9 @@ public class PlayerController : MonoBehaviour
         }
         
         // Combine keyboard input with button input (buttons take priority if pressed)
-        if (Mathf.Abs(buttonMoveInput) > 0.1f)
+        if (isMovingWithButton && Mathf.Abs(buttonMoveInput) > 0.1f)
         {
             moveInput = buttonMoveInput;
-            // Debug movement input every frame when button is pressed (can be verbose, comment out if too much)
-            // Debug.Log($"PlayerController: Using button input: {moveInput}");
         }
         
         // Check if grounded (check in Update for responsive jump)
@@ -213,14 +213,38 @@ public class PlayerController : MonoBehaviour
     }
     
     // Public methods for button input (mobile controls)
-    public void SetMoveInput(float input)
+    public void SetMoveInput(float inputDirection)
     {
-        buttonMoveInput = Mathf.Clamp(input, -1f, 1f);
-        string direction = buttonMoveInput > 0 ? "RIGHT" : buttonMoveInput < 0 ? "LEFT" : "STOP";
-        Debug.Log($"  → PlayerController.SetMoveInput() called");
-        Debug.Log($"    - Input Value: {buttonMoveInput}");
-        Debug.Log($"    - Direction: {direction}");
-        Debug.Log($"    - Will be applied in FixedUpdate()");
+        // If the input direction is different from the current moving direction, or if we are not moving
+        if (inputDirection != 0f && inputDirection != currentButtonMoveDirection)
+        {
+            // Start new movement direction
+            currentButtonMoveDirection = inputDirection;
+            isMovingWithButton = true;
+            buttonMoveInput = currentButtonMoveDirection;
+            string direction = inputDirection > 0 ? "RIGHT" : "LEFT";
+            Debug.Log($"  → PlayerController.SetMoveInput() called - Started moving {direction}");
+            Debug.Log($"    - Input Value: {buttonMoveInput}");
+            Debug.Log($"    - Will be applied in FixedUpdate()");
+        }
+        else if (inputDirection != 0f && inputDirection == currentButtonMoveDirection)
+        {
+            // If the same button is clicked again, stop movement (toggle)
+            currentButtonMoveDirection = 0f;
+            isMovingWithButton = false;
+            buttonMoveInput = 0f;
+            string direction = inputDirection > 0 ? "RIGHT" : "LEFT";
+            Debug.Log($"  → PlayerController.SetMoveInput() called - Toggled OFF {direction}");
+            Debug.Log($"    - Movement stopped");
+        }
+        else if (inputDirection == 0f)
+        {
+            // Explicitly stop movement
+            currentButtonMoveDirection = 0f;
+            isMovingWithButton = false;
+            buttonMoveInput = 0f;
+            Debug.Log($"  → PlayerController.SetMoveInput() called - Explicitly stopped movement");
+        }
     }
     
     public void OnJumpButtonPressed()
