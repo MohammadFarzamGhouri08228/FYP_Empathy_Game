@@ -87,12 +87,24 @@ public class PlayerController : MonoBehaviour
             {
                 moveInput = 1f;
             }
+            // Up movement
+            if (Keyboard.current.upArrowKey.isPressed || Keyboard.current.wKey.isPressed)
+            {
+                moveInput = 1f;
+            }
+            // Down movement
+            if (Keyboard.current.downArrowKey.isPressed || Keyboard.current.sKey.isPressed)
+            {
+                moveInput = -1f;
+            }
+
             
             // Jump input - Space key or Up Arrow
             if ((Keyboard.current.spaceKey.wasPressedThisFrame || Keyboard.current.upArrowKey.wasPressedThisFrame) && isGrounded)
             {
                 Jump();
             }
+
         }
         
         // Combine keyboard input with button input (buttons take priority if pressed)
