@@ -36,6 +36,18 @@ public class StartMenuUI : MonoBehaviour
 			Debug.LogWarning($"StartMenuUI: This script is designed for the Start scene, but current scene is '{sceneName}'. Buttons may not appear correctly.");
 		}
 		
+		// Delay button creation to ensure canvas is fully initialized
+		StartCoroutine(CreateButtonsDelayed());
+	}
+	
+	private System.Collections.IEnumerator CreateButtonsDelayed()
+	{
+		// Wait for end of frame to ensure canvas is fully set up
+		yield return new WaitForEndOfFrame();
+		
+		// Force canvas update before creating buttons
+		Canvas.ForceUpdateCanvases();
+		
 		CreateButtons();
 	}
 
@@ -51,11 +63,28 @@ public class StartMenuUI : MonoBehaviour
 			CanvasScaler scaler = canvasObj.GetComponent<CanvasScaler>();
 			scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
 			scaler.referenceResolution = new Vector2(1920, 1080);
+			scaler.matchWidthOrHeight = 0.5f; // Match both width and height
+			scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+			
+			// Force canvas to update immediately
+			Canvas.ForceUpdateCanvases();
 			
 			Debug.Log("StartMenuUI: Canvas created successfully");
 		}
 		else
 		{
+			// Ensure existing canvas has proper scaler settings
+			CanvasScaler existingScaler = canvas.GetComponent<CanvasScaler>();
+			if (existingScaler != null)
+			{
+				existingScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+				existingScaler.matchWidthOrHeight = 0.5f;
+				existingScaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+			}
+			
+			// Force canvas to update
+			Canvas.ForceUpdateCanvases();
+			
 			Debug.Log("StartMenuUI: Using existing Canvas");
 		}
 
@@ -103,6 +132,30 @@ public class StartMenuUI : MonoBehaviour
 		rt.anchorMax = new Vector2(0.5f, 0.5f);
 		rt.pivot = new Vector2(0.5f, 0.5f);
 		rt.anchoredPosition = anchoredPosition;
+		
+		// Ensure the button is within valid screen bounds
+		Canvas.ForceUpdateCanvases();
+		
+		// For ScreenSpaceOverlay canvas, validate anchored position directly
+		// Get canvas scaler to account for scaling
+		CanvasScaler scaler = canvas.GetComponent<CanvasScaler>();
+		if (scaler != null && scaler.uiScaleMode == CanvasScaler.ScaleMode.ScaleWithScreenSize)
+		{
+			// Calculate effective screen bounds considering canvas scaling
+			float scaleFactor = canvas.scaleFactor;
+			float maxX = (Screen.width / scaleFactor) * 0.4f;
+			float maxY = (Screen.height / scaleFactor) * 0.4f;
+			
+			// Clamp position to be within reasonable bounds to prevent view frustum errors
+			if (Mathf.Abs(anchoredPosition.x) > maxX || Mathf.Abs(anchoredPosition.y) > maxY)
+			{
+				Debug.LogWarning($"StartMenuUI: Button '{name}' position adjusted to prevent view frustum errors.");
+				rt.anchoredPosition = new Vector2(
+					Mathf.Clamp(anchoredPosition.x, -maxX, maxX),
+					Mathf.Clamp(anchoredPosition.y, -maxY, maxY)
+				);
+			}
+		}
 
 		Image img = buttonObj.GetComponent<Image>();
 		if (buttonSprite != null)
