@@ -32,20 +32,36 @@ public class PlayerController2 : MonoBehaviour
             if (Keyboard.current.leftArrowKey.isPressed || Keyboard.current.aKey.isPressed)
             {
                 moveInput.x = -1f;
+                if (Keyboard.current.leftArrowKey.wasPressedThisFrame || Keyboard.current.aKey.wasPressedThisFrame)
+                {
+                    Debug.Log("Player moving LEFT");
+                }
             }
             else if (Keyboard.current.rightArrowKey.isPressed || Keyboard.current.dKey.isPressed)
             {
                 moveInput.x = 1f;
+                if (Keyboard.current.rightArrowKey.wasPressedThisFrame || Keyboard.current.dKey.wasPressedThisFrame)
+                {
+                    Debug.Log("Player moving RIGHT");
+                }
             }
             
             // Vertical movement (Up/Down)
             if (Keyboard.current.upArrowKey.isPressed || Keyboard.current.wKey.isPressed)
             {
                 moveInput.y = 1f;
+                if (Keyboard.current.upArrowKey.wasPressedThisFrame || Keyboard.current.wKey.wasPressedThisFrame)
+                {
+                    Debug.Log("Player moving UP");
+                }
             }
             else if (Keyboard.current.downArrowKey.isPressed || Keyboard.current.sKey.isPressed)
             {
                 moveInput.y = -1f;
+                if (Keyboard.current.downArrowKey.wasPressedThisFrame || Keyboard.current.sKey.wasPressedThisFrame)
+                {
+                    Debug.Log("Player moving DOWN");
+                }
             }
         }
     }
