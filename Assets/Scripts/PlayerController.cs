@@ -23,6 +23,9 @@ public class PlayerController : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private bool isGrounded;
     private float moveInput;
+    private float buttonMoveInput = 0f; // Input from buttons (mobile)
+    private float currentButtonMoveDirection = 0f; // Stores the last direction from a button click
+    private bool isMovingWithButton = false; // Tracks if player is currently moving due to button click
     private float walkAnimationTimer = 0f;
     private bool isWalking = false;
     private bool isJumping = false;
@@ -84,12 +87,30 @@ public class PlayerController : MonoBehaviour
             {
                 moveInput = 1f;
             }
+            // Up movement
+            if (Keyboard.current.upArrowKey.isPressed || Keyboard.current.wKey.isPressed)
+            {
+                moveInput = 1f;
+            }
+            // Down movement
+            if (Keyboard.current.downArrowKey.isPressed || Keyboard.current.sKey.isPressed)
+            {
+                moveInput = -1f;
+            }
+
             
             // Jump input - Space key or Up Arrow
             if ((Keyboard.current.spaceKey.wasPressedThisFrame || Keyboard.current.upArrowKey.wasPressedThisFrame) && isGrounded)
             {
                 Jump();
             }
+
+        }
+        
+        // Combine keyboard input with button input (buttons take priority if pressed)
+        if (isMovingWithButton && Mathf.Abs(buttonMoveInput) > 0.1f)
+        {
+            moveInput = buttonMoveInput;
         }
         
         // Check if grounded (check in Update for responsive jump)
@@ -116,10 +137,11 @@ public class PlayerController : MonoBehaviour
         Vector2 newVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
         rb.linearVelocity = newVelocity;
         
-        // Debug: Log movement when input is detected (remove after testing)
+        // Debug: Log movement when input is detected
         if (Mathf.Abs(moveInput) > 0.1f)
         {
-            Debug.Log($"PlayerController: Moving! Input: {moveInput}, Velocity: {rb.linearVelocity}");
+            string direction = moveInput > 0 ? "RIGHT" : "LEFT";
+            Debug.Log($"  → FixedUpdate: Applying movement - Direction: {direction}, Speed: {moveSpeed}, Velocity: {rb.linearVelocity}");
         }
         
         // Flip sprite based on movement direction
@@ -199,6 +221,59 @@ public class PlayerController : MonoBehaviour
                 spriteRenderer.sprite = idleSprite;
             }
             walkAnimationTimer = 0f;
+        }
+    }
+    
+    // Public methods for button input (mobile controls)
+    public void SetMoveInput(float inputDirection)
+    {
+        // If the input direction is different from the current moving direction, or if we are not moving
+        if (inputDirection != 0f && inputDirection != currentButtonMoveDirection)
+        {
+            // Start new movement direction
+            currentButtonMoveDirection = inputDirection;
+            isMovingWithButton = true;
+            buttonMoveInput = currentButtonMoveDirection;
+            string direction = inputDirection > 0 ? "RIGHT" : "LEFT";
+            Debug.Log($"  → PlayerController.SetMoveInput() called - Started moving {direction}");
+            Debug.Log($"    - Input Value: {buttonMoveInput}");
+            Debug.Log($"    - Will be applied in FixedUpdate()");
+        }
+        else if (inputDirection != 0f && inputDirection == currentButtonMoveDirection)
+        {
+            // If the same button is clicked again, stop movement (toggle)
+            currentButtonMoveDirection = 0f;
+            isMovingWithButton = false;
+            buttonMoveInput = 0f;
+            string direction = inputDirection > 0 ? "RIGHT" : "LEFT";
+            Debug.Log($"  → PlayerController.SetMoveInput() called - Toggled OFF {direction}");
+            Debug.Log($"    - Movement stopped");
+        }
+        else if (inputDirection == 0f)
+        {
+            // Explicitly stop movement
+            currentButtonMoveDirection = 0f;
+            isMovingWithButton = false;
+            buttonMoveInput = 0f;
+            Debug.Log($"  → PlayerController.SetMoveInput() called - Explicitly stopped movement");
+        }
+    }
+    
+    public void OnJumpButtonPressed()
+    {
+        Debug.Log($"  → PlayerController.OnJumpButtonPressed() called");
+        Debug.Log($"    - IsGrounded: {isGrounded}");
+        Debug.Log($"    - Rigidbody2D: {(rb != null ? "EXISTS" : "NULL - ERROR!")}");
+        
+        if (isGrounded)
+        {
+            Debug.Log($"    ✓ Player is grounded - Executing jump!");
+            Jump();
+        }
+        else
+        {
+            Debug.LogWarning($"    ✗ Cannot jump - Player is NOT grounded!");
+            Debug.LogWarning($"    → Player may be in the air or ground detection is not working correctly.");
         }
     }
     
