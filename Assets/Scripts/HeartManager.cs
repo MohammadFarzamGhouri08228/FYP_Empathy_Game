@@ -1,6 +1,8 @@
 
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System;
+
 public class HeartManager : MonoBehaviour
 {
     public int maxHealth = 4; 
@@ -11,6 +13,10 @@ public class HeartManager : MonoBehaviour
     public Sprite emptyHeart;
 
     public SpriteRenderer[] hearts; // size = 2 in inspector
+    
+    // Events for health changes (similar to HealthSystem)
+    public event Action<int, int> OnHealthChanged; // (currentHealth, maxHealth)
+    public event Action OnHealthDepleted; // When health reaches 0
 
     void Start()
     {
@@ -50,6 +56,9 @@ public class HeartManager : MonoBehaviour
         }
         
         UpdateHearts();
+        
+        // Invoke initial health event
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
     }
 
     void Update()
@@ -63,12 +72,22 @@ public class HeartManager : MonoBehaviour
 
     public void TakeDamage(int dmg)
     {
+        int previousHealth = currentHealth;
         currentHealth -= dmg;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
         UpdateHearts();
+        
+        // Invoke health changed event
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+        
+        // Check if health depleted
+        if (currentHealth <= 0)
+        {
+            OnHealthDepleted?.Invoke();
+        }
     }
 
-    void UpdateHearts()
+    public void UpdateHearts()
     {
         if (hearts == null || hearts.Length == 0)
         {
