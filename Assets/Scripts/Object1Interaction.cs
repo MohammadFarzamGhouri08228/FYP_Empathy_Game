@@ -12,6 +12,12 @@ public class Object1Interaction : MonoBehaviour
         {
             interactionCount++;
             Debug.Log($"Object1 interaction count: {interactionCount}");
+            
+            // Report to Intelligent System
+            if (AdaptiveBackend.Instance != null)
+            {
+                AdaptiveBackend.Instance.RecordInteraction("Object1", interactionCount);
+            }
         }
     }
     
@@ -23,6 +29,12 @@ public class Object1Interaction : MonoBehaviour
         {
             interactionCount++;
             Debug.Log($"Object1 interaction count: {interactionCount}");
+
+            // Report to Intelligent System
+            if (AdaptiveBackend.Instance != null)
+            {
+                AdaptiveBackend.Instance.RecordInteraction("Object1", interactionCount);
+            }
         }
     }
 }
