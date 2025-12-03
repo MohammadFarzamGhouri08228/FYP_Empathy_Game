@@ -1,8 +1,33 @@
 using UnityEngine;
+//using UnityEngine.EventSystems;
 
 public class Object1Interaction : MonoBehaviour
 {
     private int interactionCount = 0;
+    private AdaptiveBackend adaptiveBackend;
+
+    void Start()
+    {
+        // 1. Try to find the singleton instance
+        if (AdaptiveBackend.Instance != null)
+        {
+            adaptiveBackend = AdaptiveBackend.Instance;
+        }
+        else
+        {
+            // 2. Fallback: Find it in the scene if Instance isn't set yet (though Awake should have run)
+            adaptiveBackend = FindObjectOfType<AdaptiveBackend>();
+        }
+
+        if (adaptiveBackend == null)
+        {
+            Debug.LogWarning("[Object1Interaction] AdaptiveBackend not found in the scene. Intelligent features will be disabled.");
+        }
+        else
+        {
+            Debug.Log("[Object1Interaction] Successfully connected to AdaptiveBackend.");
+        }
+    }
     
     // Detect trigger collisions (for objects with IsTrigger enabled)
     void OnTriggerEnter2D(Collider2D other)
@@ -14,9 +39,9 @@ public class Object1Interaction : MonoBehaviour
             Debug.Log($"Object1 interaction count: {interactionCount}");
             
             // Report to Intelligent System
-            if (AdaptiveBackend.Instance != null)
+            if (adaptiveBackend != null)
             {
-                AdaptiveBackend.Instance.RecordInteraction("Object1", interactionCount);
+                adaptiveBackend.RecordInteraction("Object1", interactionCount);
             }
         }
     }
@@ -31,9 +56,9 @@ public class Object1Interaction : MonoBehaviour
             Debug.Log($"Object1 interaction count: {interactionCount}");
 
             // Report to Intelligent System
-            if (AdaptiveBackend.Instance != null)
+            if (adaptiveBackend != null)
             {
-                AdaptiveBackend.Instance.RecordInteraction("Object1", interactionCount);
+                adaptiveBackend.RecordInteraction("Object1", interactionCount);
             }
         }
     }
