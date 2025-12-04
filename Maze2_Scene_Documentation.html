@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze 2 Scene - System Documentation</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 1in;
+        }
+        
+        body {
+            font-family: 'Calibri', 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.6;
+            color: #000;
+            max-width: 8.5in;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1 {
+            font-size: 24pt;
+            font-weight: bold;
+            color: #1f4e78;
+            margin-top: 24pt;
+            margin-bottom: 12pt;
+            page-break-after: avoid;
+            border-bottom: 2pt solid #1f4e78;
+            padding-bottom: 6pt;
+        }
+        
+        h2 {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #2e75b6;
+            margin-top: 18pt;
+            margin-bottom: 10pt;
+            page-break-after: avoid;
+        }
+        
+        h3 {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #4472c4;
+            margin-top: 14pt;
+            margin-bottom: 8pt;
+            page-break-after: avoid;
+        }
+        
+        h4 {
+            font-size: 12pt;
+            font-weight: bold;
+            color: #5b9bd5;
+            margin-top: 12pt;
+            margin-bottom: 6pt;
+            page-break-after: avoid;
+        }
+        
+        p {
+            margin: 6pt 0;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin: 6pt 0;
+            padding-left: 30pt;
+        }
+        
+        li {
+            margin: 4pt 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12pt 0;
+            page-break-inside: avoid;
+        }
+        
+        th {
+            background-color: #4472c4;
+            color: white;
+            font-weight: bold;
+            padding: 8pt;
+            text-align: left;
+            border: 1pt solid #2e75b6;
+        }
+        
+        td {
+            padding: 6pt;
+            border: 1pt solid #d0d0d0;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        code {
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 10pt;
+            background-color: #f5f5f5;
+            padding: 2pt 4pt;
+            border: 1pt solid #d0d0d0;
+            border-radius: 3pt;
+        }
+        
+        pre {
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 9pt;
+            background-color: #f5f5f5;
+            border: 1pt solid #d0d0d0;
+            padding: 10pt;
+            margin: 10pt 0;
+            overflow-x: auto;
+            page-break-inside: avoid;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .diagram {
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 8pt;
+            background-color: #f9f9f9;
+            border: 1pt solid #d0d0d0;
+            padding: 10pt;
+            margin: 10pt 0;
+            page-break-inside: avoid;
+            white-space: pre;
+            overflow-x: auto;
+        }
+        
+        .toc {
+            margin: 20pt 0;
+            padding: 15pt;
+            background-color: #e7f3ff;
+            border-left: 4pt solid #2e75b6;
+        }
+        
+        .toc ol {
+            margin: 0;
+        }
+        
+        .class-box {
+            border: 1pt solid #4472c4;
+            margin: 10pt 0;
+            padding: 10pt;
+            background-color: #f9f9f9;
+            page-break-inside: avoid;
+        }
+        
+        .class-name {
+            font-weight: bold;
+            font-size: 12pt;
+            color: #1f4e78;
+            margin-bottom: 8pt;
+            border-bottom: 1pt solid #4472c4;
+            padding-bottom: 4pt;
+        }
+        
+        .attribute {
+            margin: 4pt 0;
+            padding-left: 10pt;
+        }
+        
+        .method {
+            margin: 4pt 0;
+            padding-left: 10pt;
+            font-style: italic;
+        }
+        
+        .section-break {
+            page-break-before: always;
+            margin-top: 30pt;
+        }
+        
+        .summary-box {
+            background-color: #fff4e6;
+            border: 2pt solid #ff9800;
+            padding: 15pt;
+            margin: 20pt 0;
+            page-break-inside: avoid;
+        }
+        
+        strong {
+            font-weight: bold;
+            color: #1f4e78;
+        }
+        
+        hr {
+            border: none;
+            border-top: 1pt solid #d0d0d0;
+            margin: 20pt 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Maze 2 Scene - System Documentation</h1>
+    
+    <div class="toc">
+        <h2>Table of Contents</h2>
+        <ol>
+            <li><a href="#software-design">Software Design</a></li>
+            <li><a href="#data-design">Data Design</a></li>
+            <li><a href="#technical-details">Technical Details</a></li>
+        </ol>
+    </div>
+    
+    <hr>
+    
+    <h1 id="software-design">Software Design</h1>
+    
+    <h2>Architecture Overview</h2>
+    <p>The Maze 2 scene implements a 2D maze exploration game using Unity's Tilemap system for maze construction. The maze layout is manually created in the Unity editor using tilemap painting tools. The system includes player movement, health management, fog of war, interactive objects (bombs, health pickups), checkpoints, and a goal location. The architecture follows Unity's component-based MonoBehaviour pattern with tilemap-based collision detection.</p>
+    
+    <h2>Architecture Diagram</h2>
+    <div class="diagram">┌─────────────────────────────────────────────────────────────┐
+│                    Maze 2 Scene System                        │
+├─────────────────────────────────────────────────────────────┤
+│                                                               │
+│  ┌──────────────┐      ┌──────────────┐      ┌─────────────┐│
+│  │   Tilemap    │──────│  Tilemap    │      │  Player     ││
+│  │   (Walls)    │      │ Collider2D  │      │ Controller  ││
+│  └──────────────┘      └──────────────┘      └─────────────┘│
+│         │                      │                    │        │
+│         │                      │                    │        │
+│  ┌──────▼──────┐      ┌────────▼────────┐   ┌──────▼──────┐ │
+│  │ Composite   │      │  Rigidbody2D   │   │  Movement   │ │
+│  │ Collider2D  │      │  (Kinematic)   │   │ Controller  │ │
+│  └─────────────┘      └─────────────────┘   └─────────────┘ │
+│                                                               │
+│  ┌──────────────┐      ┌──────────────┐      ┌─────────────┐│
+│  │   Tilemap    │      │   Tilemap    │      │   Camera    ││
+│  │   (Bombs)    │      │   (Health)   │      │   Follow   ││
+│  └──────────────┘      └──────────────┘      └─────────────┘│
+│         │                      │                    │        │
+│         │                      │                    │        │
+│  ┌──────▼──────┐      ┌────────▼────────┐   ┌──────▼──────┐ │
+│  │  Bomb       │      │  Health         │   │  Player     │ │
+│  │ Interaction │      │  Pickup         │   │  Light      │ │
+│  └─────────────┘      └─────────────────┘   └─────────────┘ │
+│                                                               │
+│  ┌──────────────┐      ┌──────────────┐      ┌─────────────┐│
+│  │  Checkpoint  │      │     Goal     │      │  Fog of    ││
+│  │   System     │      │   Location   │      │    War     ││
+│  └──────────────┘      └──────────────┘      └─────────────┘│
+│         │                      │                    │        │
+│         │                      │                    │        │
+│  ┌──────▼──────┐      ┌────────▼────────┐   ┌──────▼──────┐ │
+│  │  Heart      │      │  Health         │   │  SpriteMask │ │
+│  │  Manager    │      │  System         │   │  Visibility │ │
+│  └─────────────┘      └─────────────────┘   └─────────────┘ │
+│                                                               │
+└─────────────────────────────────────────────────────────────┘</div>
+    
+    <h2>UML Class Diagram</h2>
+    
+    <div class="class-box">
+        <div class="class-name">Unity Tilemap System (Built-in)</div>
+        <div class="attribute"><strong>Components:</strong></div>
+        <div class="attribute">- Tilemap: Stores tile data and layout</div>
+        <div class="attribute">- TilemapRenderer: Renders tiles visually</div>
+        <div class="attribute">- TilemapCollider2D: Generates colliders for tiles</div>
+        <div class="attribute">- CompositeCollider2D: Optimizes multiple colliders</div>
+        <div class="attribute">- Rigidbody2D: Physics body (Kinematic) for composite</div>
+        <div class="method"><strong>Purpose:</strong> Provides efficient 2D tile-based level construction and collision</div>
+    </div>
+    
+    <div class="class-box">
+        <div class="class-name">PlayerController2</div>
+        <div class="attribute"><strong>Attributes:</strong></div>
+        <div class="attribute">- moveSpeed: float</div>
+        <div class="attribute">- rb: Rigidbody2D</div>
+        <div class="attribute">- moveInput: Vector2</div>
+        <div class="method"><strong>Methods:</strong></div>
+        <div class="method">+ Start(): void</div>
+        <div class="method">+ Update(): void</div>
+        <div class="method">+ FixedUpdate(): void</div>
+    </div>
+    
+    <div class="class-box">
+        <div class="class-name">PlayerMovementController</div>
+        <div class="attribute"><strong>Attributes:</strong></div>
+        <div class="attribute">- moveSpeed: float</div>
+        <div class="attribute">- jumpForce: float</div>
+        <div class="attribute">- groundCheck: Transform</div>
+        <div class="attribute">- groundCheckRadius: float</div>
+        <div class="attribute">- groundLayer: LayerMask</div>
+        <div class="attribute">- rb: Rigidbody2D</div>
+        <div class="attribute">- isMovingRight: bool</div>
+        <div class="attribute">- isMovingLeft: bool</div>
+        <div class="attribute">- isJumping: bool</div>
+        <div class="attribute">- isGrounded: bool</div>
+        <div class="method"><strong>Methods:</strong></div>
+        <div class="method">+ Start(): void</div>
+        <div class="method">+ Update(): void</div>
+        <div class="method">+ FixedUpdate(): void</div>
+        <div class="method">+ OnRightButtonDown(): void</div>
+        <div class="method">+ OnRightButtonUp(): void</div>
+        <div class="method">+ OnLeftButtonDown(): void</div>
+        <div class="method">+ OnLeftButtonUp(): void</div>
+        <div class="method">+ OnJumpButtonDown(): void</div>
+        <div class="method">+ OnJumpButtonUp(): void</div>
+    </div>
+    
+    <div class="class-box">
+        <div class="class-name">CameraFollowMaze2</div>
+        <div class="attribute"><strong>Attributes:</strong></div>
+        <div class="attribute">- target: Transform</div>
+        <div class="attribute">- autoFindPlayer: bool</div>
+        <div class="attribute">- smoothSpeed: float</div>
+        <div class="attribute">- offset: Vector3</div>
+        <div class="attribute">- useBounds: bool</div>
+        <div class="attribute">- minX, maxX, minY, maxY: float</div>
+        <div class="attribute">- velocity: Vector3</div>
+        <div class="method"><strong>Methods:</strong></div>
+        <div class="method">+ Start(): void</div>
+        <div class="method">+ LateUpdate(): void</div>
+        <div class="method">+ SetTarget(newTarget: Transform): void</div>
+    </div>
+    
+    <div class="class-box">
+        <div class="class-name">PlayerLightController</div>
+        <div class="attribute"><strong>Attributes:</strong></div>
+        <div class="attribute">- minRadius: float</div>
+        <div class="attribute">- maxRadius: float</div>
+        <div class="attribute">- currentRadius: float</div>
+        <div class="attribute">- adjustSpeed: float</div>
+        <div class="attribute">- playerLight: Light2D</div>
+        <div class="method"><strong>Methods:</strong></div>
+        <div class="method">+ Start(): void</div>
+        <div class="method">+ Update(): void</div>
+        <div class="method">+ SetExplorationMode(): void</div>
+        <div class="method">+ SetTightMode(): void</div>
+        <div class="method">+ SetRadius(radius: float): void</div>
+        <div class="method">+ GetCurrentRadius(): float</div>
+    </div>
+    
+    <div class="class-box">
+        <div class="class-name">HeartManager</div>
+        <div class="attribute"><strong>Attributes:</strong></div>
+        <div class="attribute">+ maxHealth: int</div>
+        <div class="attribute">+ currentHealth: int</div>
+        <div class="attribute">+ fullHeart: Sprite</div>
+        <div class="attribute">+ halfHeart: Sprite</div>
+        <div class="attribute">+ emptyHeart: Sprite</div>
+        <div class="attribute">+ hearts: SpriteRenderer[]</div>
+        <div class="method"><strong>Methods:</strong></div>
+        <div class="method">+ Start(): void</div>
+        <div class="method">+ Update(): void</div>
+        <div class="method">+ TakeDamage(dmg: int): void</div>
+        <div class="method">- UpdateHearts(): void</div>
+    </div>
+    
+    <div class="class-box">
+        <div class="class-name">HealthSystem</div>
+        <div class="attribute"><strong>Attributes:</strong></div>
+        <div class="attribute">- maxHealth: int</div>
+        <div class="attribute">- currentHealth: int</div>
+        <div class="attribute">+ OnHealthChanged: Action&lt;int, int&gt;</div>
+        <div class="attribute">+ OnHealthDepleted: Action</div>
+        <div class="attribute">+ CurrentHealth: int {get}</div>
+        <div class="attribute">+ MaxHealth: int {get}</div>
+        <div class="method"><strong>Methods:</strong></div>
+        <div class="method">+ Start(): void</div>
+        <div class="method">+ TakeDamage(damage: int): void</div>
+        <div class="method">+ Heal(amount: int): void</div>
+        <div class="method">+ ResetHealth(): void</div>
+    </div>
+    
+    <div class="class-box">
+        <div class="class-name">BombInteraction</div>
+        <div class="attribute"><strong>Attributes:</strong></div>
+        <div class="attribute">- destroyBomb: bool</div>
+        <div class="attribute">- damageAmount: int</div>
+        <div class="attribute">- heartManager: HeartManager</div>
+        <div class="attribute">- lastHitTime: float</div>
+        <div class="attribute">- invincibilityDuration: float</div>
+        <div class="method"><strong>Methods:</strong></div>
+        <div class="method">+ Start(): void</div>
+        <div class="method">+ OnTriggerEnter2D(other: Collider2D): void</div>
+        <div class="method">+ OnCollisionEnter2D(collision: Collision2D): void</div>
+        <div class="method">- HandleBombInteraction(): void</div>
+    </div>
+    
+    <div class="class-box">
+        <div class="class-name">ObstacleInteraction</div>
+        <div class="attribute"><strong>Attributes:</strong></div>
+        <div class="attribute">- damageAmount: int</div>
+        <div class="attribute">- destroyOnContact: bool</div>
+        <div class="attribute">- invincibilityDuration: float</div>
+        <div class="attribute">- playerHealthSystem: HealthSystem</div>
+        <div class="attribute">- lastHitTime: float</div>
+        <div class="method"><strong>Methods:</strong></div>
+        <div class="method">+ Start(): void</div>
+        <div class="method">+ OnTriggerEnter2D(other: Collider2D): void</div>
+        <div class="method">+ OnCollisionEnter2D(collision: Collision2D): void</div>
+        <div class="method">- IsPlayer(obj: GameObject): bool</div>
+        <div class="method">- HandleObstacleContact(): void</div>
+    </div>
+    
+    <div class="class-box">
+        <div class="class-name">FogOfWarSpriteMask</div>
+        <div class="attribute"><strong>Attributes:</strong></div>
+        <div class="attribute">- visibleRadius: float</div>
+        <div class="attribute">- fogColor: Color</div>
+        <div class="attribute">- playerTransform: Transform</div>
+        <div class="attribute">- fogRenderer: SpriteRenderer</div>
+        <div class="attribute">- spriteMask: SpriteMask</div>
+        <div class="attribute">- fogMaterial: Material</div>
+        <div class="method"><strong>Methods:</strong></div>
+        <div class="method">+ Start(): void</div>
+        <div class="method">+ Update(): void</div>
+        <div class="method">+ SetVisibleRadius(radius: float): void</div>
+        <div class="method">- SetupFogOverlay(): void</div>
+    </div>
+    
+    <h2>Class Descriptions</h2>
+    
+    <h3>Unity Tilemap System</h3>
+    <p><strong>Purpose:</strong> Unity's built-in 2D tilemap system provides efficient tile-based level construction. The maze is manually painted in the Unity editor using tilemap painting tools.</p>
+    <p><strong>Components:</strong></p>
+    <ul>
+        <li><strong>Tilemap:</strong> Stores tile data including position, sprite, and properties. Multiple tilemaps exist: one for walls, one for bombs, and one for health pickups.</li>
+        <li><strong>TilemapRenderer:</strong> Renders the tiles visually on screen using optimized batching.</li>
+        <li><strong>TilemapCollider2D:</strong> Automatically generates colliders for each tile in the tilemap. Used for wall collision detection.</li>
+        <li><strong>CompositeCollider2D:</strong> Combines multiple tile colliders into optimized composite shapes, reducing physics overhead. Requires Rigidbody2D with Kinematic body type.</li>
+        <li><strong>Rigidbody2D:</strong> Set to Kinematic (BodyType: 2) to enable CompositeCollider2D functionality. The rigidbody does not move but is required for composite collider generation.</li>
+    </ul>
+    <p><strong>Tilemap Structure:</strong></p>
+    <ul>
+        <li><strong>Walls Tilemap:</strong> Contains wall tiles that block player movement. Uses TilemapCollider2D + CompositeCollider2D for collision.</li>
+        <li><strong>Bombs Tilemap:</strong> Contains bomb tiles that trigger damage when player collides.</li>
+        <li><strong>Health Tilemap:</strong> Contains health pickup tiles that restore player health.</li>
+    </ul>
+    <p><strong>Relationships:</strong></p>
+    <ul>
+        <li>Tilemap provides collision boundaries for player movement</li>
+        <li>Bomb and health tilemaps interact with player via collision detection</li>
+        <li>Composite collider optimizes physics performance for large tilemaps</li>
+    </ul>
+    
+    <h3>PlayerController2</h3>
+    <p><strong>Purpose:</strong> Handles player movement using keyboard input (WASD/Arrow keys).</p>
+    <p><strong>Attributes:</strong></p>
+    <ul>
+        <li><code>moveSpeed</code>: Movement velocity</li>
+        <li><code>rb</code>: Reference to Rigidbody2D component</li>
+        <li><code>moveInput</code>: Current input vector</li>
+    </ul>
+    <p><strong>Methods:</strong></p>
+    <ul>
+        <li><code>Start()</code>: Initializes Rigidbody2D reference</li>
+        <li><code>Update()</code>: Reads keyboard input</li>
+        <li><code>FixedUpdate()</code>: Applies movement to Rigidbody2D</li>
+    </ul>
+    <p><strong>Relationships:</strong></p>
+    <ul>
+        <li>Controls player GameObject movement</li>
+        <li>Works with <code>CameraFollowMaze2</code> for camera tracking</li>
+        <li>Collides with tilemap walls via CompositeCollider2D</li>
+    </ul>
+    
+    <h3>PlayerMovementController</h3>
+    <p><strong>Purpose:</strong> Alternative movement controller supporting button-based input and jumping.</p>
+    <p><strong>Attributes:</strong></p>
+    <ul>
+        <li><code>moveSpeed</code>, <code>jumpForce</code>: Movement parameters</li>
+        <li><code>groundCheck</code>: Transform for ground detection</li>
+        <li><code>groundCheckRadius</code>, <code>groundLayer</code>: Ground detection parameters</li>
+        <li><code>isMovingRight</code>, <code>isMovingLeft</code>, <code>isJumping</code>, <code>isGrounded</code>: State flags</li>
+    </ul>
+    <p><strong>Methods:</strong></p>
+    <ul>
+        <li><code>Start()</code>: Initializes Rigidbody2D</li>
+        <li><code>Update()</code>: Checks ground state</li>
+        <li><code>FixedUpdate()</code>: Applies movement and jumping</li>
+        <li><code>OnRightButtonDown/Up()</code>, <code>OnLeftButtonDown/Up()</code>, <code>OnJumpButtonDown/Up()</code>: Button event handlers</li>
+    </ul>
+    <p><strong>Relationships:</strong></p>
+    <ul>
+        <li>Can be used with UI buttons for mobile/touch input</li>
+        <li>Collides with tilemap walls</li>
+    </ul>
+    
+    <h3>CameraFollowMaze2</h3>
+    <p><strong>Purpose:</strong> Smoothly follows the player with optional boundary constraints.</p>
+    <p><strong>Attributes:</strong></p>
+    <ul>
+        <li><code>target</code>: Transform to follow</li>
+        <li><code>autoFindPlayer</code>: Auto-detect player if target not set</li>
+        <li><code>smoothSpeed</code>: Smoothing factor for camera movement</li>
+        <li><code>offset</code>: Camera offset from target</li>
+        <li><code>useBounds</code>, <code>minX</code>, <code>maxX</code>, <code>minY</code>, <code>maxY</code>: Boundary constraints</li>
+        <li><code>velocity</code>: Internal velocity for SmoothDamp</li>
+    </ul>
+    <p><strong>Methods:</strong></p>
+    <ul>
+        <li><code>Start()</code>: Finds player if auto-find enabled</li>
+        <li><code>LateUpdate()</code>: Smoothly moves camera to follow target</li>
+        <li><code>SetTarget(Transform)</code>: Manually set target at runtime</li>
+    </ul>
+    <p><strong>Relationships:</strong></p>
+    <ul>
+        <li>Follows player GameObject</li>
+        <li>Works with <code>PlayerController2</code> or <code>PlayerMovementController</code></li>
+    </ul>
+    
+    <h3>PlayerLightController</h3>
+    <p><strong>Purpose:</strong> Controls player's flashlight light radius with smooth transitions.</p>
+    <p><strong>Attributes:</strong></p>
+    <ul>
+        <li><code>minRadius</code>, <code>maxRadius</code>: Light radius bounds</li>
+        <li><code>currentRadius</code>: Target radius value</li>
+        <li><code>adjustSpeed</code>: Speed of radius transitions</li>
+        <li><code>playerLight</code>: Reference to Light2D component</li>
+    </ul>
+    <p><strong>Methods:</strong></p>
+    <ul>
+        <li><code>Start()</code>: Initializes Light2D reference and sets initial radius</li>
+        <li><code>Update()</code>: Smoothly interpolates light radius</li>
+        <li><code>SetExplorationMode()</code>: Sets radius to maximum</li>
+        <li><code>SetTightMode()</code>: Sets radius to minimum</li>
+        <li><code>SetRadius(float)</code>: Sets custom radius (clamped)</li>
+        <li><code>GetCurrentRadius()</code>: Returns current target radius</li>
+    </ul>
+    <p><strong>Relationships:</strong></p>
+    <ul>
+        <li>Attached to player GameObject</li>
+        <li>Works with Unity's Universal Render Pipeline Light2D</li>
+        <li>Combines with FogOfWarSpriteMask for visibility limitation</li>
+    </ul>
+    
+    <h3>HeartManager</h3>
+    <p><strong>Purpose:</strong> Manages player health display using heart sprites.</p>
+    <p><strong>Attributes:</strong></p>
+    <ul>
+        <li><code>maxHealth</code>, <code>currentHealth</code>: Health values</li>
+        <li><code>fullHeart</code>, <code>halfHeart</code>, <code>emptyHeart</code>: Sprite references</li>
+        <li><code>hearts</code>: Array of SpriteRenderer components for display</li>
+    </ul>
+    <p><strong>Methods:</strong></p>
+    <ul>
+        <li><code>Start()</code>: Initializes health and validates sprites/renderers</li>
+        <li><code>Update()</code>: Temporary test input (X key for damage)</li>
+        <li><code>TakeDamage(int)</code>: Reduces health and updates display</li>
+        <li><code>UpdateHearts()</code>: Updates heart sprites based on current health</li>
+    </ul>
+    <p><strong>Relationships:</strong></p>
+    <ul>
+        <li>Receives damage events from <code>BombInteraction</code></li>
+        <li>Displays health visually to player</li>
+    </ul>
+    
+    <h3>HealthSystem</h3>
+    <p><strong>Purpose:</strong> Core health management system with event notifications.</p>
+    <p><strong>Attributes:</strong></p>
+    <ul>
+        <li><code>maxHealth</code>, <code>currentHealth</code>: Health values</li>
+        <li><code>OnHealthChanged</code>: Event fired when health changes</li>
+        <li><code>OnHealthDepleted</code>: Event fired when health reaches 0</li>
+    </ul>
+    <p><strong>Methods:</strong></p>
+    <ul>
+        <li><code>Start()</code>: Initializes health to maximum</li>
+        <li><code>TakeDamage(int)</code>: Reduces health, fires events</li>
+        <li><code>Heal(int)</code>: Restores health, fires events</li>
+        <li><code>ResetHealth()</code>: Resets to maximum health</li>
+    </ul>
+    <p><strong>Relationships:</strong></p>
+    <ul>
+        <li>Used by <code>ObstacleInteraction</code> for damage</li>
+        <li>Can be monitored by <code>HealthUI</code> for display updates</li>
+        <li>Interacts with health pickup tiles from tilemap</li>
+    </ul>
+    
+    <h3>BombInteraction</h3>
+    <p><strong>Purpose:</strong> Handles player interaction with bomb objects/tiles, causing damage.</p>
+    <p><strong>Attributes:</strong></p>
+    <ul>
+        <li><code>destroyBomb</code>: Whether to destroy bomb on contact</li>
+        <li><code>damageAmount</code>: Damage dealt to player</li>
+        <li><code>heartManager</code>: Reference to HeartManager</li>
+        <li><code>lastHitTime</code>, <code>invincibilityDuration</code>: Invincibility frame management</li>
+    </ul>
+    <p><strong>Methods:</strong></p>
+    <ul>
+        <li><code>Start()</code>: Finds HeartManager in scene</li>
+        <li><code>OnTriggerEnter2D(Collider2D)</code>: Handles trigger collisions</li>
+        <li><code>OnCollisionEnter2D(Collision2D)</code>: Handles regular collisions</li>
+        <li><code>HandleBombInteraction()</code>: Processes bomb contact, applies damage</li>
+    </ul>
+    <p><strong>Relationships:</strong></p>
+    <ul>
+        <li>Interacts with player GameObject</li>
+        <li>Calls <code>HeartManager.TakeDamage()</code></li>
+        <li>Can be attached to bomb tiles or separate GameObjects</li>
+    </ul>
+    
+    <h3>ObstacleInteraction</h3>
+    <p><strong>Purpose:</strong> Handles player collision with obstacles, causing damage.</p>
+    <p><strong>Attributes:</strong></p>
+    <ul>
+        <li><code>damageAmount</code>: Damage dealt</li>
+        <li><code>destroyOnContact</code>: Whether obstacle is destroyed</li>
+        <li><code>invincibilityDuration</code>: Invincibility frame duration</li>
+        <li><code>playerHealthSystem</code>: Reference to player's HealthSystem</li>
+        <li><code>lastHitTime</code>: Last damage time for invincibility</li>
+    </ul>
+    <p><strong>Methods:</strong></p>
+    <ul>
+        <li><code>Start()</code>: Finds player and HealthSystem</li>
+        <li><code>OnTriggerEnter2D(Collider2D)</code>: Handles trigger collisions</li>
+        <li><code>OnCollisionEnter2D(Collision2D)</code>: Handles regular collisions</li>
+        <li><code>IsPlayer(GameObject)</code>: Checks if GameObject is player</li>
+        <li><code>HandleObstacleContact()</code>: Processes obstacle contact</li>
+    </ul>
+    <p><strong>Relationships:</strong></p>
+    <ul>
+        <li>Interacts with player GameObject</li>
+        <li>Uses <code>HealthSystem.TakeDamage()</code></li>
+    </ul>
+    
+    <h3>FogOfWarSpriteMask</h3>
+    <p><strong>Purpose:</strong> Implements fog of war effect using sprite masks to limit visibility.</p>
+    <p><strong>Attributes:</strong></p>
+    <ul>
+        <li><code>visibleRadius</code>: Radius of visible area around player</li>
+        <li><code>fogColor</code>: Color of fog overlay</li>
+        <li><code>playerTransform</code>: Reference to player transform</li>
+        <li><code>fogRenderer</code>: SpriteRenderer for fog overlay</li>
+        <li><code>spriteMask</code>: SpriteMask component for visibility hole</li>
+    </ul>
+    <p><strong>Methods:</strong></p>
+    <ul>
+        <li><code>Start()</code>: Finds player and sets up fog overlay</li>
+        <li><code>Update()</code>: Updates mask position to follow player</li>
+        <li><code>SetVisibleRadius(float)</code>: Adjusts visible area radius</li>
+        <li><code>SetupFogOverlay()</code>: Configures fog rendering components</li>
+    </ul>
+    <p><strong>Relationships:</strong></p>
+    <ul>
+        <li>Follows player GameObject position</li>
+        <li>Creates visibility limitation effect</li>
+        <li>Works with PlayerLightController for combined lighting/visibility</li>
+    </ul>
+    
+    <h3>Checkpoint System</h3>
+    <p><strong>Purpose:</strong> Checkpoints remember the last player location when visited, allowing respawn at checkpoint position.</p>
+    <p><strong>Implementation:</strong></p>
+    <ul>
+        <li>Checkpoints are GameObjects placed in the scene (e.g., "Checkpoint 1", "Checkpoint 2", "Checkpoint 3")</li>
+        <li>When player visits a checkpoint, the checkpoint position is saved</li>
+        <li>On player death or respawn, player returns to the last visited checkpoint</li>
+        <li>Checkpoints are typically placed at key locations throughout the maze</li>
+    </ul>
+    <p><strong>Relationships:</strong></p>
+    <ul>
+        <li>Interacts with player GameObject via collision/trigger detection</li>
+        <li>Stores checkpoint position for respawn system</li>
+    </ul>
+    
+    <h3>Goal System</h3>
+    <p><strong>Purpose:</strong> The goal is a location in the maze that the player must reach after traversing the maze.</p>
+    <p><strong>Implementation:</strong></p>
+    <ul>
+        <li>Goal is a GameObject or location marker placed in the scene</li>
+        <li>Player must navigate through the maze to reach the goal location</li>
+        <li>Reaching the goal typically triggers level completion or win condition</li>
+        <li>Goal location is manually placed in the Unity editor</li>
+    </ul>
+    <p><strong>Relationships:</strong></p>
+    <ul>
+        <li>Detected via player position or collision with goal GameObject</li>
+        <li>Triggers win condition when reached</li>
+    </ul>
+    
+    <hr class="section-break">
+    
+    <h1 id="data-design">Data Design</h1>
+    
+    <h2>Data Structure Overview</h2>
+    <p>The Maze 2 scene uses Unity's tilemap system for level data storage and in-memory runtime state. There is no persistent database, but the system maintains several key data structures:</p>
+    
+    <h3>1. Tilemap Data Structure</h3>
+    <p><strong>Entity:</strong> Tilemap Grid</p>
+    <ul>
+        <li><strong>Type:</strong> Unity Tilemap Component (serialized in scene file)</li>
+        <li><strong>Purpose:</strong> Stores tile layout and properties for walls, bombs, and health pickups</li>
+        <li><strong>Attributes:</strong>
+            <ul>
+                <li><code>m_Tiles</code>: Dictionary mapping grid positions (Vector3Int) to tile data</li>
+                <li><code>m_TileAssetArray</code>: Array of tile assets (sprites from tileset)</li>
+                <li><code>m_TileSpriteArray</code>: Array of sprite references</li>
+                <li><code>m_Origin</code>, <code>m_Size</code>: Grid bounds</li>
+                <li><code>m_TileAnchor</code>: Anchor point for tiles (typically 0.5, 0.5, 0)</li>
+            </ul>
+        </li>
+    </ul>
+    <p><strong>Tilemap Types:</strong></p>
+    <ul>
+        <li><strong>Walls Tilemap:</strong> Contains wall tiles with collision enabled</li>
+        <li><strong>Bombs Tilemap:</strong> Contains bomb tiles that trigger damage</li>
+        <li><strong>Health Tilemap:</strong> Contains health pickup tiles</li>
+    </ul>
+    <p><strong>Relationships:</strong></p>
+    <ul>
+        <li>Each tilemap is a separate GameObject with Tilemap, TilemapRenderer, and optional TilemapCollider2D components</li>
+        <li>Walls tilemap uses CompositeCollider2D for optimized collision</li>
+        <li>Tiles reference sprites from tileset (tilemap_packed_*.asset files)</li>
+    </ul>
+    
+    <h3>2. Composite Collider Data</h3>
+    <p><strong>Entity:</strong> Composite Collider</p>
+    <ul>
+        <li><strong>Type:</strong> CompositeCollider2D Component</li>
+        <li><strong>Purpose:</strong> Optimized collision shapes generated from tilemap colliders</li>
+        <li><strong>Attributes:</strong>
+            <ul>
+                <li><code>m_CompositePaths</code>: Array of optimized collision paths</li>
+                <li><code>m_GeometryType</code>: 0 = Outlines (polygon shapes)</li>
+                <li><code>m_GenerationType</code>: 0 = Synchronous (generated at edit time)</li>
+                <li><code>m_VertexDistance</code>: Vertex simplification distance (0.0005)</li>
+                <li><code>m_OffsetDistance</code>: Offset for edge radius (0.00005)</li>
+            </ul>
+        </li>
+    </ul>
+    <p><strong>Relationships:</strong></p>
+    <ul>
+        <li>Generated from TilemapCollider2D data</li>
+        <li>Requires Rigidbody2D with Kinematic body type</li>
+        <li>Provides collision boundaries for player movement</li>
+    </ul>
+    
+    <h3>3. Player State</h3>
+    <p><strong>Entity:</strong> Player State</p>
+    <ul>
+        <li><strong>Type:</strong> Runtime GameObject State</li>
+        <li><strong>Attributes:</strong>
+            <ul>
+                <li>Position: <code>Vector3</code> (x, y, z coordinates)</li>
+                <li>Health: <code>int</code> (currentHealth, maxHealth)</li>
+                <li>Light Radius: <code>float</code> (currentRadius, minRadius, maxRadius)</li>
+                <li>Movement State: <code>bool</code> flags (isMovingRight, isMovingLeft, isJumping, isGrounded)</li>
+                <li>Last Checkpoint: <code>Vector3</code> (position of last visited checkpoint)</li>
+            </ul>
+        </li>
+    </ul>
+    <p><strong>Relationships:</strong></p>
+    <ul>
+        <li>One-to-one with Player GameObject</li>
+        <li>One-to-many with health events (OnHealthChanged)</li>
+        <li>Stores checkpoint position for respawn</li>
+    </ul>
+    
+    <h3>4. Health System Data</h3>
+    <p><strong>Entity:</strong> Health Data</p>
+    <ul>
+        <li><strong>Type:</strong> Runtime State</li>
+        <li><strong>Attributes:</strong>
+            <ul>
+                <li><code>maxHealth</code>: int (default: 3-4)</li>
+                <li><code>currentHealth</code>: int (0 to maxHealth)</li>
+                <li>Heart Sprites: <code>Sprite[]</code> (fullHeart, halfHeart, emptyHeart)</li>
+            </ul>
+        </li>
+    </ul>
+    <p><strong>Relationships:</strong></p>
+    <ul>
+        <li>One-to-one with Player</li>
+        <li>One-to-many: Multiple damage sources can affect health (bombs, obstacles, tilemap collisions)</li>
+        <li>Health pickups from tilemap restore health</li>
+    </ul>
+    
+    <h3>5. Checkpoint Data</h3>
+    <p><strong>Entity:</strong> Checkpoint State</p>
+    <ul>
+        <li><strong>Type:</strong> Runtime State</li>
+        <li><strong>Attributes:</strong>
+            <ul>
+                <li>Checkpoint Position: <code>Vector3</code> (position of checkpoint GameObject)</li>
+                <li>Is Visited: <code>bool</code> (whether player has reached this checkpoint)</li>
+                <li>Last Checkpoint ID: <code>int</code> or <code>string</code> (identifier of most recent checkpoint)</li>
+            </ul>
+        </li>
+    </ul>
+    <p><strong>Relationships:</strong></p>
+    <ul>
+        <li>One-to-many: Multiple checkpoints in scene</li>
+        <li>One-to-one: Last visited checkpoint stored in player state</li>
+    </ul>
+    
+    <h2>Data Flow Diagram</h2>
+    <div class="diagram">┌─────────────┐
+│   Start     │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────────┐
+│ Load Tilemap    │
+│   Data from     │
+│   Scene File    │
+└──────┬──────────┘
+       │
+       ▼
+┌─────────────────┐      ┌──────────────┐
+│ Generate        │─────▶│  Composite   │
+│ Composite       │      │  Collider    │
+│ Collider        │      │  Paths       │
+└──────┬──────────┘      └──────────────┘
+       │
+       ▼
+┌─────────────────┐
+│  Initialize     │
+│  Player State   │
+└──────┬──────────┘
+       │
+       ▼
+┌─────────────────┐      ┌──────────────┐
+│  Game Loop      │─────▶│  Update      │
+│  (Runtime)      │      │  State       │
+└─────────────────┘      └──────────────┘
+       │
+       ├──▶ Player Movement
+       ├──▶ Tilemap Collision Detection
+       ├──▶ Health Updates
+       ├──▶ Light Updates
+       ├──▶ Camera Follow
+       ├──▶ Checkpoint Detection
+       └──▶ Goal Detection</div>
+    
+    <h2>Normalized Data Model (Conceptual)</h2>
+    <p>While the system doesn't use a traditional database, the data relationships can be conceptualized as:</p>
+    
+    <table>
+        <tr>
+            <th>Table: TilemapData</th>
+        </tr>
+        <tr>
+            <td>
+                <ul>
+                    <li>Primary Key: (tilemapID, gridX, gridY, gridZ)</li>
+                    <li>tilemapType: ENUM (Walls, Bombs, Health)</li>
+                    <li>tileAssetID: INT (reference to tile asset)</li>
+                    <li>spriteID: INT (reference to sprite)</li>
+                    <li>tileColor: COLOR (tint color)</li>
+                    <li>hasCollider: BOOLEAN</li>
+                </ul>
+            </td>
+        </tr>
+    </table>
+    
+    <table>
+        <tr>
+            <th>Table: CompositeColliderPaths</th>
+        </tr>
+        <tr>
+            <td>
+                <ul>
+                    <li>Primary Key: pathID</li>
+                    <li>tilemapID: INT (foreign key to TilemapData)</li>
+                    <li>pathVertices: VECTOR2[] (array of vertices)</li>
+                    <li>isClosed: BOOLEAN</li>
+                </ul>
+            </td>
+        </tr>
+    </table>
+    
+    <table>
+        <tr>
+            <th>Table: PlayerState</th>
+        </tr>
+        <tr>
+            <td>
+                <ul>
+                    <li>Primary Key: playerID (implicit, single player)</li>
+                    <li>positionX: FLOAT</li>
+                    <li>positionY: FLOAT</li>
+                    <li>positionZ: FLOAT</li>
+                    <li>currentHealth: INT</li>
+                    <li>maxHealth: INT</li>
+                    <li>lightRadius: FLOAT</li>
+                    <li>lastCheckpointX: FLOAT</li>
+                    <li>lastCheckpointY: FLOAT</li>
+                    <li>lastCheckpointZ: FLOAT</li>
+                </ul>
+            </td>
+        </tr>
+    </table>
+    
+    <table>
+        <tr>
+            <th>Table: Checkpoints</th>
+        </tr>
+        <tr>
+            <td>
+                <ul>
+                    <li>Primary Key: checkpointID</li>
+                    <li>checkpointName: STRING</li>
+                    <li>positionX: FLOAT</li>
+                    <li>positionY: FLOAT</li>
+                    <li>positionZ: FLOAT</li>
+                    <li>isVisited: BOOLEAN</li>
+                </ul>
+            </td>
+        </tr>
+    </table>
+    
+    <table>
+        <tr>
+            <th>Table: Goal</th>
+        </tr>
+        <tr>
+            <td>
+                <ul>
+                    <li>Primary Key: goalID</li>
+                    <li>positionX: FLOAT</li>
+                    <li>positionY: FLOAT</li>
+                    <li>positionZ: FLOAT</li>
+                    <li>isReached: BOOLEAN</li>
+                </ul>
+            </td>
+        </tr>
+    </table>
+    
+    <p><strong>Relationships:</strong></p>
+    <ul>
+        <li>TilemapData (many) ── (1) CompositeColliderPaths (generated from tilemap)</li>
+        <li>PlayerState (1) ── (1) Checkpoints (last visited checkpoint)</li>
+        <li>PlayerState (1) ── (1) Goal (reached status)</li>
+        <li>TilemapData (many) ── (many) PlayerState (collision interactions)</li>
+    </ul>
+    
+    <hr class="section-break">
+    
+    <h1 id="technical-details">Technical Details</h1>
+    
+    <h2>Algorithms</h2>
+    
+    <h3>1. Composite Collider Generation Algorithm</h3>
+    <p><strong>Purpose:</strong> Unity's CompositeCollider2D automatically generates optimized collision shapes from TilemapCollider2D data, reducing physics overhead for large tilemaps.</p>
+    <p><strong>Input:</strong></p>
+    <ul>
+        <li>TilemapCollider2D: Individual colliders for each tile</li>
+        <li>Rigidbody2D: Kinematic body type (required for composite)</li>
+        <li>Generation settings: GeometryType, VertexDistance, OffsetDistance</li>
+    </ul>
+    <p><strong>Output:</strong></p>
+    <ul>
+        <li>CompositeCollider2D: Optimized collision paths combining adjacent tiles</li>
+        <li>Reduced collider count (from N tiles to M paths, where M &lt;&lt; N)</li>
+    </ul>
+    <p><strong>Algorithm Steps:</strong></p>
+    <ol>
+        <li>TilemapCollider2D generates individual colliders for each tile</li>
+        <li>CompositeCollider2D analyzes adjacent colliders</li>
+        <li>Merges connected colliders into continuous paths</li>
+        <li>Simplifies vertices based on VertexDistance parameter</li>
+        <li>Generates optimized polygon paths</li>
+        <li>Updates composite paths array</li>
+    </ol>
+    <p><strong>Time Complexity:</strong> O(n log n) where n = number of tiles (during generation at edit time)</p>
+    <p><strong>Space Complexity:</strong> O(m) where m = number of composite paths (typically much less than n)</p>
+    <p><strong>Techniques Used:</strong></p>
+    <ul>
+        <li>Polygon merging and simplification</li>
+        <li>Vertex distance-based optimization</li>
+        <li>Synchronous generation (at edit time, not runtime)</li>
+    </ul>
+    
+    <h3>2. Smooth Camera Following Algorithm</h3>
+    <p><strong>Purpose:</strong> Smoothly follows player with optional boundary constraints.</p>
+    <p><strong>Input:</strong></p>
+    <ul>
+        <li><code>target</code>: Transform of player</li>
+        <li><code>offset</code>: Vector3 camera offset</li>
+        <li><code>smoothSpeed</code>: Float smoothing factor</li>
+        <li><code>useBounds</code>: Boolean for boundary constraints</li>
+        <li><code>minX</code>, <code>maxX</code>, <code>minY</code>, <code>maxY</code>: Boundary values</li>
+    </ul>
+    <p><strong>Output:</strong></p>
+    <ul>
+        <li>Updated camera position each frame</li>
+    </ul>
+    <p><strong>Algorithm:</strong></p>
+    <pre>function LateUpdate():
+    if target == null: return
+    
+    desiredPosition = target.position + offset
+    
+    if useBounds:
+        desiredPosition.x = Clamp(desiredPosition.x, minX, maxX)
+        desiredPosition.y = Clamp(desiredPosition.y, minY, maxY)
+    
+    smoothedPosition = SmoothDamp(currentPosition, desiredPosition, velocity, smoothSpeed)
+    transform.position = smoothedPosition</pre>
+    <p><strong>Time Complexity:</strong> O(1) per frame</p>
+    <p><strong>Techniques Used:</strong></p>
+    <ul>
+        <li>SmoothDamp for velocity-based interpolation</li>
+        <li>LateUpdate for frame-independent smoothing</li>
+        <li>Boundary clamping</li>
+    </ul>
+    
+    <h3>3. Light Radius Interpolation Algorithm</h3>
+    <p><strong>Purpose:</strong> Smoothly transitions player light radius between min and max values.</p>
+    <p><strong>Input:</strong></p>
+    <ul>
+        <li><code>currentRadius</code>: Target radius</li>
+        <li><code>minRadius</code>, <code>maxRadius</code>: Bounds</li>
+        <li><code>adjustSpeed</code>: Transition speed</li>
+        <li><code>playerLight</code>: Light2D component</li>
+    </ul>
+    <p><strong>Output:</strong></p>
+    <ul>
+        <li>Updated light radius each frame</li>
+    </ul>
+    <p><strong>Algorithm:</strong></p>
+    <pre>function Update():
+    targetRadius = Clamp(currentRadius, minRadius, maxRadius)
+    currentLightRadius = playerLight.pointLightOuterRadius
+    
+    if Abs(currentLightRadius - targetRadius) &gt; 0.01:
+        newRadius = Lerp(currentLightRadius, targetRadius, adjustSpeed * deltaTime)
+        playerLight.pointLightOuterRadius = newRadius
+    else:
+        playerLight.pointLightOuterRadius = targetRadius</pre>
+    <p><strong>Time Complexity:</strong> O(1) per frame</p>
+    <p><strong>Techniques Used:</strong></p>
+    <ul>
+        <li>Linear interpolation (Lerp)</li>
+        <li>Frame-rate independent using Time.deltaTime</li>
+        <li>Threshold check for performance</li>
+    </ul>
+    
+    <h3>4. Health Display Update Algorithm</h3>
+    <p><strong>Purpose:</strong> Updates heart sprites based on current health value.</p>
+    <p><strong>Input:</strong></p>
+    <ul>
+        <li><code>currentHealth</code>: Integer (0 to maxHealth)</li>
+        <li><code>maxHealth</code>: Integer</li>
+        <li><code>hearts</code>: Array of SpriteRenderer components</li>
+        <li><code>fullHeart</code>, <code>halfHeart</code>, <code>emptyHeart</code>: Sprite references</li>
+    </ul>
+    <p><strong>Output:</strong></p>
+    <ul>
+        <li>Updated heart sprites in UI</li>
+    </ul>
+    <p><strong>Algorithm:</strong></p>
+    <pre>function UpdateHearts():
+    health = currentHealth
+    
+    for i = 0 to hearts.Length - 1:
+        if health &gt;= 2:
+            hearts[i].sprite = fullHeart
+            health -= 2
+        else if health == 1:
+            hearts[i].sprite = halfHeart
+            health -= 1
+        else:
+            hearts[i].sprite = emptyHeart</pre>
+    <p><strong>Time Complexity:</strong> O(n) where n = number of hearts</p>
+    <p><strong>Techniques Used:</strong></p>
+    <ul>
+        <li>Sequential sprite assignment</li>
+        <li>Health value decomposition (each heart = 2 health points)</li>
+    </ul>
+    
+    <h3>5. Invincibility Frame Algorithm</h3>
+    <p><strong>Purpose:</strong> Prevents multiple damage instances in quick succession.</p>
+    <p><strong>Input:</strong></p>
+    <ul>
+        <li><code>lastHitTime</code>: Float timestamp of last damage</li>
+        <li><code>invincibilityDuration</code>: Float duration of invincibility</li>
+        <li><code>Time.time</code>: Current game time</li>
+    </ul>
+    <p><strong>Output:</strong></p>
+    <ul>
+        <li>Boolean: Whether damage should be applied</li>
+    </ul>
+    <p><strong>Algorithm:</strong></p>
+    <pre>function HandleDamage():
+    if Time.time - lastHitTime &lt; invincibilityDuration:
+        return // Still invincible
+    
+    ApplyDamage()
+    lastHitTime = Time.time</pre>
+    <p><strong>Time Complexity:</strong> O(1)</p>
+    <p><strong>Techniques Used:</strong></p>
+    <ul>
+        <li>Time-based cooldown</li>
+        <li>Timestamp comparison</li>
+    </ul>
+    
+    <h3>6. Checkpoint Detection and Storage Algorithm</h3>
+    <p><strong>Purpose:</strong> Detects when player reaches a checkpoint and stores the checkpoint position for respawn.</p>
+    <p><strong>Input:</strong></p>
+    <ul>
+        <li>Player position: <code>Vector3</code></li>
+        <li>Checkpoint position: <code>Vector3</code></li>
+        <li>Checkpoint trigger/collider: <code>Collider2D</code></li>
+    </ul>
+    <p><strong>Output:</strong></p>
+    <ul>
+        <li>Updated last checkpoint position in player state</li>
+        <li>Checkpoint visited flag set to true</li>
+    </ul>
+    <p><strong>Algorithm:</strong></p>
+    <pre>function OnTriggerEnter2D(other: Collider2D):
+    if other.CompareTag("Player"):
+        lastCheckpointPosition = transform.position
+        isVisited = true
+        SaveCheckpointPosition(lastCheckpointPosition)
+        Debug.Log("Checkpoint reached: " + gameObject.name)</pre>
+    <p><strong>Time Complexity:</strong> O(1)</p>
+    <p><strong>Techniques Used:</strong></p>
+    <ul>
+        <li>Unity collision detection system</li>
+        <li>Trigger-based detection</li>
+        <li>Position storage for respawn</li>
+    </ul>
+    
+    <h3>7. Goal Detection Algorithm</h3>
+    <p><strong>Purpose:</strong> Detects when player reaches the goal location after traversing the maze.</p>
+    <p><strong>Input:</strong></p>
+    <ul>
+        <li>Player position: <code>Vector3</code></li>
+        <li>Goal position: <code>Vector3</code></li>
+        <li>Goal trigger/collider: <code>Collider2D</code></li>
+    </ul>
+    <p><strong>Output:</strong></p>
+    <ul>
+        <li>Goal reached flag set to true</li>
+        <li>Win condition triggered</li>
+    </ul>
+    <p><strong>Algorithm:</strong></p>
+    <pre>function OnTriggerEnter2D(other: Collider2D):
+    if other.CompareTag("Player"):
+        isReached = true
+        TriggerWinCondition()
+        Debug.Log("Goal reached! Level complete.")</pre>
+    <p><strong>Time Complexity:</strong> O(1)</p>
+    <p><strong>Techniques Used:</strong></p>
+    <ul>
+        <li>Unity collision detection system</li>
+        <li>Trigger-based detection</li>
+        <li>Win condition event triggering</li>
+    </ul>
+    
+    <h2>Tool Chain Integration</h2>
+    <ol>
+        <li><strong>Tilemap Creation</strong> → <strong>Collider Generation</strong> → <strong>Composite Optimization</strong>
+            <ul>
+                <li>Maze layout painted manually in Unity editor</li>
+                <li>TilemapCollider2D generates colliders for each tile</li>
+                <li>CompositeCollider2D optimizes colliders into paths</li>
+                <li>Rigidbody2D (Kinematic) enables composite collider</li>
+            </ul>
+        </li>
+        <li><strong>Player Input</strong> → <strong>Movement Controller</strong> → <strong>Physics System</strong> → <strong>Tilemap Collision</strong> → <strong>Camera Follow</strong>
+            <ul>
+                <li>Input captured in Update()</li>
+                <li>Movement applied in FixedUpdate()</li>
+                <li>Rigidbody2D handles physics</li>
+                <li>CompositeCollider2D provides collision boundaries</li>
+                <li>Camera follows in LateUpdate()</li>
+            </ul>
+        </li>
+        <li><strong>Collision Detection</strong> → <strong>Damage System</strong> → <strong>Health Update</strong> → <strong>UI Update</strong>
+            <ul>
+                <li>Unity collision events trigger (bomb tiles, obstacle tiles)</li>
+                <li>Damage calculated and applied</li>
+                <li>Health system updates</li>
+                <li>HeartManager updates visual display</li>
+            </ul>
+        </li>
+        <li><strong>Checkpoint Detection</strong> → <strong>Position Storage</strong> → <strong>Respawn System</strong>
+            <ul>
+                <li>Player collides with checkpoint trigger</li>
+                <li>Checkpoint position stored in player state</li>
+                <li>On death/respawn, player returns to last checkpoint</li>
+            </ul>
+        </li>
+        <li><strong>Goal Detection</strong> → <strong>Win Condition</strong>
+            <ul>
+                <li>Player reaches goal location</li>
+                <li>Win condition triggered</li>
+                <li>Level completion event fired</li>
+            </ul>
+        </li>
+        <li><strong>Light System</strong> → <strong>Fog of War</strong> → <strong>Visibility</strong>
+            <ul>
+                <li>PlayerLightController adjusts radius</li>
+                <li>FogOfWarSpriteMask follows player</li>
+                <li>Combined effect creates visibility limitation</li>
+            </ul>
+        </li>
+    </ol>
+    
+    <h2>Performance Considerations</h2>
+    <ol>
+        <li><strong>Tilemap Rendering:</strong> Unity's TilemapRenderer uses optimized batching, O(n) where n = visible tiles</li>
+        <li><strong>Composite Collider:</strong> Reduces collision overhead from O(n) individual colliders to O(m) paths where m &lt;&lt; n</li>
+        <li><strong>Collision Detection:</strong> Unity's physics system handles composite collider efficiently</li>
+        <li><strong>Camera Smoothing:</strong> O(1) per frame, efficient</li>
+        <li><strong>Light Interpolation:</strong> O(1) per frame, minimal overhead</li>
+        <li><strong>Health Updates:</strong> O(n) where n = heart count (typically 2-4), negligible</li>
+        <li><strong>Checkpoint/Goal Detection:</strong> O(1) trigger-based detection, very efficient</li>
+    </ol>
+    
+    <hr>
+    
+    <div class="summary-box">
+        <h2>Summary</h2>
+        <p>The Maze 2 scene implements a complete 2D maze exploration game with:</p>
+        <ul>
+            <li>Unity Tilemap system for manually-created maze layout (walls, bombs, health pickups)</li>
+            <li>CompositeCollider2D for optimized collision detection</li>
+            <li>Player movement with multiple control schemes</li>
+            <li>Health management with visual feedback</li>
+            <li>Fog of war and dynamic lighting</li>
+            <li>Interactive tilemaps (bombs, health pickups)</li>
+            <li>Checkpoint system for respawn points</li>
+            <li>Goal location for level completion</li>
+            <li>Smooth camera following</li>
+            <li>Collision detection and damage systems</li>
+        </ul>
+        <p>The architecture is modular, component-based, and follows Unity best practices for maintainability and extensibility. The tilemap-based approach provides efficient level construction and collision detection compared to procedural generation methods.</p>
+    </div>
+    
+</body>
+</html>
