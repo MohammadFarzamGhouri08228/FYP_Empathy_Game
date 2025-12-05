@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
-
-/// <summary>
+using UnityEngine.InputSystem;
 /// Controls dialogue box that appears at a far distance from the player.
 /// The dialogue remains visible as the camera moves, and changes when 'P' is pressed.
 /// </summary>
@@ -43,8 +42,8 @@ public class FarDistanceDialogueController : MonoBehaviour
     [SerializeField] private DialogueBoxManager dialogueManager;
     
     [Header("Input Settings")]
-    [Tooltip("Key to press to change dialogue (default: P)")]
-    [SerializeField] private KeyCode changeDialogueKey = KeyCode.P;
+    //[Tooltip("Key to press to change dialogue (default: P)")]
+    //[SerializeField] private KeyCode changeDialogueKey = KeyCode.P;
     
     [Header("Display Settings")]
     [Tooltip("Sprite index to use for dialogue box (from DialogueBoxManager's sprite array)")]
@@ -138,7 +137,7 @@ public class FarDistanceDialogueController : MonoBehaviour
     void Update()
     {
         // Check for 'P' key press to change dialogue (only on key down, not held)
-        if (Input.GetKeyDown(changeDialogueKey))
+        if (Keyboard.current != null && Keyboard.current.pKey.isPressed)
         {
             ChangeToNextDialogue();
         }

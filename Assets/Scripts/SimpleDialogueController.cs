@@ -1,6 +1,6 @@
 using UnityEngine;
 using TMPro;
-
+using UnityEngine.InputSystem;
 /// <summary>
 /// Simple dialogue controller that displays text on a triangle sprite using TextMeshPro.
 /// Press 'P' to cycle through dialogue messages.
@@ -24,8 +24,8 @@ public class SimpleDialogueController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI textMeshPro;
     
     [Header("Input Settings")]
-    [Tooltip("Key to press to change dialogue (default: P)")]
-    [SerializeField] private KeyCode changeDialogueKey = KeyCode.P;
+    //[Tooltip("Key to press to change dialogue (default: P)")]
+    //[SerializeField] private KeyCode changeDialogueKey = KeyCode.P;
     
     [Header("Display Settings")]
     [Tooltip("Show dialogue automatically on start")]
@@ -212,7 +212,7 @@ public class SimpleDialogueController : MonoBehaviour
     void Update()
     {
         // Check for 'P' key press to change dialogue (only on key down, not held)
-        if (Input.GetKeyDown(changeDialogueKey))
+        if (Keyboard.current != null && Keyboard.current.pKey.isPressed)
         {
             ChangeToNextDialogue();
         }
