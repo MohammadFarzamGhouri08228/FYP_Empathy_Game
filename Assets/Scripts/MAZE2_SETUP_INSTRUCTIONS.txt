@@ -1,0 +1,110 @@
+═══════════════════════════════════════════════════════════
+MAZE2 INTRO SEQUENCE SETUP INSTRUCTIONS
+═══════════════════════════════════════════════════════════
+
+This guide explains how to set up the intro sequence for Maze2 where:
+- Player is frozen when scene starts
+- Dialogues are displayed
+- Player must press an arrow key to start
+- Timer doesn't start until arrow key is pressed
+
+═══════════════════════════════════════════════════════════
+STEP 1: ADD MAZE2 INTRO CONTROLLER TO THE SCENE
+═══════════════════════════════════════════════════════════
+
+1. Open the Maze2 scene in Unity
+2. Create a new empty GameObject in the scene
+3. Name it "IntroController" or "Maze2IntroManager"
+4. Add the "Maze2IntroController" script component to it
+
+═══════════════════════════════════════════════════════════
+STEP 2: CONFIGURE THE INTRO CONTROLLER
+═══════════════════════════════════════════════════════════
+
+In the Inspector for the Maze2IntroController component:
+
+A. REFERENCES (will auto-find if not set):
+   - Dialogue Controller: Leave empty (auto-finds SimpleDialogueController or FarDistanceDialogueController)
+   - Player Controller: Leave empty (auto-finds PlayerController2)
+   - Stopwatch Timer: Leave empty (auto-finds StopwatchTimer)
+
+B. UI FEEDBACK (OPTIONAL):
+   - Instruction Text: Drag a TextMeshProUGUI component here to show instructions
+   - Instruction Message: Message to show (default: "Press any arrow key to start...")
+
+═══════════════════════════════════════════════════════════
+STEP 3: CONFIGURE THE STOPWATCH TIMER
+═══════════════════════════════════════════════════════════
+
+Find the StopwatchTimer in your Maze2 scene and:
+
+1. Set "Auto Start" to FALSE (unchecked)
+2. Set "Wait For Intro Complete" to TRUE (checked)
+
+This ensures the timer waits for the intro sequence to finish.
+
+═══════════════════════════════════════════════════════════
+STEP 4: TEST THE SETUP
+═══════════════════════════════════════════════════════════
+
+1. Press Play in Unity
+2. Verify:
+   ✓ Player cannot move when the scene starts
+   ✓ Timer shows 00:00 and is not running
+   ✓ Dialogue is displayed
+   ✓ Instruction shows "Press any arrow key to start..."
+3. After pressing any arrow key (W/A/S/D or Up/Down/Left/Right):
+   ✓ Player can now move
+   ✓ Timer starts counting
+
+═══════════════════════════════════════════════════════════
+TROUBLESHOOTING
+═══════════════════════════════════════════════════════════
+
+PROBLEM: Player can still move during dialogues
+SOLUTION: Make sure the Maze2IntroController found the PlayerController2.
+         Check the console for "Player frozen" message.
+
+PROBLEM: Timer starts immediately
+SOLUTION: Set "Wait For Intro Complete" to TRUE on StopwatchTimer
+         Set "Auto Start" to FALSE on StopwatchTimer
+
+PROBLEM: Dialogues don't appear
+SOLUTION: Make sure your dialogue controller (SimpleDialogueController 
+         or FarDistanceDialogueController) is in the scene and has 
+         dialogue messages configured.
+
+═══════════════════════════════════════════════════════════
+ADVANCED: MANUAL CONFIGURATION
+═══════════════════════════════════════════════════════════
+
+If auto-finding doesn't work, manually drag and drop:
+1. Dialogue Controller: Find your SimpleDialogueController or 
+   FarDistanceDialogueController GameObject and drag it
+2. Player Controller: Find your Player GameObject and drag it
+3. Stopwatch Timer: Find your Timer GameObject and drag it
+
+═══════════════════════════════════════════════════════════
+DEBUGGING
+═══════════════════════════════════════════════════════════
+
+The Maze2IntroController logs detailed debug messages to the console:
+- "Starting intro sequence..."
+- "Player frozen"
+- "Timer stopped"
+- "Waiting for arrow key press to start..."
+- "Arrow key pressed! Starting game..."
+- "Timer started"
+- "Player unfrozen"
+
+Check the Console window in Unity to see these messages.
+
+═══════════════════════════════════════════════════════════
+SKIP INTRO (FOR TESTING)
+═══════════════════════════════════════════════════════════
+
+In the Unity Editor, you can right-click on the Maze2IntroController
+component and select "Skip Intro" from the context menu to immediately
+complete the intro sequence (useful for testing).
+
+═══════════════════════════════════════════════════════════
