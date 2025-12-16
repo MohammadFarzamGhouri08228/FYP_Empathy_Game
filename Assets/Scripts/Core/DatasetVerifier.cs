@@ -14,11 +14,29 @@ public class DatasetVerifier
 
         try
         {
-            DatasetResult result = DatasetImporter.ImportFromCSV(fullPath);
+            var result = DatasetImporter.ImportFromCSV(fullPath);
+
+            var downGroup = result.FindAll(e => e.IsDownSyndrome);
+            var tdGroup = result.FindAll(e => !e.IsDownSyndrome);
 
             Debug.Log("<color=green>[DatasetVerifier] Import Successful!</color>");
-            Debug.Log($"[DatasetVerifier] Memory Stats: Mean={result.MemoryStats.Mean:F2}, StdDev={result.MemoryStats.StdDev:F2}, Count={result.rawMemoryScores.Count}");
-            Debug.Log($"[DatasetVerifier] Spatial Stats: Mean={result.SpatialStats.Mean:F2}, StdDev={result.SpatialStats.StdDev:F2}, Count={result.rawSpatialScores.Count}");
+            Debug.Log($"[DatasetVerifier] Total Entries: {result.Count}");
+            Debug.Log($"[DatasetVerifier] Down Syndrome Entries: {downGroup.Count}");
+            Debug.Log($"[DatasetVerifier] TD Entries: {tdGroup.Count}");
+
+            // Helper to calc mean
+            float CalcMean(System.Collections.Generic.List<DataEntry> list, System.Func<DataEntry, float> selector)
+            {
+                if (list.Count == 0) return 0f;
+                float sum = 0f;
+                foreach (var item in list) sum += selector(item);
+                return sum / list.Count;
+            }
+
+            Debug.Log($"[DatasetVerifier] DS Mean Map Score: {CalcMean(downGroup, e => e.FloorMatrixMap):F2}");
+            Debug.Log($"[DatasetVerifier] TD Mean Map Score: {CalcMean(tdGroup, e => e.FloorMatrixMap):F2}");
+            Debug.Log($"[DatasetVerifier] DS Mean Obs Score: {CalcMean(downGroup, e => e.FloorMatrixObs):F2}");
+            Debug.Log($"[DatasetVerifier] TD Mean Obs Score: {CalcMean(tdGroup, e => e.FloorMatrixObs):F2}");
         }
         catch (System.Exception e)
         {

@@ -13,9 +13,13 @@ public static class DatasetImporter
     /// Loads the CSV file from the specified full path.
     /// Returns a DatasetResult or throws an exception on failure.
     /// </summary>
-    public static DatasetResult ImportFromCSV(string fullPath)
+    /// <summary>
+    /// Loads the CSV file from the specified full path.
+    /// Returns a list of DataEntry objects.
+    /// </summary>
+    public static List<DataEntry> ImportFromCSV(string fullPath)
     {
-        DatasetResult result = new DatasetResult();
+        List<DataEntry> entries = new List<DataEntry>();
         
         if (!File.Exists(fullPath))
         {
@@ -33,23 +37,36 @@ public static class DatasetImporter
 
                 string[] cols = lines[i].Split(',');
                 
-                // CSV Configuration based on: "Dataset path learning floor matrix task.csv"
+                // CSV Configuration
                 // Col 1: Group ("Down", "TD")
-                // Col 9: WM_matr_sequential (Memory)
-                // Col 11: Floor Matrix Map (Spatial)
+                // Col 11: Floor Matrix Map
+                // Col 12: Floor Matrix Obs
 
-                if (cols.Length > 11 && cols[1].Trim() == "Down")
+                if (cols.Length > 12)
                 {
-                    if (float.TryParse(cols[9], out float mem)) result.rawMemoryScores.Add(mem);
-                    if (float.TryParse(cols[11], out float spat)) result.rawSpatialScores.Add(spat);
+                    string groupRaw = cols[1].Trim();
+                    bool isDown = groupRaw.Equals("Down", StringComparison.OrdinalIgnoreCase);
+
+                    // Parse Scores
+                    float mapScore = 0f;
+                    float obsScore = 0f;
+                    
+                    bool hasMap = float.TryParse(cols[11], out mapScore);
+                    bool hasObs = float.TryParse(cols[12], out obsScore);
+
+                    if (hasMap && hasObs)
+                    {
+                        entries.Add(new DataEntry
+                        {
+                            IsDownSyndrome = isDown,
+                            FloorMatrixMap = mapScore,
+                            FloorMatrixObs = obsScore
+                        });
+                    }
                 }
             }
 
-            // Calculate Stats
-            result.MemoryStats = new DSStatistics(result.rawMemoryScores);
-            result.SpatialStats = new DSStatistics(result.rawSpatialScores);
-
-            return result;
+            return entries;
         }
         catch (Exception)
         {
@@ -58,26 +75,10 @@ public static class DatasetImporter
     }
 }
 
-public class DatasetResult
+public class DataEntry
 {
-    public List<float> rawMemoryScores = new List<float>();
-    public List<float> rawSpatialScores = new List<float>();
-    
-    public DSStatistics MemoryStats;
-    public DSStatistics SpatialStats;
-}
-
-public class DSStatistics
-{
-    public float Mean, StdDev, Min, Max;
-    public DSStatistics(List<float> data)
-    {
-        if (data == null || data.Count == 0) return;
-        Mean = data.Average();
-        Min = data.Min();
-        Max = data.Max();
-        if(data.Count > 1) 
-            StdDev = (float)Math.Sqrt(data.Sum(d => Math.Pow(d - Mean, 2)) / (data.Count - 1));
-    }
+    public bool IsDownSyndrome;
+    public float FloorMatrixMap;
+    public float FloorMatrixObs;
 }
 
