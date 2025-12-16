@@ -6,70 +6,6 @@ using System.IO;
 using System.Linq;
 using System;
 
-// /// <summary>
-// /// General-purpose component for any object the player can interact with.
-// /// Automatically reports interactions to the AdaptiveBackend.
-// /// </summary>
-// public class InteractiveObject : MonoBehaviour
-// {
-//     [Header("Identity")]
-//     [Tooltip("Unique ID for this object (e.g., 'Puzzle_Block_A', 'NPC_Guide'). Used by the AI backend.")]
-//     public string objectID;
-
-//     [Header("Interaction Settings")]
-//     [Tooltip("How many times has this been interacted with?")]
-//     [SerializeField] private int interactionCount = 0;
-
-//     [Tooltip("Should this object stop reporting after a certain number of uses? (-1 = infinite)")]
-//     public int maxInteractions = -1;
-
-//     [Header("Events")]
-//     [Tooltip("Unity Event triggered locally when interaction occurs (e.g., play sound, open door).")]
-//     public UnityEvent OnInteract;
-
-//     private void Start()
-//     {
-//         // Auto-generate ID if empty to prevent errors, though manual naming is better for analytics
-//         if (string.IsNullOrEmpty(objectID))
-//         {
-//             objectID = gameObject.name + "_" + System.Guid.NewGuid().ToString().Substring(0, 4);
-//         }
-//     }
-
-//     /// <summary>
-//     /// Call this method from your player controller, raycast logic, or UI button click.
-//     /// </summary>
-//     public void Interact()
-//     {
-//         // 1. Check constraints
-//         if (maxInteractions != -1 && interactionCount >= maxInteractions) return;
-
-//         // 2. Increment local state
-//         interactionCount++;
-
-//         // 3. Trigger local game logic (Visuals/Audio)
-//         OnInteract?.Invoke();
-
-//         // 4. Report to the AI Backend (The "Brain")
-//         if (AdaptiveBackend.Instance != null)
-//         {
-//             // UPDATED: Now uses the generic ReceiveData method
-//             AdaptiveBackend.Instance.ReceiveData(objectID, "interactionCount", interactionCount);
-//         }
-//         else
-//         {
-//             Debug.LogWarning($"[InteractiveObject] '{objectID}' interacted, but AdaptiveBackend is missing!");
-//         }
-//     }
-
-//     /// <summary>
-//     /// Helper to reset state if the game loops or restarts level.
-//     /// </summary>
-//     public void ResetInteraction()
-//     {
-//         interactionCount = 0;
-//     }
-// }
 
 /// <summary>
 /// MAIN CONTROLLER: Orchestrates Data Processing, AI Training, and Gameplay Adaptation.
@@ -124,7 +60,6 @@ public class AdaptiveBackend
     private void Initialize()
     {
         ProcessDataset();
-        // Replacing Coroutine with direct call since it was just a dummy wait
         TrainAdaptiveModel(); 
     }
 
@@ -222,15 +157,6 @@ public class AdaptiveBackend
             MemoryStats = new DSStatistics(new List<float> { 50f }); 
             SpatialStats = new DSStatistics(new List<float> { 50f });
         }
-    }
-
-
-    [ContextMenu("Verify Dataset Import")]
-    public void VerifyDataIntegrity()
-    {
-        Debug.Log("--- Starting Manual Data Verification ---");
-        ProcessDataset();
-        Debug.Log("--- Verification Complete ---");
     }
 
     private void TrainAdaptiveModel()
