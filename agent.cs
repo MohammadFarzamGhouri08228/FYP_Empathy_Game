@@ -53,7 +53,8 @@ public class InteractiveObject : MonoBehaviour
         // 4. Report to the AI Backend (The "Brain")
         if (AdaptiveBackend.Instance != null)
         {
-            AdaptiveBackend.Instance.RecordInteraction(objectID, interactionCount);
+            // UPDATED: Now uses the generic ReceiveData method
+            AdaptiveBackend.Instance.ReceiveData(objectID, "interactionCount", interactionCount);
         }
         else
         {
@@ -79,7 +80,7 @@ public class AdaptiveBackend : MonoBehaviour
     public static AdaptiveBackend Instance;
 
     [Header("Configuration")]
-    public string csvFileName = "Dataset_DownSyndrome_Profiles.csv"; // Renamed for clarity
+    public string csvFileName = "Dataset path learning floor matrix task.csv"; 
     
     // The Neural Network
     private SimpleNeuralNet neuralNet;
@@ -88,9 +89,10 @@ public class AdaptiveBackend : MonoBehaviour
     public DSStatistics MemoryStats { get; private set; }
     public DSStatistics SpatialStats { get; private set; }
 
-    // --- INTERACTION TRACKING ---
-    // Dictionary: [ObjectID] -> [InteractionCount]
-    private Dictionary<string, int> interactionHistory = new Dictionary<string, int>();
+    // --- UNIVERSAL DATA STORAGE ---
+    // Structure: [ObjectID] -> [DataLabel] -> [Value]
+    // Example: "Object1" -> { "interactionCount": 5, "timeSpent": 12.4f }
+    private Dictionary<string, Dictionary<string, object>> gameDataLog = new Dictionary<string, Dictionary<string, object>>();
 
     void Awake()
     {
@@ -116,57 +118,87 @@ public class AdaptiveBackend : MonoBehaviour
     }
 
     // =================================================================================
-    // PART 1: PUBLIC API FOR GAME OBJECTS
+    // PART 1: PUBLIC API FOR GAME OBJECTS (UPDATED)
     // =================================================================================
 
     /// <summary>
-    /// Called by InteractiveObject.cs whenever a player does something.
+    /// Universal entry point for ANY object to send ANY data.
     /// </summary>
-    public void RecordInteraction(string objectId, int count)
+    /// <param name="objectId">Who is sending data? (e.g. "Object1", "PuzzleManager")</param>
+    /// <param name="dataLabel">What is this data? (e.g. "interactionCount", "score", "time_taken")</param>
+    /// <param name="dataValue">The actual data (int, float, bool, string, etc.)</param>
+    public void ReceiveData(string objectId, string dataLabel, object dataValue)
     {
-        // Update history
-        if (interactionHistory.ContainsKey(objectId))
-            interactionHistory[objectId] = count;
+        // 1. Ensure the object exists in our log
+        if (!gameDataLog.ContainsKey(objectId))
+        {
+            gameDataLog[objectId] = new Dictionary<string, object>();
+        }
+
+        // 2. Update or Add the specific data point
+        if (gameDataLog[objectId].ContainsKey(dataLabel))
+        {
+            gameDataLog[objectId][dataLabel] = dataValue;
+        }
         else
-            interactionHistory.Add(objectId, count);
+        {
+            gameDataLog[objectId].Add(dataLabel, dataValue);
+        }
 
-        Debug.Log($"<color=cyan>[AdaptiveBackend]</color> Logged: {objectId} (x{count})");
+        // 3. Debug Log (Shows what type of data was received)
+        Debug.Log($"<color=cyan>[Backend]</color> received from {objectId}: [{dataLabel} = {dataValue}]");
 
-        // Real-time evaluation: Did this specific interaction trigger a threshold?
-        EvaluateProgression(objectId, count);
+        // 4. Trigger Analysis
+        EvaluateData(objectId, dataLabel, dataValue);
     }
 
     /// <summary>
-    /// The "Brain" logic. Decides if the game should change based on input.
+    /// Analyzes incoming data. Handles specific logic for Object1 and generic logic for others.
     /// </summary>
-    private void EvaluateProgression(string objectId, int count)
+    private void EvaluateData(string objectId, string label, object value)
     {
-        // Example: Player keeps clicking a "Help" button or a specific puzzle piece
-        if (objectId.Contains("Puzzle") && count > 5)
+        // --- LOGIC FOR INTEGERS (Counts, Scores) ---
+        if (value is int intVal)
         {
-            Debug.Log("<color=magenta>[Adaptation Triggered]</color> High repetition detected on puzzle. Lowering difficulty...");
-            // Broadcast event or call GameManager to simplify the puzzle
-            // EventManager.Trigger("SimplifyPuzzle"); 
+            // Specific Logic for Object1
+            if (objectId == "Object1" && label == "interactionCount")
+            {
+                if (intVal > 10) 
+                {
+                    Debug.Log($"<color=green>[Agent Decision]</color> Object1 usage high ({intVal}). Adjusting Game Parameter...");
+                    // Add your difficulty adjustment code here
+                }
+            }
+
+            // Generic Logic for Puzzles
+            if (objectId.Contains("Puzzle") && label == "interactionCount" && intVal > 5)
+            {
+                Debug.Log("<color=magenta>[Adaptation Triggered]</color> High repetition on puzzle. Lowering difficulty...");
+            }
         }
 
-        // Example: Player interacts with "Social_NPC" frequently
-        if (objectId == "NPC_Guide" && count > 3)
+        // --- LOGIC FOR FLOATS (Timers, Durations) ---
+        else if (value is float floatVal)
         {
-             Debug.Log("<color=green>[Adaptation Triggered]</color> High social engagement. Unlocking new dialogue branch.");
+            if (label == "timeTaken" && floatVal > 60f)
+            {
+                Debug.Log("Player is taking a long time. Triggering hint system.");
+            }
         }
     }
 
     // =================================================================================
-    // PART 2: DATA PROCESSING & AI (Unchanged core logic, cleaned up)
+    // PART 2: DATA PROCESSING & AI (Preserved from your code)
     // =================================================================================
     private void ProcessDataset()
     {
         string filePath = Path.Combine(Application.streamingAssetsPath, csvFileName);
         
+        Debug.Log($"[DataPipeline] Attempting to load dataset from: {filePath}");
+
         if (!File.Exists(filePath))
         {
-            Debug.LogWarning($"CSV File not found at: {filePath}. Using default fallback stats.");
-            // Fallback to avoid crashes if file is missing during testing
+            Debug.LogWarning($"[DataPipeline] CSV File NOT FOUND at: {filePath}. Using default fallback stats (50/50).");
             MemoryStats = new DSStatistics(new List<float> { 50f }); 
             SpatialStats = new DSStatistics(new List<float> { 50f });
             return;
@@ -174,27 +206,63 @@ public class AdaptiveBackend : MonoBehaviour
 
         List<float> memoryScores = new List<float>();
         List<float> spatialScores = new List<float>();
-        string[] lines = File.ReadAllLines(filePath);
-        
-        for (int i = 1; i < lines.Length; i++)
-        {
-            string[] cols = lines[i].Split(',');
-            if (cols.Length > 9 && cols[1].Trim() == "Down")
-            {
-                if (float.TryParse(cols[9], out float mem)) memoryScores.Add(mem);
-                if (float.TryParse(cols[11], out float spat)) spatialScores.Add(spat);
-            }
-        }
 
-        MemoryStats = new DSStatistics(memoryScores);
-        SpatialStats = new DSStatistics(spatialScores);
-        Debug.Log($"DS Data Loaded. N={memoryScores.Count}");
+        try 
+        {
+            string[] lines = File.ReadAllLines(filePath);
+            Debug.Log($"[DataPipeline] File loaded. Total lines: {lines.Length}");
+
+            int loadedCount = 0;
+            
+            // Skip header (i=1)
+            for (int i = 1; i < lines.Length; i++)
+            {
+                if (string.IsNullOrWhiteSpace(lines[i])) continue;
+
+                string[] cols = lines[i].Split(',');
+                
+                // DATASET MAPPING: 
+                // Col 1: Group ("Down", "TD")
+                // Col 9: WM_matr_sequential (Memory)
+                // Col 11: Floor Matrix Map (Spatial)
+                
+                if (cols.Length > 11 && cols[1].Trim() == "Down")
+                {
+                    if (float.TryParse(cols[9], out float mem)) memoryScores.Add(mem);
+                    if (float.TryParse(cols[11], out float spat)) spatialScores.Add(spat);
+                    
+                    loadedCount++;
+                    
+                    if (loadedCount <= 3)
+                    {
+                         Debug.Log($"[DataPipeline] Sample #{loadedCount}: Memory={mem}, Spatial={spat} (Row {i})");
+                    }
+                }
+            }
+
+            // Calculate Statistics
+            MemoryStats = new DSStatistics(memoryScores);
+            SpatialStats = new DSStatistics(spatialScores);
+
+            Debug.Log($"<color=green>[DataPipeline] SUCCESS!</color> Loaded {loadedCount} 'Down' syndrome profiles.");
+            Debug.Log($"Stats -> Avg Memory: {MemoryStats.Mean:F2}, Avg Spatial: {SpatialStats.Mean:F2}");
+        }
+        catch (Exception e)
+        {
+             Debug.LogError($"[DataPipeline] CRITICAL ERROR parsing CSV: {e.Message}");
+        }
+    }
+
+    [ContextMenu("Verify Dataset Import")]
+    public void VerifyDataIntegrity()
+    {
+        Debug.Log("--- Starting Manual Data Verification ---");
+        ProcessDataset();
+        Debug.Log("--- Verification Complete ---");
     }
 
     private IEnumerator TrainAdaptiveModel()
     {
-        // (Training logic remains the same as your provided code, omitted here for brevity 
-        // unless you need the full training block reprinted)
         yield return null; 
         Debug.Log("<color=cyan>Adaptive Model Ready.</color>");
     }
@@ -204,7 +272,7 @@ public class AdaptiveBackend : MonoBehaviour
     // =================================================================================
     public int PredictBranch(double[] playerBigFive)
     {
-        if (neuralNet == null) return 2; // Default to task-based if net not ready
+        if (neuralNet == null) return 2; 
 
         double[] outputs = neuralNet.FeedForward(playerBigFive);
         int maxIndex = 0;
@@ -237,8 +305,6 @@ public class DSStatistics
 
 public class SimpleNeuralNet
 {
-    // (Your existing Neural Net implementation goes here unchanged)
-    // Included purely for compilation structure
     public SimpleNeuralNet(int i, int h, int o) { }
     public double[] FeedForward(double[] inputs) { return new double[3]; }
     public void Train(double[] inputs, double[] targets) { }
