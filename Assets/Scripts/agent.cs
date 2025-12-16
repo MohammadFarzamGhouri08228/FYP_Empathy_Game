@@ -6,70 +6,70 @@ using System.IO;
 using System.Linq;
 using System;
 
-/// <summary>
-/// General-purpose component for any object the player can interact with.
-/// Automatically reports interactions to the AdaptiveBackend.
-/// </summary>
-public class InteractiveObject : MonoBehaviour
-{
-    [Header("Identity")]
-    [Tooltip("Unique ID for this object (e.g., 'Puzzle_Block_A', 'NPC_Guide'). Used by the AI backend.")]
-    public string objectID;
+// /// <summary>
+// /// General-purpose component for any object the player can interact with.
+// /// Automatically reports interactions to the AdaptiveBackend.
+// /// </summary>
+// public class InteractiveObject : MonoBehaviour
+// {
+//     [Header("Identity")]
+//     [Tooltip("Unique ID for this object (e.g., 'Puzzle_Block_A', 'NPC_Guide'). Used by the AI backend.")]
+//     public string objectID;
 
-    [Header("Interaction Settings")]
-    [Tooltip("How many times has this been interacted with?")]
-    [SerializeField] private int interactionCount = 0;
+//     [Header("Interaction Settings")]
+//     [Tooltip("How many times has this been interacted with?")]
+//     [SerializeField] private int interactionCount = 0;
 
-    [Tooltip("Should this object stop reporting after a certain number of uses? (-1 = infinite)")]
-    public int maxInteractions = -1;
+//     [Tooltip("Should this object stop reporting after a certain number of uses? (-1 = infinite)")]
+//     public int maxInteractions = -1;
 
-    [Header("Events")]
-    [Tooltip("Unity Event triggered locally when interaction occurs (e.g., play sound, open door).")]
-    public UnityEvent OnInteract;
+//     [Header("Events")]
+//     [Tooltip("Unity Event triggered locally when interaction occurs (e.g., play sound, open door).")]
+//     public UnityEvent OnInteract;
 
-    private void Start()
-    {
-        // Auto-generate ID if empty to prevent errors, though manual naming is better for analytics
-        if (string.IsNullOrEmpty(objectID))
-        {
-            objectID = gameObject.name + "_" + System.Guid.NewGuid().ToString().Substring(0, 4);
-        }
-    }
+//     private void Start()
+//     {
+//         // Auto-generate ID if empty to prevent errors, though manual naming is better for analytics
+//         if (string.IsNullOrEmpty(objectID))
+//         {
+//             objectID = gameObject.name + "_" + System.Guid.NewGuid().ToString().Substring(0, 4);
+//         }
+//     }
 
-    /// <summary>
-    /// Call this method from your player controller, raycast logic, or UI button click.
-    /// </summary>
-    public void Interact()
-    {
-        // 1. Check constraints
-        if (maxInteractions != -1 && interactionCount >= maxInteractions) return;
+//     /// <summary>
+//     /// Call this method from your player controller, raycast logic, or UI button click.
+//     /// </summary>
+//     public void Interact()
+//     {
+//         // 1. Check constraints
+//         if (maxInteractions != -1 && interactionCount >= maxInteractions) return;
 
-        // 2. Increment local state
-        interactionCount++;
+//         // 2. Increment local state
+//         interactionCount++;
 
-        // 3. Trigger local game logic (Visuals/Audio)
-        OnInteract?.Invoke();
+//         // 3. Trigger local game logic (Visuals/Audio)
+//         OnInteract?.Invoke();
 
-        // 4. Report to the AI Backend (The "Brain")
-        if (AdaptiveBackend.Instance != null)
-        {
-            // UPDATED: Now uses the generic ReceiveData method
-            AdaptiveBackend.Instance.ReceiveData(objectID, "interactionCount", interactionCount);
-        }
-        else
-        {
-            Debug.LogWarning($"[InteractiveObject] '{objectID}' interacted, but AdaptiveBackend is missing!");
-        }
-    }
+//         // 4. Report to the AI Backend (The "Brain")
+//         if (AdaptiveBackend.Instance != null)
+//         {
+//             // UPDATED: Now uses the generic ReceiveData method
+//             AdaptiveBackend.Instance.ReceiveData(objectID, "interactionCount", interactionCount);
+//         }
+//         else
+//         {
+//             Debug.LogWarning($"[InteractiveObject] '{objectID}' interacted, but AdaptiveBackend is missing!");
+//         }
+//     }
 
-    /// <summary>
-    /// Helper to reset state if the game loops or restarts level.
-    /// </summary>
-    public void ResetInteraction()
-    {
-        interactionCount = 0;
-    }
-}
+//     /// <summary>
+//     /// Helper to reset state if the game loops or restarts level.
+//     /// </summary>
+//     public void ResetInteraction()
+//     {
+//         interactionCount = 0;
+//     }
+// }
 
 /// <summary>
 /// MAIN CONTROLLER: Orchestrates Data Processing, AI Training, and Gameplay Adaptation.
@@ -203,67 +203,29 @@ public class AdaptiveBackend
     // =================================================================================
     private void ProcessDataset()
     {
-        string filePath = Path.Combine(Application.streamingAssetsPath, csvFileName);
-        
-        Debug.Log($"[DataPipeline] Attempting to load dataset from: {filePath}");
-
-        if (!File.Exists(filePath))
-        {
-            Debug.LogWarning($"[DataPipeline] CSV File NOT FOUND at: {filePath}. Using default fallback stats (50/50).");
-            MemoryStats = new DSStatistics(new List<float> { 50f }); 
-            SpatialStats = new DSStatistics(new List<float> { 50f });
-            return;
-        }
-
-        List<float> memoryScores = new List<float>();
-        List<float> spatialScores = new List<float>();
+        string fullPath = Path.Combine(Application.streamingAssetsPath, csvFileName);
+        Debug.Log($"[DataPipeline] Loading from: {fullPath}");
 
         try 
         {
-            string[] lines = File.ReadAllLines(filePath);
-            Debug.Log($"[DataPipeline] File loaded. Total lines: {lines.Length}");
-
-            int loadedCount = 0;
+            var result = DatasetImporter.ImportFromCSV(fullPath);
             
-            // Skip header (i=1)
-            for (int i = 1; i < lines.Length; i++)
-            {
-                if (string.IsNullOrWhiteSpace(lines[i])) continue;
-
-                string[] cols = lines[i].Split(',');
-                
-                // DATASET MAPPING: 
-                // Col 1: Group ("Down", "TD")
-                // Col 9: WM_matr_sequential (Memory)
-                // Col 11: Floor Matrix Map (Spatial)
-                
-                if (cols.Length > 11 && cols[1].Trim() == "Down")
-                {
-                    if (float.TryParse(cols[9], out float mem)) memoryScores.Add(mem);
-                    if (float.TryParse(cols[11], out float spat)) spatialScores.Add(spat);
-                    
-                    loadedCount++;
-                    
-                    if (loadedCount <= 3)
-                    {
-                         Debug.Log($"[DataPipeline] Sample #{loadedCount}: Memory={mem}, Spatial={spat} (Row {i})");
-                    }
-                }
-            }
-
-            // Calculate Statistics
-            MemoryStats = new DSStatistics(memoryScores);
-            SpatialStats = new DSStatistics(spatialScores);
-
-            Debug.Log($"<color=green>[DataPipeline] SUCCESS!</color> Loaded {loadedCount} 'Down' syndrome profiles.");
+            MemoryStats = result.MemoryStats;
+            SpatialStats = result.SpatialStats;
+            
+            Debug.Log($"<color=green>[DataPipeline] Loaded {result.rawMemoryScores.Count} profiles.</color>");
             Debug.Log($"Stats -> Avg Memory: {MemoryStats.Mean:F2}, Avg Spatial: {SpatialStats.Mean:F2}");
         }
         catch (Exception e)
         {
-             Debug.LogError($"[DataPipeline] CRITICAL ERROR parsing CSV: {e.Message}");
+            Debug.LogWarning($"[DataPipeline] Failed to load dataset: {e.Message}. Using fallback.");
+            MemoryStats = new DSStatistics(new List<float> { 50f }); 
+            SpatialStats = new DSStatistics(new List<float> { 50f });
         }
     }
 
+
+    [ContextMenu("Verify Dataset Import")]
     public void VerifyDataIntegrity()
     {
         Debug.Log("--- Starting Manual Data Verification ---");
@@ -300,19 +262,7 @@ public class AdaptiveBackend
 // -------------------------------------------------------------------------
 // HELPERS (Standardized)
 // -------------------------------------------------------------------------
-public class DSStatistics
-{
-    public float Mean, StdDev, Min, Max;
-    public DSStatistics(List<float> data)
-    {
-        if (data == null || data.Count == 0) return;
-        Mean = data.Average();
-        Min = data.Min();
-        Max = data.Max();
-        if(data.Count > 1) 
-            StdDev = Mathf.Sqrt(data.Sum(d => Mathf.Pow(d - Mean, 2)) / (data.Count - 1));
-    }
-}
+
 
 public class SimpleNeuralNet
 {
