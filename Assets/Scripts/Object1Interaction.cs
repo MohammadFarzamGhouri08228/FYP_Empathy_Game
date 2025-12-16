@@ -3,15 +3,15 @@ using UnityEngine;
 public class Object1Interaction : MonoBehaviour
 {
     private int interactionCount = 0;
-    
-    // Detect trigger collisions (for objects with IsTrigger enabled)
+    private string myID = "Object1"; 
+
     void OnTriggerEnter2D(Collider2D other)
     {
         // Check if Player touched us
         if (other.CompareTag("Player") || other.GetComponent<PlayerController2>() != null)
         {
             interactionCount++;
-            Debug.Log($"Object1 interaction count: {interactionCount}");
+            SendData();
         }
     }
 
@@ -21,7 +21,7 @@ public class Object1Interaction : MonoBehaviour
         if (collision.gameObject.CompareTag("Player") || collision.gameObject.GetComponent<PlayerController2>() != null)
         {
             interactionCount++;
-            Debug.Log($"Object1 interaction count: {interactionCount}");
+            SendData();
         }
     }
 
