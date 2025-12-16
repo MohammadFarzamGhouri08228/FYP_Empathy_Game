@@ -6,16 +6,32 @@ public class PlayerController2 : MonoBehaviour
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 5f;
     
+    [Header("Rendering Settings")]
+    [SerializeField] private int playerSortingOrder = 15; // Higher than spikes (which use max 10)
+    
     private Rigidbody2D rb;
+    private SpriteRenderer spriteRenderer;
     private Vector2 moveInput;
     
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
         
         if (rb == null)
         {
             Debug.LogError("PlayerController: Rigidbody2D component not found!");
+        }
+        
+        // Set player sorting order to ensure they render above spikes and other obstacles
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.sortingOrder = playerSortingOrder;
+            Debug.Log($"PlayerController2: Sorting order set to {playerSortingOrder}");
+        }
+        else
+        {
+            Debug.LogWarning("PlayerController2: SpriteRenderer component not found! Player may not render correctly.");
         }
     }
     
