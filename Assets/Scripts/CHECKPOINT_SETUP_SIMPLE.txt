@@ -1,0 +1,98 @@
+═══════════════════════════════════════════════════════════
+CHECKPOINT DIALOGUE SETUP - SIMPLE GUIDE
+═══════════════════════════════════════════════════════════
+
+Each checkpoint now has its own event type!
+
+═══════════════════════════════════════════════════════════
+STEP 1: SET CHECKPOINT IDs IN YOUR SCENE
+═══════════════════════════════════════════════════════════
+
+1. Select your first checkpoint GameObject
+2. In Checkpoint script, set Checkpoint ID = 1
+
+3. Select your second checkpoint GameObject  
+4. In Checkpoint script, set Checkpoint ID = 2
+
+5. Continue for all checkpoints (3, 4, 5, etc.)
+
+═══════════════════════════════════════════════════════════
+STEP 2: CONFIGURE DIALOGUE EVENT MANAGER
+═══════════════════════════════════════════════════════════
+
+1. Find DialogueEventManager in your scene
+2. Check "Hide On Start" ✓
+3. In "Event Dialogue Settings", add entries:
+
+   Element 0:
+   - Event Type: Checkpoint1Reached
+   - Dialogue Text: "Checkpoint 1 reached! Keep going!"
+
+   Element 1:
+   - Event Type: Checkpoint2Reached
+   - Dialogue Text: "Checkpoint 2! You're doing great!"
+
+   Element 2:
+   - Event Type: Checkpoint3Reached
+   - Dialogue Text: "Checkpoint 3! Almost there!"
+
+   And so on for each checkpoint...
+
+═══════════════════════════════════════════════════════════
+IMPORTANT: MATCH IDs TO EVENT TYPES
+═══════════════════════════════════════════════════════════
+
+Checkpoint ID 1 → Triggers → Checkpoint1Reached event
+Checkpoint ID 2 → Triggers → Checkpoint2Reached event
+Checkpoint ID 3 → Triggers → Checkpoint3Reached event
+etc.
+
+═══════════════════════════════════════════════════════════
+TESTING
+═══════════════════════════════════════════════════════════
+
+1. Press Play
+2. Verify dialogue is HIDDEN
+3. Walk to Checkpoint 1
+4. You should see: "Checkpoint 1 reached! Keep going!"
+5. Walk to Checkpoint 2
+6. You should see: "Checkpoint 2! You're doing great!"
+
+Each checkpoint shows its own unique message! ✓
+
+═══════════════════════════════════════════════════════════
+TROUBLESHOOTING
+═══════════════════════════════════════════════════════════
+
+PROBLEM: No message appears
+SOLUTION: 
+- Make sure checkpoint ID matches event type
+  (ID 1 = Checkpoint1Reached, ID 2 = Checkpoint2Reached)
+- Check Console for warning messages
+- Make sure "Hide On Start" is checked
+
+PROBLEM: Wrong message appears
+SOLUTION:
+- Check the checkpoint's ID in the Inspector
+- Make sure Event Dialogue Settings has the right event type
+
+═══════════════════════════════════════════════════════════
+ADDING MORE CHECKPOINTS (BEYOND 5)
+═══════════════════════════════════════════════════════════
+
+If you need Checkpoint 6, 7, etc.:
+
+1. Open GameEventType.cs
+2. Add new entries:
+   Checkpoint6Reached,
+   Checkpoint7Reached,
+   etc.
+
+3. Open Checkpoint.cs
+4. In GetCheckpointEventType(), add:
+   case 6: return GameEventType.Checkpoint6Reached;
+   case 7: return GameEventType.Checkpoint7Reached;
+
+5. Then configure in DialogueEventManager as usual
+
+═══════════════════════════════════════════════════════════

@@ -350,6 +350,13 @@ MonoBehaviour:
   eventDialogues:
   - eventType: 0
     dialogueText: Oh no i got hurt
+  - eventType: 4
+    dialogueText: Checkpoint 1 yay
+  - eventType: 5
+    dialogueText: Checkpoint 2 yay
+  - eventType: 2
+    dialogueText: OUCH!
+  hideOnStart: 1
   dialogueDisplayDuration: 3
   restorePreviousText: 0
 --- !u!1 &142958369

@@ -9,5 +9,10 @@ public enum GameEventType
     FireEncountered,
     SpikeEncountered,
     ObstacleEncountered,
-    // Add more event types as needed
+    Checkpoint1Reached,
+    Checkpoint2Reached,
+    Checkpoint3Reached,
+    Checkpoint4Reached,
+    Checkpoint5Reached,
+    // Add more checkpoint events as needed
 }

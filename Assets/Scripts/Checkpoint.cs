@@ -4,8 +4,11 @@ public class Checkpoint : MonoBehaviour
 {
     [Header("Checkpoint Settings")]
     [SerializeField] private bool isActive = true; // Whether this checkpoint is active
-    [SerializeField] private int checkpointID = 0; // Optional ID for debugging/identification
+    [SerializeField] private int checkpointID = 0; // Unique ID for this checkpoint (used for dialogue system)
     [SerializeField] private bool allowMultipleActivations = false; // Whether checkpoint can be activated multiple times
+    
+    // Public getter for checkpoint ID (used by dialogue system)
+    public int CheckpointID => checkpointID;
     
     [Header("Detection Settings")]
     [SerializeField] private bool useDistanceDetection = true; // Use distance-based detection instead of collider
@@ -204,6 +207,18 @@ public class Checkpoint : MonoBehaviour
         checkpointManager.RegisterCheckpoint(checkpointPosition);
         hasBeenActivated = true;
         
+        // Trigger specific checkpoint event based on checkpoint ID for dialogue system
+        GameEventType checkpointEvent = GetCheckpointEventType(checkpointID);
+        if (checkpointEvent != GameEventType.BombEncountered) // Using BombEncountered as "invalid" since we don't have a "None"
+        {
+            GameEventManager.TriggerEvent(checkpointEvent, gameObject);
+            Debug.Log($"Checkpoint {checkpointID}: Triggered {checkpointEvent} event for dialogue system.");
+        }
+        else
+        {
+            Debug.LogWarning($"Checkpoint {checkpointID}: No matching event type found! Please add Checkpoint{checkpointID}Reached to GameEventType enum.");
+        }
+        
         // Update visual
         UpdateVisualState();
         
@@ -268,6 +283,24 @@ public class Checkpoint : MonoBehaviour
         {
             hasBeenActivated = false;
             UpdateVisualState();
+        }
+    }
+    
+    /// <summary>
+    /// Gets the corresponding GameEventType for this checkpoint based on its ID.
+    /// </summary>
+    private GameEventType GetCheckpointEventType(int id)
+    {
+        switch (id)
+        {
+            case 1: return GameEventType.Checkpoint1Reached;
+            case 2: return GameEventType.Checkpoint2Reached;
+            case 3: return GameEventType.Checkpoint3Reached;
+            case 4: return GameEventType.Checkpoint4Reached;
+            case 5: return GameEventType.Checkpoint5Reached;
+            default:
+                Debug.LogWarning($"Checkpoint ID {id} does not have a corresponding GameEventType. Add Checkpoint{id}Reached to the enum.");
+                return GameEventType.BombEncountered; // Return a default (not ideal, but prevents errors)
         }
     }
 }

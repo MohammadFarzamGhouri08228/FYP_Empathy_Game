@@ -13,10 +13,13 @@ public class DialogueEventManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI textMeshPro;
     
     [Header("Event Dialogue Settings")]
-    [Tooltip("Dialogue messages for each event type")]
+    [Tooltip("Dialogue messages for each event type (including checkpoints)")]
     [SerializeField] private EventDialogueData[] eventDialogues;
     
     [Header("Display Settings")]
+    [Tooltip("Hide dialogue text on start (only show when event is triggered)")]
+    [SerializeField] private bool hideOnStart = true;
+    
     [Tooltip("Duration to show dialogue before clearing (0 = don't auto-clear)")]
     [SerializeField] private float dialogueDisplayDuration = 3f;
     
@@ -49,6 +52,14 @@ public class DialogueEventManager : MonoBehaviour
         else
         {
             Debug.Log($"DialogueEventManager: Using assigned TextMeshPro: {textMeshPro.name}");
+        }
+        
+        // Hide dialogue text on start if enabled
+        if (hideOnStart && textMeshPro != null)
+        {
+            textMeshPro.text = "";
+            textMeshPro.gameObject.SetActive(false);
+            Debug.Log("DialogueEventManager: Dialogue text hidden on start.");
         }
         
         // Store initial text if we want to restore it
@@ -106,6 +117,7 @@ public class DialogueEventManager : MonoBehaviour
             return;
         }
         
+        // Handle all events the same way (including checkpoint events)
         if (dialogueDictionary.ContainsKey(eventType))
         {
             string dialogueText = dialogueDictionary[eventType];
@@ -116,6 +128,7 @@ public class DialogueEventManager : MonoBehaviour
         else
         {
             Debug.LogWarning($"DialogueEventManager: No dialogue found for event type {eventType}. Available keys: {string.Join(", ", dialogueDictionary.Keys)}");
+            Debug.LogWarning($"DialogueEventManager: Make sure to add an entry for {eventType} in the Event Dialogue Settings!");
         }
     }
     
