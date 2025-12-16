@@ -75,9 +75,26 @@ public class InteractiveObject : MonoBehaviour
 /// MAIN CONTROLLER: Orchestrates Data Processing, AI Training, and Gameplay Adaptation.
 /// Singleton pattern ensures only one brain exists.
 /// </summary>
-public class AdaptiveBackend : MonoBehaviour
+/// <summary>
+/// MAIN CONTROLLER: Orchestrates Data Processing, AI Training, and Gameplay Adaptation.
+/// Singleton pattern ensures only one brain exists.
+/// Pure C# Class - Not a MonoBehaviour.
+/// </summary>
+public class AdaptiveBackend
 {
-    public static AdaptiveBackend Instance;
+    // Lazy-loaded Singleton
+    private static AdaptiveBackend _instance;
+    public static AdaptiveBackend Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                _instance = new AdaptiveBackend();
+            }
+            return _instance;
+        }
+    }
 
     [Header("Configuration")]
     public string csvFileName = "Dataset path learning floor matrix task.csv"; 
@@ -94,27 +111,21 @@ public class AdaptiveBackend : MonoBehaviour
     // Example: "Object1" -> { "interactionCount": 5, "timeSpent": 12.4f }
     private Dictionary<string, Dictionary<string, object>> gameDataLog = new Dictionary<string, Dictionary<string, object>>();
 
-    void Awake()
+    // Private Constructor
+    private AdaptiveBackend()
     {
-        if (Instance == null) 
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject); // Persist across scenes
-        }
-        else 
-        {
-            Destroy(gameObject);
-            return;
-        }
-
         // Initialize Neural Net: 5 Inputs (Big 5), 12 Hidden, 3 Outputs (Branches)
         neuralNet = new SimpleNeuralNet(5, 12, 3);
+        
+        // Start initialization logic
+        Initialize();
     }
 
-    void Start()
+    private void Initialize()
     {
         ProcessDataset();
-        StartCoroutine(TrainAdaptiveModel());
+        // Replacing Coroutine with direct call since it was just a dummy wait
+        TrainAdaptiveModel(); 
     }
 
     // =================================================================================
@@ -253,7 +264,6 @@ public class AdaptiveBackend : MonoBehaviour
         }
     }
 
-    [ContextMenu("Verify Dataset Import")]
     public void VerifyDataIntegrity()
     {
         Debug.Log("--- Starting Manual Data Verification ---");
@@ -261,9 +271,10 @@ public class AdaptiveBackend : MonoBehaviour
         Debug.Log("--- Verification Complete ---");
     }
 
-    private IEnumerator TrainAdaptiveModel()
+    private void TrainAdaptiveModel()
     {
-        yield return null; 
+        // Was a coroutine waiting for null in original code. 
+        // In pure C#, we just execute logic.
         Debug.Log("<color=cyan>Adaptive Model Ready.</color>");
     }
 

@@ -2,11 +2,6 @@ using UnityEngine;
 
 public class Object1Interaction : MonoBehaviour
 {
-    [Header("Setup")]
-    // Drag your InteractiveObject script here in the Inspector!
-    // This is faster and safer than using "FindObject".
-    public InteractiveObject receiverScript;
-
     private int interactionCount = 0;
     private string myID = "Object1"; 
 
@@ -32,21 +27,9 @@ public class Object1Interaction : MonoBehaviour
 
     private void SendData()
     {
-        // If you forgot to drag the script in the Inspector, we try to find it automatically.
-        if (receiverScript == null)
-        {
-            receiverScript = FindFirstObjectByType<InteractiveObject>();
-        }
-
-        if (receiverScript != null)
-        {
-            // --- THE HANDSHAKE ---
-            receiverScript.ReceiveInteractionData(myID, interactionCount);
-        }
-        else
-        {
-            Debug.LogError("Error: Object1Interaction cannot find an 'InteractiveObject' to send data to!");
-        }
+        // Send data directly to the global Agent (AdaptiveBackend)
+        // Since AdaptiveBackend is a pure C# singleton, it is always accessible.
+        AdaptiveBackend.Instance.ReceiveData(myID, "interactionCount", interactionCount);
     }
 }
 
