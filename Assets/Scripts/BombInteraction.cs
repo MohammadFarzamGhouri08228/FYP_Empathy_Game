@@ -46,10 +46,16 @@ public class BombInteraction : MonoBehaviour
         // Check invincibility period
         if (Time.time - lastHitTime < invincibilityDuration)
         {
+            Debug.Log($"BombInteraction: Still in invincibility period ({Time.time - lastHitTime:F2}s / {invincibilityDuration}s)");
             return; // Still in invincibility period
         }
         
-        Debug.Log("Bomb interacted with! Reducing hearts.");
+        Debug.Log("BombInteraction: Bomb interacted with! Reducing hearts.");
+        
+        // Trigger bomb encounter event for dialogue system
+        Debug.Log($"BombInteraction: About to trigger GameEventManager.TriggerEvent(BombEncountered)");
+        GameEventManager.TriggerEvent(GameEventType.BombEncountered, gameObject);
+        Debug.Log("BombInteraction: GameEventManager.TriggerEvent called successfully");
         
         // Reduce hearts if HeartManager is found
         if (heartManager != null)

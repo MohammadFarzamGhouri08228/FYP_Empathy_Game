@@ -33,7 +33,7 @@ public class CameraFollowMaze2 : MonoBehaviour
             else
             {
                 // Try to find by component name
-                PlayerController2 playerController = FindObjectOfType<PlayerController2>();
+                PlayerController2 playerController = FindFirstObjectByType<PlayerController2>();
                 if (playerController != null)
                 {
                     target = playerController.transform;
