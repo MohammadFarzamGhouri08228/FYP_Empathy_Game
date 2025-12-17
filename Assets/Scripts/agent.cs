@@ -177,7 +177,7 @@ public class AdaptiveBackend
     /// Calculates runtime metrics and feeds them into the Neural Network
     /// to categorize the player behavior.
     /// </summary>
-    private void EvaluatePlayer()
+    public void EvaluatePlayer()
     {
         // Metric 1: Average Time Between Checkpoints
         float avgCheckpointTime = 0f;

@@ -14,6 +14,9 @@ public class CheckpointManager : MonoBehaviour
     [SerializeField] private bool resetHealthOnRespawn = false; // Whether to reset health to max on respawn
     [SerializeField] private Vector3 defaultSpawnPosition = Vector3.zero; // Fallback position if no checkpoint exists
     
+    [Header("Last Checkpoint Evaluation")]
+    [SerializeField] private int totalCheckpointsInLevel = 5; // Total number of checkpoints in the level
+    
     private HealthSystem playerHealthSystem;
     private HeartManager playerHeartManager; // Support for HeartManager as well
     private int previousHealth; // Track previous health to detect 2-life loss
@@ -21,6 +24,7 @@ public class CheckpointManager : MonoBehaviour
     private Transform playerTransform;
     private Rigidbody2D playerRigidbody;
     private StopwatchTimer gameTimer; // Reference to timer
+    private bool lastCheckpointEvaluated = false; // Prevent multiple evaluations
     
     // Singleton pattern for easy access
     private static CheckpointManager instance;
@@ -189,6 +193,14 @@ public class CheckpointManager : MonoBehaviour
             Debug.Log($"  [{i}] ({cp.x:F2}, {cp.y:F2}, {cp.z:F2}){marker}");
         }
         Debug.Log($"=============================");
+        
+        // Check if this is the last checkpoint
+        if (checkpointPositions.Length >= totalCheckpointsInLevel && !lastCheckpointEvaluated)
+        {
+            Debug.Log($"<color=green>=== LAST CHECKPOINT REACHED ===</color>");
+            EvaluatePlayerAtLastCheckpoint();
+            lastCheckpointEvaluated = true;
+        }
     }
     
     /// <summary>
@@ -285,6 +297,77 @@ public class CheckpointManager : MonoBehaviour
     {
         defaultSpawnPosition = position;
         Debug.Log($"CheckpointManager: Default spawn position set to {position}");
+    }
+    
+    /// <summary>
+    /// Evaluates player performance at the last checkpoint using AI backend.
+    /// If dissimilarity > 50%, gives confident answer. Otherwise not confident.
+    /// Ends the game after evaluation.
+    /// </summary>
+    private void EvaluatePlayerAtLastCheckpoint()
+    {
+        Debug.Log($"<color=cyan>=== EVALUATING PLAYER PERFORMANCE ===</color>");
+        
+        // Get backend instance and trigger evaluation
+        AdaptiveBackend backend = AdaptiveBackend.Instance;
+        
+        // Trigger evaluation (calculates from tracked checkpoint/life data)
+        backend.EvaluatePlayer();
+        
+        // Get similarity value (0.0 to 1.0)
+        float similarity = backend.CurrentDSSimilarity;
+        
+        // Calculate dissimilarity as percentage (0-100)
+        float dissimilarity = (1f - similarity) * 100f;
+        
+        Debug.Log($"<color=yellow>[Checkpoint Evaluation]</color> Similarity to DS: {similarity:F2} ({similarity * 100f:F1}%)");
+        Debug.Log($"<color=yellow>[Checkpoint Evaluation]</color> Dissimilarity Value: {dissimilarity:F1}%");
+        
+        // Simple threshold: > 50% dissimilarity = confident, <= 50% = not confident
+        if (dissimilarity > 50f)
+        {
+            // Confident answer
+            Debug.Log($"<color=green>╔═══════════════════════════════════════╗</color>");
+            Debug.Log($"<color=green>║     CONFIDENT ANSWER!                ║</color>");
+            Debug.Log($"<color=green>║     \"ya ve dii iit\"                  ║</color>");
+            Debug.Log($"<color=green>╚═══════════════════════════════════════╝</color>");
+        }
+        else
+        {
+            // Not confident answer
+            Debug.Log($"<color=red>╔═══════════════════════════════════════╗</color>");
+            Debug.Log($"<color=red>║     NOT CONFIDENT ANSWER             ║</color>");
+            Debug.Log($"<color=red>║     \"n-no i lost\"                    ║</color>");
+            Debug.Log($"<color=red>╚═══════════════════════════════════════╝</color>");
+        }
+        
+        Debug.Log($"<color=cyan>===========================================</color>");
+        
+        // End the game
+        EndGame();
+    }
+    
+    /// <summary>
+    /// Ends the game after last checkpoint evaluation.
+    /// </summary>
+    private void EndGame()
+    {
+        Debug.Log($"<color=magenta>╔═══════════════════════════════════════╗</color>");
+        Debug.Log($"<color=magenta>║          GAME ENDED!                 ║</color>");
+        Debug.Log($"<color=magenta>║   Last Checkpoint Reached            ║</color>");
+        Debug.Log($"<color=magenta>╚═══════════════════════════════════════╝</color>");
+        
+        // Stop game timer if it exists
+        if (gameTimer != null)
+        {
+            gameTimer.StopTimer();
+        }
+        
+        // Pause the game
+        Time.timeScale = 0f;
+        
+        // Optional: You can also load a game over scene or show a UI panel
+        // UnityEngine.SceneManagement.SceneManager.LoadScene("GameOverScene");
     }
 }
 
