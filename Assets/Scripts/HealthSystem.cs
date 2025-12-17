@@ -14,9 +14,13 @@ public class HealthSystem : MonoBehaviour
     public int CurrentHealth => currentHealth;
     public int MaxHealth => maxHealth;
     
+    private StopwatchTimer gameTimer;
+    
+    
     void Start()
     {
         currentHealth = maxHealth;
+        gameTimer = FindFirstObjectByType<StopwatchTimer>();
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
     }
     
@@ -28,6 +32,11 @@ public class HealthSystem : MonoBehaviour
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
         
         Debug.Log($"Health decreased! Current health: {currentHealth}/{maxHealth}");
+        
+        // Report to Agent
+        float time = gameTimer != null ? gameTimer.GetTime() : 0f;
+        AdaptiveBackend.Instance.ReceiveData("HealthSystem", "LifeLost", time);
+        
         
         if (currentHealth <= 0)
         {

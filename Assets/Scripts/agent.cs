@@ -45,6 +45,26 @@ public class AdaptiveBackend
     // Stats for scaling/normalization
     public float MeanMap, StdMap;
     public float MeanObs, StdObs;
+    
+    // --- DECISION MAKING STATE ---
+    /// <summary>
+    /// The current probability (0.0 to 1.0) that the player's behavior matches the DS profile.
+    /// Updated via EvaluatePlayer().
+    /// </summary>
+    public float CurrentDSSimilarity { get; private set; } = 0.5f;
+
+    /// <summary>
+    /// Event fired whenever the player's profile is re-evaluated.
+    /// Payload: The new similarity score.
+    /// </summary>
+    public event Action<float> OnPlayerProfileUpdated;
+
+    // --- UNIVERSAL DATA STORAGE ---
+    // Structure: [ObjectID] -> [DataLabel] -> [Value]
+    // Example: "Object1" -> { "interactionCount": 5, "timeSpent": 12.4f }
+    // --- DATA TRACKING LISTS ---
+    private List<float> _checkpointTimes = new List<float>();
+    private List<float> _lifeLostTimes = new List<float>();
 
     // --- UNIVERSAL DATA STORAGE ---
     // Structure: [ObjectID] -> [DataLabel] -> [Value]
@@ -101,6 +121,21 @@ public class AdaptiveBackend
 
         // 4. Trigger Analysis
         EvaluateData(objectId, dataLabel, dataValue);
+        
+        // 5. Rate Tracking
+        if (dataValue is float timeStamp)
+        {
+            if (objectId == "CheckpointManager" && dataLabel.StartsWith("CheckpointReached"))
+            {
+                _checkpointTimes.Add(timeStamp);
+                EvaluatePlayer();
+            }
+            if ((objectId == "HeartManager" || objectId == "HealthSystem") && dataLabel == "LifeLost")
+            {
+                _lifeLostTimes.Add(timeStamp);
+                EvaluatePlayer();
+            }
+        }
     }
 
     /// <summary>
@@ -136,6 +171,71 @@ public class AdaptiveBackend
                 Debug.Log("Player is taking a long time. Triggering hint system.");
             }
         }
+    }
+
+    /// <summary>
+    /// Calculates runtime metrics and feeds them into the Neural Network
+    /// to categorize the player behavior.
+    /// </summary>
+    private void EvaluatePlayer()
+    {
+        // Metric 1: Average Time Between Checkpoints
+        float avgCheckpointTime = 0f;
+        if (_checkpointTimes.Count > 1)
+        {
+            List<float> deltas = new List<float>();
+            // If the first checkpoint is at index 0, delta is from start (0.0). Usually index starts at 0.
+            // But let's assume times are absolute.
+            // Checkpoint times: [10.0, 25.0, 45.0] -> Deltas: [10.0, 15.0, 20.0]
+            
+            float previous = 0f;
+            foreach(var t in _checkpointTimes)
+            {
+                deltas.Add(t - previous);
+                previous = t;
+            }
+            avgCheckpointTime = deltas.Average();
+        }
+        else if (_checkpointTimes.Count == 1)
+        {
+             avgCheckpointTime = _checkpointTimes[0];
+        }
+
+        // Metric 2: Rate of Life Loss (Lives lost per minute)
+        float lifeLossRate = 0f;
+        float totalTime = 0f;
+        // Use the latest event time as current total time
+        if (_checkpointTimes.Count > 0) totalTime = Mathf.Max(totalTime, _checkpointTimes.Last());
+        if (_lifeLostTimes.Count > 0) totalTime = Mathf.Max(totalTime, _lifeLostTimes.Last());
+        
+        if (totalTime > 0)
+        {
+            lifeLossRate = _lifeLostTimes.Count / (totalTime / 60f); // Lives per minute
+        }
+
+        Debug.Log($"<color=orange>[Metrics]</color> Avg CP Time: {avgCheckpointTime:F1}s | Life Loss Rate: {lifeLossRate:F1}/min");
+
+        // MAP TO NEURAL NET INPUTS
+        // NN expects "Floor Matrix Map" (Spatial) and "Floor Matrix Obs" (Observation/Memory).
+        // Range roughly 1.0 - 5.0 (Map) and 1.0 - 6.0 (Obs).
+        
+        // Assumption: High Checkpoint Time (Slow) -> Low Map Score (Poor Spatial)
+        // Assumption: High Life Loss Rate -> Low Obs Score (Poor Observation)
+        
+        // Simple Inverse Mapping (Tuning needed based on real data ranges)
+        // Map: Base 5.0 - (Time / 10.0)
+        float mappedMapScore = Mathf.Clamp(5.0f - (avgCheckpointTime / 15.0f), 1.0f, 5.0f);
+        
+        // Obs: Base 6.0 - (Rate * 2.0)
+        float mappedObsScore = Mathf.Clamp(6.0f - (lifeLossRate * 2.0f), 1.0f, 6.0f);
+
+        float dsSimilarity = PredictSimilarityToDS(mappedMapScore, mappedObsScore);
+        
+        // Update State
+        CurrentDSSimilarity = dsSimilarity;
+        OnPlayerProfileUpdated?.Invoke(CurrentDSSimilarity);
+        
+        Debug.Log($"<color=magenta>[Agent Evaluation]</color> Mapped Inputs: [Map:{mappedMapScore:F1}, Obs:{mappedObsScore:F1}] -> DS Similarity: {dsSimilarity:P1}");
     }
 
     // =================================================================================
