@@ -19,6 +19,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Sprite jumpSprite;
     [SerializeField] private Sprite hangSprite;
     
+    [Header("Rendering Settings")]
+    [SerializeField] private int playerSortingOrder = 15; // Higher than spikes (which use max 10)
+    
     private Rigidbody2D rb;
     private SpriteRenderer spriteRenderer;
     private bool isGrounded;
@@ -63,6 +66,13 @@ public class PlayerController : MonoBehaviour
         if (idleSprite != null)
         {
             spriteRenderer.sprite = idleSprite;
+        }
+        
+        // Set player sorting order to ensure they render above spikes and other obstacles
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.sortingOrder = playerSortingOrder;
+            Debug.Log($"PlayerController: Sorting order set to {playerSortingOrder}");
         }
     }
     

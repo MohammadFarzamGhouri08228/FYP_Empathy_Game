@@ -9,11 +9,32 @@ public class StopwatchTimer : MonoBehaviour
     [Header("Settings")]
     public bool autoStart = false;
     
+    [Header("Maze2 Intro Control")]
+    [Tooltip("If true, timer will wait for Maze2IntroController to complete before auto-starting")]
+    public bool waitForIntroComplete = false;
+    
     private float currentTime = 0f;
     private bool isRunning = false;
+    private Maze2IntroController introController;
     
     void Start()
     {
+        // Check if we should wait for intro controller
+        if (waitForIntroComplete)
+        {
+            introController = FindFirstObjectByType<Maze2IntroController>();
+            if (introController != null)
+            {
+                Debug.Log("StopwatchTimer: Waiting for intro sequence to complete...");
+                UpdateTimeDisplay();
+                return; // Don't auto-start, wait for intro controller to call StartTimer()
+            }
+            else
+            {
+                Debug.LogWarning("StopwatchTimer: waitForIntroComplete is true but Maze2IntroController not found!");
+            }
+        }
+        
         if (autoStart)
         {
             StartTimer();
