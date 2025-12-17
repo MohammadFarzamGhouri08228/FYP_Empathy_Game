@@ -14,6 +14,8 @@ public class HeartManager : MonoBehaviour
 
     public SpriteRenderer[] hearts; // size = 2 in inspector
     
+    private StopwatchTimer gameTimer; // Reference to timer
+    
     // Events for health changes (similar to HealthSystem)
     public event Action<int, int> OnHealthChanged; // (currentHealth, maxHealth)
     public event Action OnHealthDepleted; // When health reaches 0
@@ -57,6 +59,9 @@ public class HeartManager : MonoBehaviour
         
         UpdateHearts();
         
+        // Find StopwatchTimer
+        gameTimer = FindFirstObjectByType<StopwatchTimer>();
+        
         // Invoke initial health event
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
     }
@@ -79,6 +84,13 @@ public class HeartManager : MonoBehaviour
         
         // Invoke health changed event
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
+
+        // Report to Agent if damage was taken
+        if (dmg > 0)
+        {
+            float time = gameTimer != null ? gameTimer.GetTime() : 0f;
+            AdaptiveBackend.Instance.ReceiveData("HeartManager", "LifeLost", time);
+        }
         
         // Check if health depleted
         if (currentHealth <= 0)

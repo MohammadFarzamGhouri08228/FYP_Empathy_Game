@@ -20,6 +20,7 @@ public class CheckpointManager : MonoBehaviour
     private int initialMaxHealth; // Track initial max health to calculate total lives lost
     private Transform playerTransform;
     private Rigidbody2D playerRigidbody;
+    private StopwatchTimer gameTimer; // Reference to timer
     
     // Singleton pattern for easy access
     private static CheckpointManager instance;
@@ -103,6 +104,12 @@ public class CheckpointManager : MonoBehaviour
         {
             defaultSpawnPosition = playerTransform.position;
         }
+
+        // Find StopwatchTimer
+        gameTimer = FindFirstObjectByType<StopwatchTimer>();
+        if (gameTimer == null) Debug.LogWarning("CheckpointManager: StopwatchTimer not found! Timestamps will be 0.");
+        
+       
     }
     
     void OnDestroy()
@@ -168,6 +175,10 @@ public class CheckpointManager : MonoBehaviour
         Debug.Log($"Checkpoint Position: ({position.x:F2}, {position.y:F2}, {position.z:F2})");
         Debug.Log($"Total Checkpoints: {checkpointPositions.Length}");
         Debug.Log($"Most Recent Checkpoint Index: {mostRecentCheckpointIndex}");
+        
+        // Report to Agent
+        float time = gameTimer != null ? gameTimer.GetTime() : 0f;
+        AdaptiveBackend.Instance.ReceiveData("CheckpointManager", $"CheckpointReached_{mostRecentCheckpointIndex}", time);
         
         // Print all checkpoint coordinates
         Debug.Log($"All Checkpoint Coordinates:");
