@@ -2377,7 +2377,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1992301999}
-  m_Father: {fileID: 791792375}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -2657,8 +2657,7 @@ Transform:
   m_LocalPosition: {x: -10.21, y: 4.44, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 700081749}
+  m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &791792376
@@ -3355,7 +3354,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1017382508}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6, type: 3}
   m_Name: 
@@ -3367,9 +3366,9 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 0
-  idleSprite: {fileID: 0}
-  walkSprite1: {fileID: 0}
-  walkSprite2: {fileID: 0}
+  idleSprite: {fileID: -5115618752126089108, guid: 6fc03813c5b3f0d4f84da6d38cffd7e6, type: 3}
+  walkSprite1: {fileID: 2565330977505109439, guid: 7cdf7dc0fe5f2204fa78159b03e09173, type: 3}
+  walkSprite2: {fileID: -6119263236114623818, guid: 7c839e19c938bf04f876b5ad14578bf2, type: 3}
   jumpSprite: {fileID: 0}
   hangSprite: {fileID: 0}
   playerSortingOrder: 15
