@@ -1,11 +1,11 @@
 /*
-THIS IS OUR PLAYER MOVEMENT SCRIPT 
+THIS IS OUR PLAYER MOVEMENT SCRIPT FOR LEVEL 2
 */
 
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerController2 : MonoBehaviour
+public class Lvl2movement : MonoBehaviour
 {
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 5f;
