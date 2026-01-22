@@ -17,9 +17,11 @@ public class SimpleCameraFollow : MonoBehaviour
     public float zoomLevel = 5f;
 
     [Header("Boundary Settings")]
-    public bool useBounds = false;
-    public Vector2 minBounds;
-    public Vector2 maxBounds;
+    public bool useBounds = true;
+    [Tooltip("Optional: Assign a background sprite to automatically set bounds")]
+    public SpriteRenderer backgroundRenderer;
+    public Vector2 minBounds = new Vector2(-250f, -5.12f);
+    public Vector2 maxBounds = new Vector2(250f, 5.12f);
 
     private Vector3 velocity = Vector3.zero;
     private Camera cam;
@@ -30,6 +32,15 @@ public class SimpleCameraFollow : MonoBehaviour
         if (cam != null)
         {
             cam.orthographicSize = zoomLevel;
+        }
+
+        // Automatically set bounds from background if assigned
+        if (backgroundRenderer != null)
+        {
+            Bounds b = backgroundRenderer.bounds;
+            minBounds = new Vector2(b.min.x, b.min.y);
+            maxBounds = new Vector2(b.max.x, b.max.y);
+            useBounds = true;
         }
 
         // Automatically try to find the player if not assigned
