@@ -44,5 +44,8 @@ TagManager:
   - name: UI_Ignore_Light
     uniqueID: 4248797783
     locked: 0
+  - name: Layer1
+    uniqueID: 1583570691
+    locked: 0
   m_RenderingLayers:
   - Default
