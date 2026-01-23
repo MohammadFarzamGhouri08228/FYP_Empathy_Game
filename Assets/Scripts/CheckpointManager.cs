@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.UI;
+using System.Collections;
 using System.Collections.Generic;
 
 public class CheckpointManager : MonoBehaviour
@@ -29,6 +31,118 @@ public class CheckpointManager : MonoBehaviour
     // Singleton pattern for easy access
     private static CheckpointManager instance;
     public static CheckpointManager Instance => instance;
+
+    public GameObject dialogPanel;
+    public Text dialogText;
+    public string[] dialogue;
+    private int index;
+
+    public GameObject contButton;
+    public float wordSpeed;
+    private Checkpoint nearbyCheckpoint; // Reference to the checkpoint we are currently near
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.E) && nearbyCheckpoint != null)
+        {
+            if (dialogPanel.activeInHierarchy)
+            {
+                zeroText();
+            }
+            else
+            {
+                // Only start if there is dialogue to show
+                if (nearbyCheckpoint.interactionDialogue != null && nearbyCheckpoint.interactionDialogue.Length > 0)
+                {
+                    dialogPanel.SetActive(true);
+                    StartCoroutine(Typing());
+                }
+            }
+        }
+
+        if (nearbyCheckpoint != null && nearbyCheckpoint.interactionDialogue != null && index < nearbyCheckpoint.interactionDialogue.Length)
+        {
+             if (dialogText.text == nearbyCheckpoint.interactionDialogue[index])
+             {
+                 contButton.SetActive(true);
+             }
+        }
+    }
+
+    public void zeroText()
+    {
+        dialogText.text = "";
+        index = 0;
+        dialogPanel.SetActive(false);
+    }
+
+    IEnumerator Typing()
+    {
+        if (nearbyCheckpoint != null && nearbyCheckpoint.interactionDialogue != null && index < nearbyCheckpoint.interactionDialogue.Length)
+        {
+            foreach (char letter in nearbyCheckpoint.interactionDialogue[index].ToCharArray())
+            {
+                dialogText.text += letter;
+                yield return new WaitForSeconds(wordSpeed);
+            }
+        }
+    }
+
+    public void NextLine()
+    {
+        contButton.SetActive(false);
+
+        if (nearbyCheckpoint != null && nearbyCheckpoint.interactionDialogue != null)
+        {
+            if (index < nearbyCheckpoint.interactionDialogue.Length - 1)
+            {
+                index++;
+                dialogText.text = "";
+                StartCoroutine(Typing());
+            }
+            else
+            {
+                zeroText();
+            }
+        }
+        else
+        {
+             zeroText();
+        }
+    }
+
+    /// <summary>
+    /// Sets the nearby checkpoint that the player can interact with.
+    /// </summary>
+    public void SetNearbyCheckpoint(Checkpoint cp)
+    {
+        nearbyCheckpoint = cp;
+    }
+
+    /// <summary>
+    /// Clears the nearby checkpoint if it is the one specified.
+    /// </summary>
+    public void ClearNearbyCheckpoint(Checkpoint cp)
+    {
+        if (nearbyCheckpoint == cp)
+        {
+            nearbyCheckpoint = null;
+            // Optionally close dialogue if we walk away?
+            if (dialogPanel.activeInHierarchy)
+            {
+                zeroText();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns the currently active nearby checkpoint.
+    /// </summary>
+    public Checkpoint GetNearbyCheckpoint()
+    {
+        return nearbyCheckpoint;
+    }
+
     
     void Awake()
     {

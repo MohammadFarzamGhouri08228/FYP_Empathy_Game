@@ -3859,7 +3859,7 @@ MonoBehaviour:
   m_BlendStyleIndex: 0
   m_FalloffIntensity: 0.5
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1.5
+  m_Intensity: 1
   m_LightVolumeIntensity: 1
   m_LightVolumeEnabled: 0
   m_ApplyToSortingLayers: 00000000
@@ -7959,7 +7959,7 @@ GameObject:
   - component: {fileID: 1938058200}
   - component: {fileID: 1938058199}
   m_Layer: 0
-  m_Name: Text (TMP)
+  m_Name: DialogueText (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9047,3 +9047,4 @@ SceneRoots:
   - {fileID: 345983350}
   - {fileID: 1461438540}
   - {fileID: 49943333}
+  - {fileID: 700081749}

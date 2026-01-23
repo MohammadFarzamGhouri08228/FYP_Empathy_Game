@@ -1,6 +1,9 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
+using System.Collections;
+using System.Collections.Generic;
 /// <summary>
 /// Simple dialogue controller that displays text on a triangle sprite using TextMeshPro.
 /// Press 'P' to cycle through dialogue messages.
@@ -163,12 +166,12 @@ public class SimpleDialogueController : MonoBehaviour
             // Configure TextMeshPro for wrapping
             if (enableTextWrapping)
             {
-                textMeshPro.enableWordWrapping = true;
+                textMeshPro.enableTextWrapping = true;
                 textMeshPro.overflowMode = TextOverflowModes.Truncate;
             }
             else
             {
-                textMeshPro.enableWordWrapping = false;
+                textMeshPro.enableTextWrapping = false;
             }
             
             // Set auto-sizing if enabled
