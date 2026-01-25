@@ -60,17 +60,22 @@ public class NPCBehaviour : MonoBehaviour
     {
         Debug.Log($"NPCBehaviour: Received event {eventType}");
         
-        // Trigger jump for Checkpoint 1 onwards (ID > 0)
-        // Assuming the same jump behavior for all for now. 
-        // If different jumps are needed per checkpoint, we'll need a different structure (e.g. valid forces list).
-        if (eventType == GameEventType.Checkpoint1Reached ||
-            eventType == GameEventType.Checkpoint2Reached ||
-            eventType == GameEventType.Checkpoint3Reached ||
+        if (eventType == GameEventType.Checkpoint1Reached)
+        {
+             Debug.Log($"NPCBehaviour: Checkpoint {eventType} reached! Preparing to jump (Default Force) in 7 seconds...");
+             StartCoroutine(PerformJumpRoutine(null, 7f));
+        }
+        else if (eventType == GameEventType.Checkpoint2Reached)
+        {
+            Debug.Log($"NPCBehaviour: Checkpoint {eventType} reached! Preparing to jump (Custom Force) in 1 second...");
+            StartCoroutine(PerformJumpRoutine(new Vector2(6f, 9f), 1f));
+        }
+        else if (eventType == GameEventType.Checkpoint3Reached ||
             eventType == GameEventType.Checkpoint4Reached ||
             eventType == GameEventType.Checkpoint5Reached)
         {
-            Debug.Log($"NPCBehaviour: Checkpoint {eventType} reached! Preparing to jump in {hesitationTime} seconds...");
-            StartCoroutine(PerformJumpRoutine());
+            Debug.Log($"NPCBehaviour: Checkpoint {eventType} reached! Preparing to jump (Default Force) in {hesitationTime} seconds...");
+            StartCoroutine(PerformJumpRoutine(null));
         }
         else if (eventType == GameEventType.Checkpoint0Reached)
         {
@@ -78,11 +83,12 @@ public class NPCBehaviour : MonoBehaviour
         }
     }
 
-    private IEnumerator PerformJumpRoutine()
+    private IEnumerator PerformJumpRoutine(Vector2? customForce, float? customHesitation = null)
     {
-        Debug.Log($"NPCBehaviour: Starting hesitation routine ({hesitationTime}s)");
+        float timeToWait = customHesitation ?? hesitationTime;
+        Debug.Log($"NPCBehaviour: Starting hesitation routine ({timeToWait}s)");
         // 1. Hesitate
-        yield return new WaitForSeconds(hesitationTime);
+        yield return new WaitForSeconds(timeToWait);
         
         // 2. Move Right
         Debug.Log($"NPCBehaviour: Moving {moveDistance} units right at speed {moveSpeed}...");
@@ -109,17 +115,18 @@ public class NPCBehaviour : MonoBehaviour
 
         // 3. Jump
         Debug.Log("NPCBehaviour: Attempting jump...");
-        Jump();
+        Jump(customForce);
     }
 
     [ContextMenu("Force Jump Now")]
-    public void Jump()
+    public void Jump(Vector2? overrideForce = null)
     {
         if (rb != null)
         {
-            Debug.Log($"NPCBehaviour: Applying Jump Force {jumpForce} (Mass: {rb.mass})");
+            Vector2 forceToUse = overrideForce ?? jumpForce;
+            Debug.Log($"NPCBehaviour: Applying Jump Force {forceToUse} (Mass: {rb.mass})");
             // Using Impulse for immediate jump force (ForceMode2D.Impulse is instant)
-            rb.AddForce(jumpForce, ForceMode2D.Impulse);
+            rb.AddForce(forceToUse, ForceMode2D.Impulse);
         }
         else
         {

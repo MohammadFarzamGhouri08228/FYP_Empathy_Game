@@ -2017,7 +2017,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5834781235404452636, guid: ccaa79cf3dcab8143b81ffa42c12fc72, type: 3}
       propertyPath: totalCheckpointsInLevel
-      value: 3
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 7180065475779408955, guid: ccaa79cf3dcab8143b81ffa42c12fc72, type: 3}
       propertyPath: m_LocalPosition.x
