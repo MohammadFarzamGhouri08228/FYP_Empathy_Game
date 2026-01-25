@@ -183,24 +183,16 @@ public class Checkpoint : MonoBehaviour
             FindPlayer();
         }
         
-        // Register checkpoint position (use player's position when they pass through)
-        Vector3 checkpointPosition;
+        // Register checkpoint position (use the checkpoint's own position so player respawns directly on it)
+        Vector3 checkpointPosition = transform.position;
+        
+        Debug.Log($"=== CHECKPOINT ENCOUNTERED ===");
+        Debug.Log($"Checkpoint ID: {checkpointID}");
+        Debug.Log($"Checkpoint Position (stored for respawn): ({checkpointPosition.x:F2}, {checkpointPosition.y:F2}, {checkpointPosition.z:F2})");
+        
         if (player != null)
         {
-            checkpointPosition = player.transform.position;
-            Debug.Log($"=== CHECKPOINT ENCOUNTERED ===");
-            Debug.Log($"Checkpoint ID: {checkpointID}");
-            Debug.Log($"Checkpoint GameObject Position: ({transform.position.x:F2}, {transform.position.y:F2}, {transform.position.z:F2})");
-            Debug.Log($"Player Position (stored as checkpoint): ({checkpointPosition.x:F2}, {checkpointPosition.y:F2}, {checkpointPosition.z:F2})");
-        }
-        else
-        {
-            // Fallback to checkpoint's own position
-            checkpointPosition = transform.position;
-            Debug.LogWarning($"Checkpoint {checkpointID}: Player not found, using checkpoint's own position.");
-            Debug.Log($"=== CHECKPOINT ENCOUNTERED ===");
-            Debug.Log($"Checkpoint ID: {checkpointID}");
-            Debug.Log($"Checkpoint Position (fallback): ({checkpointPosition.x:F2}, {checkpointPosition.y:F2}, {checkpointPosition.z:F2})");
+            Debug.Log($"Player Position at detection: ({player.transform.position.x:F2}, {player.transform.position.y:F2}, {player.transform.position.z:F2})");
         }
         
         // Register with CheckpointManager
