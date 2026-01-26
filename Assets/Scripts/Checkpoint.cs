@@ -285,6 +285,7 @@ public class Checkpoint : MonoBehaviour
     {
         switch (id)
         {
+            case 0: return GameEventType.Checkpoint0Reached;
             case 1: return GameEventType.Checkpoint1Reached;
             case 2: return GameEventType.Checkpoint2Reached;
             case 3: return GameEventType.Checkpoint3Reached;
