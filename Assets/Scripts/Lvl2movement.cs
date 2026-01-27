@@ -10,6 +10,9 @@ public class Lvl2movement : MonoBehaviour
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 5f;
     
+    [Header("Player Sprites")]
+    [SerializeField] private Sprite idleSprite;
+    
     [Header("Climbing Sprites")]
     [SerializeField] public Sprite player_climb1;
     [SerializeField] public Sprite playerclimb_2;
@@ -84,11 +87,11 @@ public class Lvl2movement : MonoBehaviour
 
         if (isClimbing)
         {
-            // Handle climbing animation
-            if (Mathf.Abs(moveInput.y) > 0.1f || Mathf.Abs(moveInput.x) > 0.1f)
+            // Handle climbing animation (ONLY when moving UP or DOWN)
+            if (Mathf.Abs(moveInput.y) > 0.1f)
             {
                 climbAnimationTimer += Time.deltaTime;
-                float climbCycleSpeed = 0.2f;
+                float climbCycleSpeed = 0.15f; // Slightly faster animation for better feel
 
                 if (climbAnimationTimer >= climbCycleSpeed * 2)
                 {
@@ -104,22 +107,32 @@ public class Lvl2movement : MonoBehaviour
                     spriteRenderer.sprite = playerclimb_2;
                 }
             }
-            else if (player_climb1 != null)
+            else
             {
-                spriteRenderer.sprite = player_climb1; // Idle on ladder
+                // Idle on ladder (or horizontal movement on ladder)
+                if (player_climb1 != null) spriteRenderer.sprite = player_climb1;
+                climbAnimationTimer = 0f;
             }
         }
         else
         {
+            // Reset to idle sprite when not climbing and not moving significantly
+            if (Mathf.Abs(moveInput.x) < 0.1f && Mathf.Abs(moveInput.y) < 0.1f)
+            {
+                if (idleSprite != null) spriteRenderer.sprite = idleSprite;
+            }
+            
             // Flip sprite based on movement direction (only when not climbing)
-            if (moveInput.x > 0)
+            if (moveInput.x > 0.1f)
             {
                 spriteRenderer.flipX = false;
             }
-            else if (moveInput.x < 0)
+            else if (moveInput.x < -0.1f)
             {
                 spriteRenderer.flipX = true;
             }
+            
+            climbAnimationTimer = 0f;
         }
     }
     
