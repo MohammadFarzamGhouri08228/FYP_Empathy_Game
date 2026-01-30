@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "C:\\Users\\ra08102\\FYP_KindQuest_26\\FYP_Empathy_Game\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{51DAF1E2-F3DB-D952-47F3-10B4FF4E8DE6}|Assembly-CSharp.csproj|c:\\users\\ra08102\\fyp_kindquest_26\\fyp_empathy_game\\assets\\scripts\\checkpointmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{51DAF1E2-F3DB-D952-47F3-10B4FF4E8DE6}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\checkpointmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ra08102\\FYP_KindQuest_26\\FYP_Empathy_Game\\Library\\PackageCache\\com.unity.render-pipelines.universal@4976252adeb8\\Runtime\\2D\\Shadows\\ShadowCaster2D.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Library\\PackageCache\\com.unity.render-pipelines.universal@4976252adeb8\\Runtime\\2D\\Shadows\\ShadowCaster2D.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -23,6 +27,19 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "CheckpointManager.cs",
+              "DocumentMoniker": "C:\\Users\\ra08102\\FYP_KindQuest_26\\FYP_Empathy_Game\\Assets\\Scripts\\CheckpointManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\CheckpointManager.cs",
+              "ToolTip": "C:\\Users\\ra08102\\FYP_KindQuest_26\\FYP_Empathy_Game\\Assets\\Scripts\\CheckpointManager.cs",
+              "RelativeToolTip": "Assets\\Scripts\\CheckpointManager.cs",
+              "ViewState": "AgIAAGgAAAAAAAAAAAAwwIIAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-28T11:51:32.198Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "ShadowCaster2D.cs",
               "DocumentMoniker": "C:\\Users\\ra08102\\FYP_KindQuest_26\\FYP_Empathy_Game\\Library\\PackageCache\\com.unity.render-pipelines.universal@4976252adeb8\\Runtime\\2D\\Shadows\\ShadowCaster2D.cs",
               "RelativeDocumentMoniker": "Library\\PackageCache\\com.unity.render-pipelines.universal@4976252adeb8\\Runtime\\2D\\Shadows\\ShadowCaster2D.cs",
@@ -35,7 +52,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "Shadow.cs",
               "DocumentMoniker": "C:\\Users\\ra08102\\FYP_KindQuest_26\\FYP_Empathy_Game\\Library\\PackageCache\\com.unity.ugui@7056cb05de4c\\Runtime\\UGUI\\UI\\Core\\VertexModifiers\\Shadow.cs",
               "RelativeDocumentMoniker": "Library\\PackageCache\\com.unity.ugui@7056cb05de4c\\Runtime\\UGUI\\UI\\Core\\VertexModifiers\\Shadow.cs",
@@ -43,8 +60,7 @@
               "RelativeToolTip": "Library\\PackageCache\\com.unity.ugui@7056cb05de4c\\Runtime\\UGUI\\UI\\Core\\VertexModifiers\\Shadow.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-20T13:05:14.894Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-20T13:05:14.894Z"
             }
           ]
         }

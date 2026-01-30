@@ -83,9 +83,7 @@ public class Checkpoint : MonoBehaviour
         Debug.Log($"Checkpoint {checkpointID}: Initialized at position ({transform.position.x:F2}, {transform.position.y:F2}, {transform.position.z:F2}). Detection: {(useDistanceDetection ? "Distance-based" : "Collider-based")}");
     }
     
-    [Header("Interaction Settings")]
-    [SerializeField] public string[] interactionDialogue; // Dialogue to trigger on interaction
-    [SerializeField] private float interactionRadius = 2.0f; // Distance to allow interaction
+
     
     void Update()
     {
@@ -94,47 +92,11 @@ public class Checkpoint : MonoBehaviour
         {
             CheckPlayerDistance();
         }
-        
-        // Always check for interaction capability if active
-        if (isActive)
-        {
-            CheckInteractionDistance();
-        }
     }
 
 
     
-    /// <summary>
-    /// Checks if player is close enough to interact (press E).
-    /// </summary>
-    private void CheckInteractionDistance()
-    {
-        if (player == null)
-        {
-            FindPlayer();
-            if (player == null) return;
-        }
 
-        float distance = Vector3.Distance(transform.position, player.transform.position);
-        
-        // Notify manager if we are close enough to interact
-        if (distance <= interactionRadius)
-        {
-            if (checkpointManager != null)
-            {
-                checkpointManager.SetNearbyCheckpoint(this);
-            }
-        }
-        else
-        {
-            // Only clear if we were the one who set it (managed by distance check usually sufficient, 
-            // but explicit clear prevents sticking if we teleport away)
-            if (checkpointManager != null && checkpointManager.GetNearbyCheckpoint() == this)
-            {
-                checkpointManager.ClearNearbyCheckpoint(this);
-            }
-        }
-    }
 
     /// <summary>
     /// Finds the player GameObject using tags or controllers.

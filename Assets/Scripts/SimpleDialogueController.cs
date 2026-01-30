@@ -166,12 +166,12 @@ public class SimpleDialogueController : MonoBehaviour
             // Configure TextMeshPro for wrapping
             if (enableTextWrapping)
             {
-                textMeshPro.enableTextWrapping = true;
+                textMeshPro.textWrappingMode = TextWrappingModes.NoWrap;
                 textMeshPro.overflowMode = TextOverflowModes.Truncate;
             }
             else
             {
-                textMeshPro.enableTextWrapping = false;
+                textMeshPro.textWrappingMode = TextWrappingModes.NoWrap;
             }
             
             // Set auto-sizing if enabled
@@ -322,12 +322,12 @@ public class SimpleDialogueController : MonoBehaviour
         // Configure TextMeshPro for wrapping
         if (enableTextWrapping)
         {
-            textMeshPro.enableWordWrapping = true;
+            textMeshPro.textWrappingMode = TextWrappingModes.NoWrap;
             textMeshPro.overflowMode = TextOverflowModes.Truncate;
         }
         else
         {
-            textMeshPro.enableWordWrapping = false;
+            textMeshPro.textWrappingMode = TextWrappingModes.NoWrap;
         }
         
         // Set auto-sizing if enabled
