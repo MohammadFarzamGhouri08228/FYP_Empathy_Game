@@ -56,14 +56,35 @@ public class NPCBehaviour : MonoBehaviour
         GameEventManager.OnGameEvent -= HandleGameEvent;
     }
 
+    private bool waitingForCheckpoint1Choice = false;
+
+    void Update()
+    {
+        if (waitingForCheckpoint1Choice)
+        {
+            if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
+            {
+                Debug.Log("NPCBehaviour: Option 1 selected (Move then Jump).");
+                waitingForCheckpoint1Choice = false;
+                StartCoroutine(PerformJumpRoutine(null, 0.5f)); // Small hesitation before moving
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2))
+            {
+                Debug.Log("NPCBehaviour: Option 2 selected (Jump immediately).");
+                waitingForCheckpoint1Choice = false;
+                Jump(); // Jump immediately
+            }
+        }
+    }
+
     private void HandleGameEvent(GameEventType eventType, GameObject source)
     {
         Debug.Log($"NPCBehaviour: Received event {eventType}");
         
         if (eventType == GameEventType.Checkpoint1Reached)
         {
-             Debug.Log($"NPCBehaviour: Checkpoint {eventType} reached! Preparing to jump (Default Force) in 7 seconds...");
-             StartCoroutine(PerformJumpRoutine(null, 7f));
+             Debug.Log($"NPCBehaviour: Checkpoint {eventType} reached! Waiting for player input: Press '1' for Move+Jump, '2' for Immediate Jump.");
+             waitingForCheckpoint1Choice = true;
         }
         else if (eventType == GameEventType.Checkpoint2Reached)
         {
