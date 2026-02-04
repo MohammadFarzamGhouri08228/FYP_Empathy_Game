@@ -54,6 +54,16 @@ public class DeathLayer : MonoBehaviour
     private void ApplyDeathEffect(GameObject playerObj)
     {
         Debug.Log("Player touches death layer");
+
+        // Check if it is the DS (Distorted Self)
+        DSmovementScript dsScript = playerObj.GetComponent<DSmovementScript>();
+        if (dsScript != null)
+        {
+            Debug.Log("[DeathLayer] DS hit death layer. Teleporting to its most recent checkpoint.");
+            dsScript.Respawn();
+            return; // DS doesn't use the global checkpoint manager or health system
+        }
+
         // 1. Teleport to most recent checkpoint
         if (CheckpointManager.Instance != null)
         {

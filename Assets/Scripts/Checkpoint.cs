@@ -28,6 +28,7 @@ public class Checkpoint : MonoBehaviour
     private bool hasBeenActivated = false; // Track if this checkpoint has been activated
     private CheckpointManager checkpointManager;
     private GameObject player; // Cache player reference
+    private DSmovementScript dsPlayer; // Reference to Distorted Self
     
     void Start()
     {
@@ -46,6 +47,9 @@ public class Checkpoint : MonoBehaviour
         
         // Find player
         FindPlayer();
+
+        // Find DS
+        dsPlayer = FindFirstObjectByType<DSmovementScript>();
         
         // Get visual component if not assigned
         if (checkpointVisual == null)
@@ -86,9 +90,29 @@ public class Checkpoint : MonoBehaviour
     void Update()
     {
         // Use distance-based detection if enabled
-        if (useDistanceDetection && isActive && !hasBeenActivated)
+        if (useDistanceDetection && isActive)
         {
-            CheckPlayerDistance();
+            if (!hasBeenActivated)
+            {
+                CheckPlayerDistance();
+            }
+            CheckDSDistance();
+        }
+    }
+
+    private void CheckDSDistance()
+    {
+        if (dsPlayer == null)
+        {
+            dsPlayer = FindFirstObjectByType<DSmovementScript>();
+            if (dsPlayer == null) return;
+        }
+
+        float distance = Vector3.Distance(transform.position, dsPlayer.transform.position);
+        if (distance <= detectionRadius)
+        {
+            // Register this checkpoint for the DS
+            dsPlayer.RegisterCheckpoint(transform.position);
         }
     }
     
@@ -102,8 +126,7 @@ public class Checkpoint : MonoBehaviour
         {
             // Try to find any player-like component
             MonoBehaviour pc = (MonoBehaviour)FindFirstObjectByType<PlayerController>() ?? 
-                               (MonoBehaviour)FindFirstObjectByType<Lvl2movement>() ?? 
-                               (MonoBehaviour)FindFirstObjectByType<DSmovementScript>();
+                               (MonoBehaviour)FindFirstObjectByType<Lvl2movement>();
             
             if (pc != null)
             {
@@ -144,6 +167,14 @@ public class Checkpoint : MonoBehaviour
             Debug.Log($"Checkpoint {checkpointID}: Player entered trigger zone! Player position: ({other.transform.position.x:F2}, {other.transform.position.y:F2}, {other.transform.position.z:F2})");
             ActivateCheckpoint();
         }
+        else
+        {
+            DSmovementScript ds = other.GetComponent<DSmovementScript>();
+            if (ds != null)
+            {
+                ds.RegisterCheckpoint(transform.position);
+            }
+        }
     }
     
     /// <summary>
@@ -153,8 +184,7 @@ public class Checkpoint : MonoBehaviour
     {
         return obj.CompareTag("Player") || 
                obj.GetComponent<PlayerController>() != null ||
-               obj.GetComponent<Lvl2movement>() != null ||
-               obj.GetComponent<DSmovementScript>() != null;
+               obj.GetComponent<Lvl2movement>() != null;
     }
     
     /// <summary>
