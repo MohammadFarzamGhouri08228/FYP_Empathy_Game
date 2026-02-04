@@ -46,7 +46,9 @@ public class DeathLayer : MonoBehaviour
     {
         return obj.CompareTag("Player") || 
                obj.GetComponent<PlayerController>() != null || 
-               obj.GetComponent<PlayerMovementController>() != null;
+               obj.GetComponent<PlayerMovementController>() != null ||
+               obj.GetComponent<Lvl2movement>() != null ||
+               obj.GetComponent<DSmovementScript>() != null;
     }
 
     private void ApplyDeathEffect(GameObject playerObj)
@@ -56,7 +58,7 @@ public class DeathLayer : MonoBehaviour
         if (CheckpointManager.Instance != null)
         {
             Debug.Log("[DeathLayer] Player hit death layer. Teleporting to most recent checkpoint.");
-            CheckpointManager.Instance.RespawnAtCheckpoint();
+            CheckpointManager.Instance.RespawnAtCheckpoint(playerObj);
         }
         else
         {

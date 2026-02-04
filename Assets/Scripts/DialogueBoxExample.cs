@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// Example script showing how to use the DialogueBoxManager system.
@@ -46,26 +47,30 @@ public class DialogueBoxExample : MonoBehaviour
     
     void Update()
     {
+        if (Keyboard.current == null) return;
+
         // Example: Press Space to show next dialogue
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Keyboard.current.spaceKey.wasPressedThisFrame)
         {
             ShowNextDialogue();
         }
         
         // Example: Press H to hide dialogue
-        if (Input.GetKeyDown(KeyCode.H))
+        if (Keyboard.current.hKey.wasPressedThisFrame)
         {
             HideDialogue();
         }
         
         // Example: Press 1-9 to show dialogue with specific sprite index
-        for (int i = 1; i <= 9; i++)
-        {
-            if (Input.GetKeyDown(KeyCode.Alpha0 + i))
-            {
-                ShowDialogueWithSprite(i - 1);
-            }
-        }
+        if (Keyboard.current.digit1Key.wasPressedThisFrame) ShowDialogueWithSprite(0);
+        if (Keyboard.current.digit2Key.wasPressedThisFrame) ShowDialogueWithSprite(1);
+        if (Keyboard.current.digit3Key.wasPressedThisFrame) ShowDialogueWithSprite(2);
+        if (Keyboard.current.digit4Key.wasPressedThisFrame) ShowDialogueWithSprite(3);
+        if (Keyboard.current.digit5Key.wasPressedThisFrame) ShowDialogueWithSprite(4);
+        if (Keyboard.current.digit6Key.wasPressedThisFrame) ShowDialogueWithSprite(5);
+        if (Keyboard.current.digit7Key.wasPressedThisFrame) ShowDialogueWithSprite(6);
+        if (Keyboard.current.digit8Key.wasPressedThisFrame) ShowDialogueWithSprite(7);
+        if (Keyboard.current.digit9Key.wasPressedThisFrame) ShowDialogueWithSprite(8);
     }
     
     /// <summary>

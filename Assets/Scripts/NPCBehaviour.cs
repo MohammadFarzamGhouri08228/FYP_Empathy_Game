@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class NPCBehaviour : MonoBehaviour
@@ -62,17 +63,20 @@ public class NPCBehaviour : MonoBehaviour
     {
         if (waitingForCheckpoint1Choice)
         {
-            if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
+            if (Keyboard.current != null)
             {
-                Debug.Log("NPCBehaviour: Option 1 selected (Move then Jump).");
-                waitingForCheckpoint1Choice = false;
-                StartCoroutine(PerformJumpRoutine(null, 0.5f)); // Small hesitation before moving
-            }
-            else if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2))
-            {
-                Debug.Log("NPCBehaviour: Option 2 selected (Jump immediately).");
-                waitingForCheckpoint1Choice = false;
-                Jump(); // Jump immediately
+                if (Keyboard.current.digit1Key.wasPressedThisFrame || Keyboard.current.numpad1Key.wasPressedThisFrame)
+                {
+                    Debug.Log("NPCBehaviour: Option 1 selected (Move then Jump).");
+                    waitingForCheckpoint1Choice = false;
+                    StartCoroutine(PerformJumpRoutine(null, 0.5f)); // Small hesitation before moving
+                }
+                else if (Keyboard.current.digit2Key.wasPressedThisFrame || Keyboard.current.numpad2Key.wasPressedThisFrame)
+                {
+                    Debug.Log("NPCBehaviour: Option 2 selected (Jump immediately).");
+                    waitingForCheckpoint1Choice = false;
+                    Jump(); // Jump immediately
+                }
             }
         }
     }

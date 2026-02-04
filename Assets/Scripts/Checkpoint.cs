@@ -100,18 +100,14 @@ public class Checkpoint : MonoBehaviour
         player = GameObject.FindGameObjectWithTag("Player");
         if (player == null)
         {
-            PlayerController pc = FindFirstObjectByType<PlayerController>();
+            // Try to find any player-like component
+            MonoBehaviour pc = (MonoBehaviour)FindFirstObjectByType<PlayerController>() ?? 
+                               (MonoBehaviour)FindFirstObjectByType<Lvl2movement>() ?? 
+                               (MonoBehaviour)FindFirstObjectByType<DSmovementScript>();
+            
             if (pc != null)
             {
                 player = pc.gameObject;
-            }
-            else
-            {
-                PlayerController2 pc2 = FindFirstObjectByType<PlayerController2>();
-                if (pc2 != null)
-                {
-                    player = pc2.gameObject;
-                }
             }
         }
     }
@@ -157,7 +153,8 @@ public class Checkpoint : MonoBehaviour
     {
         return obj.CompareTag("Player") || 
                obj.GetComponent<PlayerController>() != null ||
-               obj.GetComponent<PlayerController2>() != null;
+               obj.GetComponent<Lvl2movement>() != null ||
+               obj.GetComponent<DSmovementScript>() != null;
     }
     
     /// <summary>

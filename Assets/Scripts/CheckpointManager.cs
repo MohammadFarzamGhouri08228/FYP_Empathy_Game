@@ -53,12 +53,16 @@ public class CheckpointManager : MonoBehaviour
             player = GameObject.FindGameObjectWithTag("Player");
             if (player == null)
             {
-                player = FindFirstObjectByType<PlayerController>()?.gameObject;
+                // Try finding any of the movement scripts
+                MonoBehaviour pc = (MonoBehaviour)FindFirstObjectByType<PlayerController>() ?? 
+                                   (MonoBehaviour)FindFirstObjectByType<Lvl2movement>() ?? 
+                                   (MonoBehaviour)FindFirstObjectByType<DSmovementScript>();
+                if (pc != null) player = pc.gameObject;
             }
+            
             if (player == null)
             {
-                Debug.LogError("CheckpointManager: Player not found! Please assign player GameObject or ensure it has 'Player' tag.");
-                return;
+                Debug.LogWarning("CheckpointManager: No player found in Start. This is okay if player is spawned later.");
             }
         }
         
@@ -206,15 +210,20 @@ public class CheckpointManager : MonoBehaviour
     /// <summary>
     /// Teleports player to the most recent checkpoint position.
     /// </summary>
-    public void RespawnAtCheckpoint()
+    public void RespawnAtCheckpoint(GameObject targetOverride = null)
     {
         Debug.Log($"=== RESPAWN AT CHECKPOINT ===");
         
-        if (playerTransform == null)
+        GameObject target = targetOverride != null ? targetOverride : player;
+
+        if (target == null)
         {
-            Debug.LogError("CheckpointManager: Cannot respawn - player Transform is null!");
+            Debug.LogError("CheckpointManager: Cannot respawn - target GameObject is null!");
             return;
         }
+
+        Transform targetTransform = target.transform;
+        Rigidbody2D targetRigidbody = target.GetComponent<Rigidbody2D>();
         
         Vector3 respawnPosition;
         
@@ -222,35 +231,28 @@ public class CheckpointManager : MonoBehaviour
         if (mostRecentCheckpointIndex >= 0 && mostRecentCheckpointIndex < checkpointPositions.Length)
         {
             respawnPosition = checkpointPositions[mostRecentCheckpointIndex];
-            Debug.Log($"CheckpointManager: Respawning at checkpoint index {mostRecentCheckpointIndex}");
-            Debug.Log($"Respawn Position: ({respawnPosition.x:F2}, {respawnPosition.y:F2}, {respawnPosition.z:F2})");
-            Debug.Log($"Current Player Position: ({playerTransform.position.x:F2}, {playerTransform.position.y:F2}, {playerTransform.position.z:F2})");
+            Debug.Log($"CheckpointManager: Respawning {target.name} at checkpoint index {mostRecentCheckpointIndex}");
         }
         else
         {
             // No checkpoint yet, use default spawn position
             respawnPosition = defaultSpawnPosition;
-            Debug.LogWarning($"CheckpointManager: No checkpoint available! mostRecentCheckpointIndex = {mostRecentCheckpointIndex}, checkpointPositions.Length = {checkpointPositions.Length}");
-            Debug.LogWarning($"Respawning at default position: ({respawnPosition.x:F2}, {respawnPosition.y:F2}, {respawnPosition.z:F2})");
+            Debug.LogWarning($"CheckpointManager: No checkpoint available! Respawning {target.name} at default position.");
         }
         
         // Teleport player
-        playerTransform.position = respawnPosition;
-        Debug.Log($"Player teleported to: ({playerTransform.position.x:F2}, {playerTransform.position.y:F2}, {playerTransform.position.z:F2})");
+        targetTransform.position = respawnPosition;
+        Debug.Log($"{target.name} teleported to: {targetTransform.position}");
         
         // Reset velocity if Rigidbody2D exists
-        if (playerRigidbody != null)
+        if (targetRigidbody != null)
         {
-            playerRigidbody.linearVelocity = Vector2.zero;
-            Debug.Log("CheckpointManager: Reset player velocity.");
-        }
-        else
-        {
-            Debug.LogWarning("CheckpointManager: Player Rigidbody2D not found - velocity not reset.");
+            targetRigidbody.linearVelocity = Vector2.zero;
+            Debug.Log($"CheckpointManager: Reset {target.name} velocity.");
         }
         
-        // Reset health if configured
-        if (resetHealthOnRespawn)
+        // Reset health ONLY if it's the main player and configured
+        if (target == player && resetHealthOnRespawn)
         {
             if (playerHealthSystem != null)
             {
