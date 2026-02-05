@@ -439,7 +439,7 @@ Transform:
   m_GameObject: {fileID: 185695691}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalPosition: {x: 52.5, y: 3.8, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2374,6 +2374,7 @@ GameObject:
   - component: {fileID: 998003400}
   - component: {fileID: 998003399}
   - component: {fileID: 998003398}
+  - component: {fileID: 998003401}
   m_Layer: 0
   m_Name: Parallax Controler
   m_TagString: Untagged
@@ -2422,25 +2423,24 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 998003397}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e906c6017d501f947b0832dd4e87e66e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Camera_Move: 1
-  Camera_MoveSpeed: 3
   Layer_Speed:
-  - 1
+  - 0
   - 0.9
   - 0.7
   - 0.5
   - 0.3
   Layer_Objects:
-  - {fileID: 0}
+  - {fileID: 1872702289}
   - {fileID: 177952732}
   - {fileID: 569344748}
   - {fileID: 1139073480}
   - {fileID: 524780950}
+  playerTransform: {fileID: 0}
 --- !u!4 &998003400
 Transform:
   m_ObjectHideFlags: 0
@@ -2456,6 +2456,36 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &998003401
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 998003397}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4dfd86c46f4a14499c72eb5318f4678, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FollowTarget
+  autoCalculateSpeeds: 1
+  Layer_Speed:
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  Layer_Objects:
+  - {fileID: 1872702289}
+  - {fileID: 177952732}
+  - {fileID: 569344748}
+  - {fileID: 1139073480}
+  - {fileID: 524780950}
+  - {fileID: 0}
+  - {fileID: 0}
+  target: {fileID: 1207199181}
 --- !u!1 &1008789907
 GameObject:
   m_ObjectHideFlags: 0
@@ -8357,7 +8387,7 @@ Transform:
   m_GameObject: {fileID: 1872702289}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 10}
+  m_LocalPosition: {x: -42.1, y: 0.2, z: 10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -8433,12 +8463,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4dfd86c46f4a14499c72eb5318f4678, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FollowTarget
+  autoCalculateSpeeds: 1
+  Layer_Speed:
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  Layer_Objects:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   target: {fileID: 1207199181}
-  offset: {x: 0, y: 0, z: 0}
-  followX: 1
-  followY: 0
-  followZ: 0
-  smoothSpeed: 0.125
 --- !u!1 &1910296620
 GameObject:
   m_ObjectHideFlags: 0
