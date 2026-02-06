@@ -41,11 +41,13 @@ public class Checkpoint : MonoBehaviour
     private int index;
 
     public GameObject contButton;
-    public float wordSpeed;
+    public float wordSpeed = 0.02f;
     public bool playerIsClose;
     
     void Start()
     {
+        wordSpeed = 0.05f; // Ensure fast typing speed
+
         // Find CheckpointManager
         checkpointManager = CheckpointManager.Instance;
         if (checkpointManager == null)
@@ -116,6 +118,14 @@ public class Checkpoint : MonoBehaviour
         }
         
         Debug.Log($"Checkpoint {checkpointID}: Initialized at position ({transform.position.x:F2}, {transform.position.y:F2}, {transform.position.z:F2}). Detection: {(useDistanceDetection ? "Distance-based" : "Collider-based")}");
+        if (dialogue != null)
+        {
+            Debug.Log($"Checkpoint {checkpointID} Dialogue Content: {string.Join(" | ", dialogue)}");
+        }
+        else
+        {
+            Debug.LogError($"Checkpoint {checkpointID} has NULL dialogue array!");
+        }
     }
     
     void Update()
@@ -160,6 +170,9 @@ public class Checkpoint : MonoBehaviour
         dialogText.text = dialogue[index];
         dialogText.maxVisibleCharacters = 0;
         dialogText.ForceMeshUpdate(); // Ensure textInfo is updated
+        
+        // Wait one frame to ensure UI is ready
+        yield return null;
 
         int totalVisibleCharacters = dialogText.textInfo.characterCount;
         int counter = 0;
@@ -178,8 +191,8 @@ public class Checkpoint : MonoBehaviour
 
         if (index < dialogue.Length - 1)
         {
-            index++;
             StartCoroutine(Typing());
+            index++;
         }
         else
         {
@@ -265,13 +278,16 @@ public class Checkpoint : MonoBehaviour
                 hasDialogOpened = true; // Mark as opened so it doesn't auto-pop again
                 dialogPanel.SetActive(true);
                 
-                // Show first line INSTANTLY
+                // Show first line with typing effect
                 index = 0;
                 if (dialogue != null && dialogue.Length > 0)
                 {
-                    dialogText.text = dialogue[index];
-                    dialogText.ForceMeshUpdate(); // Ensure textInfo is valid
-                    dialogText.maxVisibleCharacters = dialogText.textInfo.characterCount;
+                    Debug.Log($"Checkpoint {checkpointID}: Starting dialogue typing for: '{dialogue[index]}'");
+                    StartCoroutine(Typing());
+                }
+                else
+                {
+                    Debug.LogWarning($"Checkpoint {checkpointID}: Dialogue empty or null!");
                 }
             }
         }
@@ -449,6 +465,7 @@ public class Checkpoint : MonoBehaviour
     {
         switch (id)
         {
+            case 0: return GameEventType.Checkpoint0Reached;
             case 1: return GameEventType.Checkpoint1Reached;
             case 2: return GameEventType.Checkpoint2Reached;
             case 3: return GameEventType.Checkpoint3Reached;

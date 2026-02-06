@@ -2042,7 +2042,8 @@ MonoBehaviour:
   checkpointSound: {fileID: 0}
   dialogPanel: {fileID: 1392108323}
   dialogText: {fileID: 268232812}
-  dialogue: []
+  dialogue:
+  - 2nd checkpoint
   contButton: {fileID: 0}
   wordSpeed: 0
   playerIsClose: 0
@@ -4791,7 +4792,8 @@ MonoBehaviour:
   checkpointSound: {fileID: 0}
   dialogPanel: {fileID: 1392108323}
   dialogText: {fileID: 268232812}
-  dialogue: []
+  dialogue:
+  - final checkpoint
   contButton: {fileID: 0}
   wordSpeed: 0
   playerIsClose: 0
