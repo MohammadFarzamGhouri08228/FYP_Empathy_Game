@@ -1,7 +1,13 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.InputSystem;
+using TMPro;
 
 public class Checkpoint : MonoBehaviour
 {
+
     [Header("Checkpoint Settings")]
     [SerializeField] private bool isActive = true; // Whether this checkpoint is active
     [SerializeField] private int checkpointID = 0; // Unique ID for this checkpoint (used for dialogue system)
@@ -28,6 +34,15 @@ public class Checkpoint : MonoBehaviour
     private bool hasBeenActivated = false; // Track if this checkpoint has been activated
     private CheckpointManager checkpointManager;
     private GameObject player; // Cache player reference
+
+    public GameObject dialogPanel;
+    public TMP_Text dialogText;
+    public string[] dialogue;
+    private int index;
+
+    public GameObject contButton;
+    public float wordSpeed;
+    public bool playerIsClose;
     
     void Start()
     {
@@ -79,18 +94,113 @@ public class Checkpoint : MonoBehaviour
         
         // Initialize visual state
         UpdateVisualState();
+
+        if (dialogPanel != null)
+        {
+            dialogPanel.SetActive(false);
+        }
+        
+        // Ensure the continue button has the event listener attached
+        if (contButton != null)
+        {
+            Button btn = contButton.GetComponent<Button>();
+            if (btn != null)
+            {
+                btn.onClick.RemoveAllListeners();
+                btn.onClick.AddListener(NextLine);
+            }
+            else
+            {
+                Debug.LogWarning($"Checkpoint {checkpointID}: 'contButton' assigned but no Button component found!");
+            }
+        }
         
         Debug.Log($"Checkpoint {checkpointID}: Initialized at position ({transform.position.x:F2}, {transform.position.y:F2}, {transform.position.z:F2}). Detection: {(useDistanceDetection ? "Distance-based" : "Collider-based")}");
     }
     
-
-    
     void Update()
     {
         // Use distance-based detection if enabled
-        if (useDistanceDetection && isActive && !hasBeenActivated)
+        if (useDistanceDetection && isActive)
         {
             CheckPlayerDistance();
+        }
+
+        // Allow advancing text with E key if dialogue is already active
+        if (dialogPanel.activeInHierarchy && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+        {
+            if (dialogText.maxVisibleCharacters < dialogText.textInfo.characterCount)
+            {
+                // Instant finish typing
+                dialogText.maxVisibleCharacters = dialogText.textInfo.characterCount;
+            }
+            else
+            {
+                NextLine();
+            }
+        }
+
+        if (dialogPanel.activeInHierarchy && dialogText.textInfo != null && dialogText.maxVisibleCharacters >= dialogText.textInfo.characterCount)
+        {
+            if(contButton != null) contButton.SetActive(true);
+        }
+    }
+
+
+    public void zeroText()
+    {
+        dialogText.text = "";
+        index = 0;
+        dialogText.maxVisibleCharacters = 0;
+        dialogPanel.SetActive(false);
+    }
+
+    IEnumerator Typing()
+    {
+        dialogText.text = dialogue[index];
+        dialogText.maxVisibleCharacters = 0;
+        dialogText.ForceMeshUpdate(); // Ensure textInfo is updated
+
+        int totalVisibleCharacters = dialogText.textInfo.characterCount;
+        int counter = 0;
+
+        while (counter <= totalVisibleCharacters)
+        {
+            dialogText.maxVisibleCharacters = counter;
+            counter++;
+            yield return new WaitForSeconds(wordSpeed);
+        }
+    }
+
+    public void NextLine()
+    {
+        contButton.SetActive(false);
+
+        if (index < dialogue.Length - 1)
+        {
+            index++;
+            StartCoroutine(Typing());
+        }
+        else
+        {
+            zeroText();
+        }
+    }
+
+    // private void OnTriggerEnter2D(Collider2D other)
+    // {
+    //     if (other.CompareTag("Player"))
+    //     {
+    //         playerIsClose = true;
+    //     }
+    // }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            playerIsClose = false;
+            zeroText();
         }
     }
 
@@ -125,6 +235,8 @@ public class Checkpoint : MonoBehaviour
     /// <summary>
     /// Checks if player is within detection radius (for distance-based detection).
     /// </summary>
+    private bool hasDialogOpened = false; // Track if dialogue has already auto-opened
+
     private void CheckPlayerDistance()
     {
         if (player == null)
@@ -134,10 +246,46 @@ public class Checkpoint : MonoBehaviour
         }
         
         float distance = Vector3.Distance(transform.position, player.transform.position);
+        
+        // Update close status
         if (distance <= detectionRadius)
         {
-            Debug.Log($"Checkpoint {checkpointID}: Player detected within range! Distance: {distance:F2}, Position: ({player.transform.position.x:F2}, {player.transform.position.y:F2}, {player.transform.position.z:F2})");
-            ActivateCheckpoint();
+            playerIsClose = true;
+            
+            // Only log and activate if not already done
+            if (!hasBeenActivated)
+            {
+                Debug.Log($"Checkpoint {checkpointID}: Player detected within range! Distance: {distance:F2}");
+                ActivateCheckpoint();
+            }
+
+            // Auto-open dialogue if not active, NOT opened before, and not currently shown
+            if (!dialogPanel.activeInHierarchy && !hasDialogOpened)
+            {
+                hasDialogOpened = true; // Mark as opened so it doesn't auto-pop again
+                dialogPanel.SetActive(true);
+                
+                // Show first line INSTANTLY
+                index = 0;
+                if (dialogue != null && dialogue.Length > 0)
+                {
+                    dialogText.text = dialogue[index];
+                    dialogText.ForceMeshUpdate(); // Ensure textInfo is valid
+                    dialogText.maxVisibleCharacters = dialogText.textInfo.characterCount;
+                }
+            }
+        }
+        else
+        {
+            // Player moved away
+            if (playerIsClose) // State change: Close -> Far
+            {
+                playerIsClose = false;
+                if (dialogPanel.activeInHierarchy)
+                {
+                    zeroText();
+                }
+            }
         }
     }
     
@@ -153,6 +301,8 @@ public class Checkpoint : MonoBehaviour
         {
             Debug.Log($"Checkpoint {checkpointID}: Player entered trigger zone! Player position: ({other.transform.position.x:F2}, {other.transform.position.y:F2}, {other.transform.position.z:F2})");
             ActivateCheckpoint();
+            playerIsClose = true;
+            zeroText();
         }
     }
     
