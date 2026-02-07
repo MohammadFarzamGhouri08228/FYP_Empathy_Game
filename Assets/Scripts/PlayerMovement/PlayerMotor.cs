@@ -159,11 +159,24 @@ public class PlayerMotor : MonoBehaviour
 
     private void UpdateGroundCheck()
     {
-        IsGrounded = Physics2D.OverlapCircle(
+        // Check all colliders in the circle, then filter out ourselves and triggers.
+        // This prevents the player's own collider from counting as "ground".
+        Collider2D[] hits = Physics2D.OverlapCircleAll(
             (Vector2)transform.position + groundCheckOffset,
             groundCheckRadius,
             groundLayer
         );
+
+        IsGrounded = false;
+        foreach (Collider2D hit in hits)
+        {
+            // Ignore our own colliders and any trigger colliders (like ladders)
+            if (hit.gameObject != gameObject && !hit.isTrigger)
+            {
+                IsGrounded = true;
+                break;
+            }
+        }
 
         if (IsGrounded)
         {

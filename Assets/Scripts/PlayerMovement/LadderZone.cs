@@ -4,9 +4,9 @@
     Place this component on every Ladder GameObject.
     The GameObject must have a Collider2D set to "Is Trigger".
 
-    When the player enters the trigger, this script tells
-    PlayerClimb to start climbing. When the player exits, it
-    tells PlayerClimb to stop.
+    This script only tells PlayerClimb that the player is
+    near a ladder. The actual grab/release is handled by
+    the player pressing Space (see PlayerClimb).
 */
 
 using UnityEngine;
@@ -26,11 +26,11 @@ public class LadderZone : MonoBehaviour
         PlayerClimb climb = GetPlayerClimb(other);
         if (climb == null) return;
 
-        float centerX = GetLadderCenterX();
-        climb.EnterLadder(centerX);
+        Bounds bounds = GetLadderBounds();
+        climb.SetNearLadder(bounds.center.x, bounds.min.y, bounds.max.y);
 
         if (showDebugLogs)
-            Debug.Log($"[LadderZone] {other.name} entered ladder '{gameObject.name}'");
+            Debug.Log($"[LadderZone] {other.name} near ladder '{gameObject.name}'");
     }
 
     private void OnTriggerStay2D(Collider2D other)
@@ -38,13 +38,9 @@ public class LadderZone : MonoBehaviour
         PlayerClimb climb = GetPlayerClimb(other);
         if (climb == null) return;
 
-        // Re-attach if the player left the ladder (e.g. pressed Space)
-        // but is still inside the trigger and cooldown has expired
-        if (!climb.IsClimbing && climb.CooldownRemaining <= 0f)
-        {
-            float centerX = GetLadderCenterX();
-            climb.EnterLadder(centerX);
-        }
+        // Keep the near-ladder state fresh (in case Enter was missed)
+        Bounds bounds = GetLadderBounds();
+        climb.SetNearLadder(bounds.center.x, bounds.min.y, bounds.max.y);
     }
 
     private void OnTriggerExit2D(Collider2D other)
@@ -52,10 +48,12 @@ public class LadderZone : MonoBehaviour
         PlayerClimb climb = GetPlayerClimb(other);
         if (climb == null) return;
 
-        climb.ExitLadder();
+        // Only clear the "near" flag – does NOT force the player off the ladder.
+        // The player lets go by pressing Space.
+        climb.ClearNearLadder();
 
         if (showDebugLogs)
-            Debug.Log($"[LadderZone] {other.name} exited ladder '{gameObject.name}'");
+            Debug.Log($"[LadderZone] {other.name} left ladder zone '{gameObject.name}'");
     }
 
     // ═══════════════════════════════════════════
@@ -79,10 +77,14 @@ public class LadderZone : MonoBehaviour
         return c;
     }
 
-    /// <summary>Returns the world-space X center of this ladder's collider.</summary>
-    private float GetLadderCenterX()
+    /// <summary>Returns the world-space bounds of this ladder's collider.</summary>
+    private Bounds GetLadderBounds()
     {
         Collider2D col = GetComponent<Collider2D>();
-        return col != null ? col.bounds.center.x : transform.position.x;
+        if (col != null)
+            return col.bounds;
+
+        // Fallback: a small bounds around the transform
+        return new Bounds(transform.position, Vector3.one);
     }
 }

@@ -3,8 +3,12 @@
     ──────────────────────────────────
     Manages the climbing state, climb movement, and detach logic.
 
+    Climbing is a Space-bar toggle:
+      • Press Space near a ladder  →  grab on
+      • Press Space while climbing →  let go
+
     Attach to the Player GameObject alongside PlayerMotor.
-    The LadderZone component (on ladder objects) calls EnterLadder / ExitLadder.
+    The LadderZone component (on ladder objects) calls SetNearLadder / ClearNearLadder.
 */
 
 using UnityEngine;
@@ -20,7 +24,7 @@ public class PlayerClimb : MonoBehaviour
     [Header("Climb Settings")]
     [SerializeField] private float climbSpeed = 4f;
     [Tooltip("Cooldown after detaching before the player can re-attach to a ladder")]
-    [SerializeField] private float detachCooldown = 0.5f;
+    [SerializeField] private float detachCooldown = 0.3f;
 
     // ═══════════════════════════════════════════
     //  Public State
@@ -28,6 +32,9 @@ public class PlayerClimb : MonoBehaviour
 
     /// <summary>True while the player is attached to a ladder.</summary>
     public bool IsClimbing { get; private set; }
+
+    /// <summary>True when the player is inside a ladder trigger zone.</summary>
+    public bool IsNearLadder { get; private set; }
 
     /// <summary>Time remaining before the player can re-attach to a ladder.</summary>
     public float CooldownRemaining { get; private set; }
@@ -38,6 +45,9 @@ public class PlayerClimb : MonoBehaviour
 
     private PlayerMotor motor;
     private Rigidbody2D rb;
+    private float nearLadderCenterX;
+    private float ladderTopY;
+    private float ladderBottomY;
 
     // ═══════════════════════════════════════════
     //  Unity Lifecycle
@@ -55,21 +65,23 @@ public class PlayerClimb : MonoBehaviour
         if (CooldownRemaining > 0f)
             CooldownRemaining -= Time.deltaTime;
 
-        if (!IsClimbing) return;
+        bool spacePressed = Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
 
-        // ── Detach conditions ──
-
-        // 1) Press Space to jump off the ladder
-        if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
+        if (IsClimbing)
         {
-            Detach();
-            return;
+            // ── Currently climbing: Space to let go ──
+            if (spacePressed)
+            {
+                Detach();
+            }
         }
-
-        // 2) Touching ground while not pressing up  →  step off ladder naturally
-        if (motor.IsGrounded && motor.MoveInput.y <= 0f)
+        else
         {
-            Detach();
+            // ── Not climbing: Space near a ladder to grab on ──
+            if (spacePressed && IsNearLadder && CooldownRemaining <= 0f)
+            {
+                GrabLadder();
+            }
         }
     }
 
@@ -80,8 +92,18 @@ public class PlayerClimb : MonoBehaviour
         // No gravity while on the ladder
         rb.gravityScale = 0f;
 
-        // Move in all directions at climb speed
-        rb.linearVelocity = motor.MoveInput * climbSpeed;
+        // Build desired velocity
+        Vector2 climbVelocity = motor.MoveInput * climbSpeed;
+
+        // Block upward movement if at the top of the ladder
+        if (transform.position.y >= ladderTopY && climbVelocity.y > 0f)
+            climbVelocity.y = 0f;
+
+        // Block downward movement if at the bottom of the ladder
+        if (transform.position.y <= ladderBottomY && climbVelocity.y < 0f)
+            climbVelocity.y = 0f;
+
+        rb.linearVelocity = climbVelocity;
     }
 
     // ═══════════════════════════════════════════
@@ -89,14 +111,39 @@ public class PlayerClimb : MonoBehaviour
     // ═══════════════════════════════════════════
 
     /// <summary>
-    /// Attach the player to a ladder.
+    /// Mark that the player is inside a ladder trigger zone.
     /// Called by LadderZone.OnTriggerEnter2D / OnTriggerStay2D.
     /// </summary>
-    /// <param name="ladderCenterX">The world-space X center of the ladder collider.</param>
-    public void EnterLadder(float ladderCenterX)
+    public void SetNearLadder(float ladderCenterX, float bottomY, float topY)
     {
-        if (CooldownRemaining > 0f) return;
+        IsNearLadder = true;
+        nearLadderCenterX = ladderCenterX;
+        ladderBottomY = bottomY;
+        ladderTopY = topY;
+    }
 
+    /// <summary>
+    /// Mark that the player has left the ladder trigger zone.
+    /// Called by LadderZone.OnTriggerExit2D.
+    /// Also detaches the player if they are currently climbing.
+    /// </summary>
+    public void ClearNearLadder()
+    {
+        IsNearLadder = false;
+
+        // Force detach – since grabbing requires Space, there is
+        // no risk of flickering when the player falls back into the trigger.
+        if (IsClimbing)
+            Detach();
+    }
+
+    // ═══════════════════════════════════════════
+    //  Internal
+    // ═══════════════════════════════════════════
+
+    /// <summary>Grab the ladder and start climbing.</summary>
+    private void GrabLadder()
+    {
         IsClimbing = true;
         rb.gravityScale = 0f;
 
@@ -105,33 +152,21 @@ public class PlayerClimb : MonoBehaviour
 
         // Snap player horizontally to the ladder centre
         Vector3 pos = transform.position;
-        pos.x = ladderCenterX;
+        pos.x = nearLadderCenterX;
         transform.position = pos;
     }
 
-    /// <summary>
-    /// Detach the player from the ladder.
-    /// Called by LadderZone.OnTriggerExit2D or internally when pressing Space / touching ground.
-    /// </summary>
-    public void ExitLadder()
+    /// <summary>Detach with cooldown.</summary>
+    private void Detach()
     {
         if (!IsClimbing) return;
 
         IsClimbing = false;
         rb.gravityScale = 1f;
 
-        // Kill vertical velocity so the player doesn't shoot up/down after leaving
+        // Kill vertical velocity so the player doesn't shoot up/down
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
-    }
 
-    // ═══════════════════════════════════════════
-    //  Internal
-    // ═══════════════════════════════════════════
-
-    /// <summary>Detach with cooldown (used when the player chooses to leave).</summary>
-    private void Detach()
-    {
-        ExitLadder();
         CooldownRemaining = detachCooldown;
     }
 }
