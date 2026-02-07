@@ -100,6 +100,9 @@ public class PlayerClimb : MonoBehaviour
         IsClimbing = true;
         rb.gravityScale = 0f;
 
+        // Kill all momentum so the player doesn't drift on the ladder
+        rb.linearVelocity = Vector2.zero;
+
         // Snap player horizontally to the ladder centre
         Vector3 pos = transform.position;
         pos.x = ladderCenterX;
@@ -116,6 +119,9 @@ public class PlayerClimb : MonoBehaviour
 
         IsClimbing = false;
         rb.gravityScale = 1f;
+
+        // Kill vertical velocity so the player doesn't shoot up/down after leaving
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
     }
 
     // ═══════════════════════════════════════════

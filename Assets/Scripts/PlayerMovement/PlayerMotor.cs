@@ -31,6 +31,7 @@ public class PlayerMotor : MonoBehaviour
     [Header("Ground Detection")]
     [SerializeField] private Vector2 groundCheckOffset = new Vector2(0f, -0.5f);
     [SerializeField] private float groundCheckRadius = 0.2f;
+    [Tooltip("Set this to the 'Default' layer in the Inspector so jumping only works on ground")]
     [SerializeField] private LayerMask groundLayer;
 
     [Header("Rendering")]
@@ -108,9 +109,12 @@ public class PlayerMotor : MonoBehaviour
 
     void FixedUpdate()
     {
-        // If climbing, PlayerClimb drives physics
+        // If climbing, PlayerClimb drives physics (gravity = 0)
         if (playerClimb != null && playerClimb.IsClimbing)
             return;
+
+        // Ensure gravity is always restored when NOT climbing
+        rb.gravityScale = 5f;
 
         ApplyMovement();
     }
@@ -178,6 +182,14 @@ public class PlayerMotor : MonoBehaviour
 
     private void HandleJumpInput()
     {
+        // Block jumping if we just detached from a ladder (prevents Space
+        // from both detaching AND jumping in the same frame)
+        if (playerClimb != null && playerClimb.CooldownRemaining > 0f)
+        {
+            jumpBufferCounter = 0f;
+            return;
+        }
+
         bool jumpPressed = false;
 
         if (Keyboard.current != null)
@@ -196,7 +208,7 @@ public class PlayerMotor : MonoBehaviour
         else
             jumpBufferCounter -= Time.deltaTime;
 
-        // Execute jump when conditions are met
+        // Execute jump when conditions are met (only on Default / ground layer)
         if (jumpBufferCounter > 0f && coyoteCounter > 0f && !jumpConsumed)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
