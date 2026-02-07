@@ -17,6 +17,10 @@ public class Lvl2movement : MonoBehaviour
     [SerializeField] public Sprite player_climb1;
     [SerializeField] public Sprite playerclimb_2;
     
+    [Header("Climbing Settings")]
+    [SerializeField] public float climbCooldown = 0f;
+    [SerializeField] public LayerMask groundLayer;
+
     [Header("Rendering Settings")]
     [SerializeField] private int playerSortingOrder = 15; // Higher than spikes (which use max 10)
     
@@ -52,11 +56,35 @@ public class Lvl2movement : MonoBehaviour
     {
         if (rb == null) return;
         
+        // Decrease cooldown timer
+        if (climbCooldown > 0)
+        {
+            climbCooldown -= Time.deltaTime;
+        }
+
         // Get input for both X and Y axes
         moveInput = Vector2.zero;
         
         if (Keyboard.current != null)
         {
+            // Handle Detaching from Ladder
+            if (isClimbing)
+            {
+                // Leave by pressing Spacebar
+                if (Keyboard.current.spaceKey.wasPressedThisFrame)
+                {
+                    isClimbing = false;
+                    climbCooldown = 0.5f; // 0.5 second cooldown
+                }
+
+                // Leave by touching Ground
+                bool isGrounded = Physics2D.OverlapCircle((Vector2)transform.position + new Vector2(0, -0.5f), 0.2f, groundLayer);
+                if (isGrounded && moveInput.y <= 0)
+                {
+                    isClimbing = false;
+                }
+            }
+
             // Horizontal movement (Left/Right)
             if (Keyboard.current.leftArrowKey.isPressed || Keyboard.current.aKey.isPressed)
             {

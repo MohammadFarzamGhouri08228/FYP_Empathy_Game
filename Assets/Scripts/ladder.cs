@@ -7,31 +7,50 @@ public class ladder : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        Debug.Log($"Something entered ladder trigger: {other.name}");
+        Debug.Log($"Something entered ladder trigger: {other.name} on Ladder Object: {gameObject.name}");
         if (IsPlayer(other.gameObject))
         {
             Lvl2movement player = GetPlayerController(other.gameObject);
-            if (player != null)
+            
+            // Only attach if cooldown is finished
+            if (player != null && player.climbCooldown <= 0)
             {
+                // Use collider bounds center if available, otherwise transform position
+                Collider2D ladderCollider = GetComponent<Collider2D>();
+                float targetX = (ladderCollider != null) ? ladderCollider.bounds.center.x : transform.position.x;
+
+                if (showDebugLogs) Debug.Log($"Ladder Position (Transform): {transform.position}, Target X (Bounds): {targetX}");
+                
+                // Snap player to center of ladder
+                Vector3 newPos = player.transform.position;
+                newPos.x = targetX;
+                player.transform.position = newPos;
+
                 player.isClimbing = true;
                 Debug.Log("Player entered ladder: Climbing ON");
             }
             else
             {
-                Debug.LogWarning("Found player tag/component but Lvl2movement is null!");
+                if (showDebugLogs) Debug.LogWarning("Found player tag/component but Lvl2movement is null or cooldown active!");
             }
         }
     }
 
     private void OnTriggerStay2D(Collider2D other)
     {
+        
         // Ensure isClimbing remains true while inside the trigger
         if (IsPlayer(other.gameObject))
         {
             Lvl2movement player = GetPlayerController(other.gameObject);
-            if (player != null && !player.isClimbing)
+            if (player != null && !player.isClimbing && player.climbCooldown <= 0)
             {
                 player.isClimbing = true;
+                
+                // Optional: Re-snap if needed, but usually once on enter is enough unless they drift
+                // Vector3 newPos = player.transform.position;
+                // newPos.x = GetComponent<Collider2D>().bounds.center.x;
+                // player.transform.position = newPos;
             }
         }
     }
