@@ -114,7 +114,7 @@ public class PlayerMotor : MonoBehaviour
             return;
 
         // Ensure gravity is always restored when NOT climbing
-        rb.gravityScale = 5f;
+        rb.gravityScale = 4f;
 
         ApplyMovement();
     }
