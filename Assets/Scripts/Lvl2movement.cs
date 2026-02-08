@@ -29,6 +29,10 @@ public class Lvl2movement : MonoBehaviour
     private Vector2 moveInput;
     public bool isClimbing = false;
     private float climbAnimationTimer = 0f;
+
+    // Slope handling (set by SlopeHandler)
+    [HideInInspector] public bool IsOnSlope = false;
+    [HideInInspector] public Vector2 SlopeDownDirection = Vector2.zero;
     
     void Start()
     {

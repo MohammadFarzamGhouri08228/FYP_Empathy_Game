@@ -33,6 +33,10 @@ public class PlayerController : MonoBehaviour
     public bool isWalking = false;
     public bool isJumping = false;
     private bool isJumpingHorizontally = false;
+
+    // Slope handling (set by SlopeHandler)
+    [HideInInspector] public bool IsOnSlope = false;
+    [HideInInspector] public Vector2 SlopeDownDirection = Vector2.zero;
     
     void Start()
     {
