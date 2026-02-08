@@ -7812,6 +7812,83 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+--- !u!1001 &1034076069
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: checkpointID
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: inactiveColor.b
+      value: 0.11347453
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: inactiveColor.g
+      value: 0.11347453
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: inactiveColor.r
+      value: 0.9622642
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: allowMultipleActivations
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4461469451757565049, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 17.43
+      objectReference: {fileID: 0}
+    - target: {fileID: 4461469451757565049, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -1.44
+      objectReference: {fileID: 0}
+    - target: {fileID: 4461469451757565049, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.56934
+      objectReference: {fileID: 0}
+    - target: {fileID: 4461469451757565049, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4461469451757565049, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4461469451757565049, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4461469451757565049, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4461469451757565049, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4461469451757565049, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4461469451757565049, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7072488218379039735, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: m_Name
+      value: Checkpoint 2 (5)
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
 --- !u!1001 &1041201130
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9192,6 +9269,9 @@ MonoBehaviour:
   walkSprite1: {fileID: 8202833139169023654, guid: 97974c14b578690488409f989e52b629, type: 3}
   walkSprite2: {fileID: 4303826730755128093, guid: 5a9163e2a76e4bb41b412c1ccf354902, type: 3}
   walkCycleSpeed: 0.2
+  climbSprite1: {fileID: 0}
+  climbSprite2: {fileID: 0}
+  climbCycleSpeed: 0.2
   fallenSprite: {fileID: -286651180930907939, guid: 1f445b41a5a42e541a1e5c7afdc2efc1, type: 3}
 --- !u!114 &1572325112
 MonoBehaviour:
@@ -9221,6 +9301,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NPCMotor
   walkSpeed: 3
   gravityScale: 4
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  groundCheckRadius: 0.2
+  groundCheckOffset: {x: 0, y: -0.5}
   sortingOrder: 15
 --- !u!50 &1572325114
 Rigidbody2D:
@@ -9445,6 +9530,7 @@ GameObject:
   - component: {fileID: 1572805639}
   - component: {fileID: 1572805638}
   - component: {fileID: 1572805640}
+  - component: {fileID: 1572805641}
   m_Layer: 0
   m_Name: DS2
   m_TagString: Untagged
@@ -9468,6 +9554,9 @@ MonoBehaviour:
   walkSprite1: {fileID: 8202833139169023654, guid: 97974c14b578690488409f989e52b629, type: 3}
   walkSprite2: {fileID: 4303826730755128093, guid: 5a9163e2a76e4bb41b412c1ccf354902, type: 3}
   walkCycleSpeed: 0.2
+  climbSprite1: {fileID: 8286349962277291442, guid: 2865c665ba8cda34199d72fbbb71deb5, type: 3}
+  climbSprite2: {fileID: -5870312433423937532, guid: 1b3fef8c53cd92443894053d66869016, type: 3}
+  climbCycleSpeed: 0.2
   fallenSprite: {fileID: -286651180930907939, guid: 1f445b41a5a42e541a1e5c7afdc2efc1, type: 3}
 --- !u!114 &1572805632
 MonoBehaviour:
@@ -9497,6 +9586,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NPCMotor
   walkSpeed: 3
   gravityScale: 5
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 1
+  groundCheckRadius: 0.2
+  groundCheckOffset: {x: 0, y: -0.5}
   sortingOrder: 15
 --- !u!50 &1572805634
 Rigidbody2D:
@@ -9717,6 +9811,21 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.44
+--- !u!114 &1572805641
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1572805630}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dfcf5456731cf41409dce8186a458442, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NPCLadderClimber
+  climbSpeed: 2.5
+  dismountHopForce: {x: 3, y: 4}
+  topExitOffset: 0.5
 --- !u!1 &1704561976
 GameObject:
   m_ObjectHideFlags: 0
@@ -9911,6 +10020,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ladder
   showDebugLogs: 0
+  npcExitPoint: {fileID: 0}
 --- !u!61 &1731543204
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -10516,6 +10626,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ladder
   showDebugLogs: 1
+  npcExitPoint: {fileID: 0}
 --- !u!483693784 &1910296626
 TilemapRenderer:
   m_ObjectHideFlags: 0
@@ -11259,5 +11370,6 @@ SceneRoots:
   - {fileID: 1041201130}
   - {fileID: 1028453607}
   - {fileID: 708944619}
+  - {fileID: 1034076069}
   - {fileID: 1917785818}
   - {fileID: 2063273458}

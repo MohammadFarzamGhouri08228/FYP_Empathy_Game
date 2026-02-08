@@ -25,6 +25,11 @@ public class NPCSpriteAnimator : MonoBehaviour
     [SerializeField] private Sprite walkSprite2;
     [SerializeField] private float walkCycleSpeed = 0.2f;
 
+    [Header("Climb  (2-frame cycle)")]
+    [SerializeField] private Sprite climbSprite1;
+    [SerializeField] private Sprite climbSprite2;
+    [SerializeField] private float climbCycleSpeed = 0.2f;
+
     [Header("Fallen")]
     [SerializeField] private Sprite fallenSprite;
 
@@ -75,7 +80,12 @@ public class NPCSpriteAnimator : MonoBehaviour
             // Restore normal scale for all non-fallen states
             transform.localScale = normalScale;
 
-            if (motor.IsWalking)
+            if (controller != null && controller.CurrentState == NPCState.Climbing)
+            {
+                // Climbing animation (two-frame cycle)
+                AnimateCycle(climbSprite1, climbSprite2, climbCycleSpeed);
+            }
+            else if (motor.IsWalking)
             {
                 AnimateCycle(walkSprite1, walkSprite2, walkCycleSpeed);
             }

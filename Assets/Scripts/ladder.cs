@@ -5,6 +5,13 @@ public class ladder : MonoBehaviour
     [Header("Climbing Status")]
     [SerializeField] private bool showDebugLogs = false;
 
+    [Header("NPC Ladder Settings")]
+    [Tooltip("Where the NPC should dismount. Create a child Transform and place it at the desired exit position (e.g. on the platform at the top). If left empty, the NPC exits at the top of the collider.")]
+    [SerializeField] private Transform npcExitPoint;
+
+    /// <summary>Read by NPCLadderClimber to know where to dismount.</summary>
+    public Transform NPCExitPoint => npcExitPoint;
+
     private void OnTriggerEnter2D(Collider2D other)
     {
         Debug.Log($"Something entered ladder trigger: {other.name} on Ladder Object: {gameObject.name}");

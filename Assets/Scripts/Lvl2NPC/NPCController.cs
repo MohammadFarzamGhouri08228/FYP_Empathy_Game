@@ -26,7 +26,8 @@ public enum NPCState
 {
     Idle,
     Walking,
-    Fallen
+    Fallen,
+    Climbing
 }
 
 [RequireComponent(typeof(NPCMotor))]
@@ -58,6 +59,7 @@ public class NPCController : MonoBehaviour
 
     private NPCMotor motor;
     private NPCCheckpointManager checkpointMgr;
+    private NPCLadderClimber ladderClimber;   // optional – null if not attached
 
     // ═══════════════════════════════════════════
     //  Unity Lifecycle
@@ -67,6 +69,7 @@ public class NPCController : MonoBehaviour
     {
         motor = GetComponent<NPCMotor>();
         checkpointMgr = GetComponent<NPCCheckpointManager>();
+        ladderClimber = GetComponent<NPCLadderClimber>();
     }
 
     void Update()
@@ -105,52 +108,95 @@ public class NPCController : MonoBehaviour
 
     /// <summary>
     /// Key 1 -- Success path.
-    /// Walk right → NPCCheckpointManager stops at checkpoint → idle.
+    /// Walk right → (climb any ladders along the way) →
+    /// NPCCheckpointManager stops at checkpoint → idle.
     /// The reached checkpoint becomes the new home.
     /// </summary>
     private IEnumerator SuccessPath()
     {
-        // 1. Clear previous flag and start walking
         checkpointMgr.ConsumeCheckpoint();
-        CurrentState = NPCState.Walking;
-        motor.Walk(walkDirection);
-
-        // 2. Wait until NPCCheckpointManager detects a checkpoint
-        //    (it also stops the NPC and sets state to Idle)
-        yield return new WaitUntil(() => checkpointMgr.ReachedCheckpoint);
-
-        // 3. Update home to the new checkpoint position
+        yield return StartCoroutine(WalkToNextCheckpoint());
         checkpointMgr.SetHome(checkpointMgr.LastCheckpointPosition);
-
         // State is already Idle (set by NPCCheckpointManager)
     }
 
     /// <summary>
     /// Key 2 -- Failure path.
-    /// Walk right → NPCCheckpointManager stops at checkpoint → idle →
-    /// show fallen sprite → teleport back to home → idle.
+    /// Walk right → (climb any ladders along the way) →
+    /// NPCCheckpointManager stops at checkpoint → fallen →
+    /// teleport back to home → idle.
     /// </summary>
     private IEnumerator FailurePath()
     {
-        // 1. Clear previous flag and start walking
         checkpointMgr.ConsumeCheckpoint();
+        yield return StartCoroutine(WalkToNextCheckpoint());
+
+        // Switch to fallen state (overrides the idle set by manager)
+        CurrentState = NPCState.Fallen;
+        yield return new WaitForSeconds(fallenDisplayTime);
+
+        // Teleport back to the previous home (do NOT update home)
+        motor.TeleportTo(checkpointMgr.HomePosition);
+        CurrentState = NPCState.Idle;
+    }
+
+    // ═══════════════════════════════════════════
+    //  Walk + Ladder Helpers
+    // ═══════════════════════════════════════════
+
+    /// <summary>
+    /// Walk in walkDirection until the NPC reaches a checkpoint.
+    /// If a ladder is encountered mid-walk, auto-climb it,
+    /// hop off at the top, wait for landing, then resume walking.
+    /// </summary>
+    private IEnumerator WalkToNextCheckpoint()
+    {
         CurrentState = NPCState.Walking;
         motor.Walk(walkDirection);
 
-        // 2. Wait until NPCCheckpointManager detects a checkpoint
-        //    (it also stops the NPC and sets state to Idle)
-        yield return new WaitUntil(() => checkpointMgr.ReachedCheckpoint);
+        while (true)
+        {
+            yield return null;
 
-        // 3. Switch to fallen state (overrides the idle set by manager)
-        CurrentState = NPCState.Fallen;
+            // ── Checkpoint reached → stop ──
+            if (checkpointMgr.ReachedCheckpoint)
+                break;
 
-        // 4. Hold the fallen sprite for a moment
-        yield return new WaitForSeconds(fallenDisplayTime);
+            // ── Ladder encountered mid-walk → climb it ──
+            if (ladderClimber != null && ladderClimber.IsAtLadder)
+            {
+                yield return StartCoroutine(HandleLadderClimb());
 
-        // 5. Teleport back to the previous home (do NOT update home)
-        motor.TeleportTo(checkpointMgr.HomePosition);
+                // Resume walking after dismounting
+                CurrentState = NPCState.Walking;
+                motor.Walk(walkDirection);
+            }
+        }
+    }
 
-        // 6. Return to idle
-        CurrentState = NPCState.Idle;
+    /// <summary>
+    /// Handle one complete ladder interaction:
+    /// auto-climb → reach top → hop off → wait for landing.
+    /// No player input needed; the NPC climbs by itself once
+    /// it encounters a ladder during its walk sequence.
+    /// </summary>
+    private IEnumerator HandleLadderClimb()
+    {
+        // ── 1. Climb ──
+        CurrentState = NPCState.Climbing;
+        ladderClimber.BeginClimb();
+        Debug.Log("[NPCController] NPC auto-climbing ladder.");
+
+        // ── 2. Wait until the NPC reaches the exit height and hops off ──
+        yield return new WaitUntil(() => ladderClimber.FinishedClimbing);
+
+        // ── 3. Wait for the hop arc to play out and the NPC to land ──
+        //       Short delay first so the NPC lifts off the ladder collider
+        yield return new WaitForSeconds(0.15f);
+        yield return new WaitUntil(() => motor.IsGrounded);
+
+        // ── 4. Clean up ──
+        ladderClimber.ConsumeClimb();
+        Debug.Log("[NPCController] Ladder climb + hop complete. Resuming walk.");
     }
 }
