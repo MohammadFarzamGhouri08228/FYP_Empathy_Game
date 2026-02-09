@@ -2033,6 +2033,7 @@ MonoBehaviour:
   allowMultipleActivations: 0
   useDistanceDetection: 1
   detectionRadius: 1.5
+  playerIsClose: 0
   checkpointVisual: {fileID: 0}
   activeSprite: {fileID: 0}
   inactiveSprite: {fileID: 0}
@@ -2043,10 +2044,16 @@ MonoBehaviour:
   dialogPanel: {fileID: 1392108323}
   dialogText: {fileID: 268232812}
   dialogue:
-  - 2nd checkpoint
-  contButton: {fileID: 0}
+  - 'Musa: hey friend where should i go next? '
+  - eft pike, no left, o right and awon
+  - 'Musa: what are you even sayinggggg?? '
+  - o riht, iht  an awon
+  - 'Musa: oh so u mean i should go up , theres danger if i go straight'
+  - 'yeeee '
+  portraitImage: {fileID: 145843589}
+  nameTitle: {fileID: 78180139}
+  contButton: {fileID: 1110651147}
   wordSpeed: 0
-  playerIsClose: 0
 --- !u!1 &622879081
 GameObject:
   m_ObjectHideFlags: 0
@@ -4508,6 +4515,7 @@ MonoBehaviour:
   allowMultipleActivations: 0
   useDistanceDetection: 1
   detectionRadius: 1.5
+  playerIsClose: 0
   checkpointVisual: {fileID: 0}
   activeSprite: {fileID: 0}
   inactiveSprite: {fileID: 0}
@@ -4518,9 +4526,10 @@ MonoBehaviour:
   dialogPanel: {fileID: 0}
   dialogText: {fileID: 0}
   dialogue: []
+  portraitImage: {fileID: 0}
+  nameTitle: {fileID: 0}
   contButton: {fileID: 0}
   wordSpeed: 0
-  playerIsClose: 0
 --- !u!1 &1392108323
 GameObject:
   m_ObjectHideFlags: 0
@@ -4783,6 +4792,7 @@ MonoBehaviour:
   allowMultipleActivations: 0
   useDistanceDetection: 1
   detectionRadius: 1.5
+  playerIsClose: 0
   checkpointVisual: {fileID: 0}
   activeSprite: {fileID: 0}
   inactiveSprite: {fileID: 0}
@@ -4792,11 +4802,11 @@ MonoBehaviour:
   checkpointSound: {fileID: 0}
   dialogPanel: {fileID: 1392108323}
   dialogText: {fileID: 268232812}
-  dialogue:
-  - final checkpoint
+  dialogue: []
+  portraitImage: {fileID: 0}
+  nameTitle: {fileID: 0}
   contButton: {fileID: 0}
   wordSpeed: 0
-  playerIsClose: 0
 --- !u!212 &1397675390
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -5048,7 +5058,7 @@ Transform:
   m_GameObject: {fileID: 1403474890}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -7.43, y: 3.52, z: 0}
+  m_LocalPosition: {x: -7.421, y: 2.062, z: 0}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -5071,6 +5081,7 @@ MonoBehaviour:
   allowMultipleActivations: 0
   useDistanceDetection: 1
   detectionRadius: 1.5
+  playerIsClose: 0
   checkpointVisual: {fileID: 0}
   activeSprite: {fileID: 0}
   inactiveSprite: {fileID: 0}
@@ -5081,11 +5092,19 @@ MonoBehaviour:
   dialogPanel: {fileID: 1392108323}
   dialogText: {fileID: 268232812}
   dialogue:
-  - hello
-  - lets go
-  contButton: {fileID: 0}
+  - 'Musa: OMG OMG , WHAT JUST HAPPENED , WHERE AM I???? I AM SO SCARED, IS ANYONE
+    THEREEEEEE '
+  - ELOO???? O THEEE??
+  - 'Musa: finally, hii where are you , i cant see youuu'
+  - I on ow , i an c ya, i av map
+  - 'Musa: What? I cant understand you'
+  - i av map , map. I c u
+  - 'Musa: oh MAP , please guide me out of here. I want to go homeeee, its so darkk'
+  - MAP say ove down, down
+  portraitImage: {fileID: 145843589}
+  nameTitle: {fileID: 78180139}
+  contButton: {fileID: 1110651147}
   wordSpeed: 0
-  playerIsClose: 0
 --- !u!1 &1438979832
 GameObject:
   m_ObjectHideFlags: 0
@@ -5437,6 +5456,7 @@ MonoBehaviour:
   allowMultipleActivations: 0
   useDistanceDetection: 1
   detectionRadius: 1.5
+  playerIsClose: 1
   checkpointVisual: {fileID: 0}
   activeSprite: {fileID: 0}
   inactiveSprite: {fileID: 0}
@@ -5447,11 +5467,17 @@ MonoBehaviour:
   dialogPanel: {fileID: 1392108323}
   dialogText: {fileID: 268232812}
   dialogue:
-  - start
-  - 2nd start
+  - 'Musa: there are two paths which one should i take?'
+  - uhh o aight
+  - 'Musa: what?? Why are u speaking like that, speak normally, its hard to understand
+    you this way  '
+  - I speak noomal. Go aight
+  - 'Musa: u mean go right ?'
+  - yeee
+  portraitImage: {fileID: 145843589}
+  nameTitle: {fileID: 78180139}
   contButton: {fileID: 1110651147}
   wordSpeed: 2
-  playerIsClose: 1
 --- !u!70 &1575270681
 CapsuleCollider2D:
   m_ObjectHideFlags: 0

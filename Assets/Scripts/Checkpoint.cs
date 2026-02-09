@@ -19,7 +19,8 @@ public class Checkpoint : MonoBehaviour
     [Header("Detection Settings")]
     [SerializeField] private bool useDistanceDetection = true; // Use distance-based detection instead of collider
     [SerializeField] private float detectionRadius = 1.5f; // Distance to detect player (if using distance detection)
-    
+    public bool playerIsClose;
+
     [Header("Visual Settings")]
     [SerializeField] private SpriteRenderer checkpointVisual; // Optional visual indicator
     [SerializeField] private Sprite activeSprite; // Sprite to show when checkpoint is active
@@ -35,14 +36,18 @@ public class Checkpoint : MonoBehaviour
     private CheckpointManager checkpointManager;
     private GameObject player; // Cache player reference
 
+    [Header("Dialogue UI")]
     public GameObject dialogPanel;
     public TMP_Text dialogText;
     public string[] dialogue;
     private int index;
 
+    public GameObject portraitImage;
+    public GameObject nameTitle;
+
     public GameObject contButton;
     public float wordSpeed = 0.02f;
-    public bool playerIsClose;
+    
     
     void Start()
     {
@@ -103,18 +108,10 @@ public class Checkpoint : MonoBehaviour
         }
         
         // Ensure the continue button has the event listener attached
-        if (contButton != null)
+        // REMOVED: Should not attach in Start if button is shared. Attached in StartDialogue instead.
+        if (contButton == null)
         {
-            Button btn = contButton.GetComponent<Button>();
-            if (btn != null)
-            {
-                btn.onClick.RemoveAllListeners();
-                btn.onClick.AddListener(NextLine);
-            }
-            else
-            {
-                Debug.LogWarning($"Checkpoint {checkpointID}: 'contButton' assigned but no Button component found!");
-            }
+             Debug.LogWarning($"Checkpoint {checkpointID}: 'contButton' not assigned!");
         }
         
         Debug.Log($"Checkpoint {checkpointID}: Initialized at position ({transform.position.x:F2}, {transform.position.y:F2}, {transform.position.z:F2}). Detection: {(useDistanceDetection ? "Distance-based" : "Collider-based")}");
@@ -137,6 +134,7 @@ public class Checkpoint : MonoBehaviour
         }
 
         // Allow advancing text with E key if dialogue is already active
+        // Only allow E key if the dialogue is actually shown
         if (dialogPanel.activeInHierarchy && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
         {
             if (dialogText.maxVisibleCharacters < dialogText.textInfo.characterCount)
@@ -167,6 +165,21 @@ public class Checkpoint : MonoBehaviour
 
     IEnumerator Typing()
     {
+        // Determine if UI should be shown based on current index
+        bool showUI = ShouldShowUI(index);
+
+        if (portraitImage != null)
+
+        if (portraitImage != null)
+        {
+            portraitImage.SetActive(showUI);
+        }
+
+        if (nameTitle != null)
+        {
+            nameTitle.SetActive(showUI);
+        }
+
         dialogText.text = dialogue[index];
         dialogText.maxVisibleCharacters = 0;
         dialogText.ForceMeshUpdate(); // Ensure textInfo is updated
@@ -189,10 +202,17 @@ public class Checkpoint : MonoBehaviour
     {
         contButton.SetActive(false);
 
+        // If player has moved away, clicking continue should close the dialogue immediately
+        if (!playerIsClose)
+        {
+            zeroText();
+            return;
+        }
+
         if (index < dialogue.Length - 1)
         {
-            StartCoroutine(Typing());
             index++;
+            StartCoroutine(Typing());
         }
         else
         {
@@ -213,7 +233,13 @@ public class Checkpoint : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             playerIsClose = false;
-            zeroText();
+            
+            // Only close if it's NOT player dialogue (i.e. if UI is shown)
+            // If UI is invalid (false), it means it's the player's internal monologue, so it should persist.
+            if (ShouldShowUI(index)) 
+            {
+                zeroText();
+            }
         }
     }
 
@@ -278,6 +304,17 @@ public class Checkpoint : MonoBehaviour
                 hasDialogOpened = true; // Mark as opened so it doesn't auto-pop again
                 dialogPanel.SetActive(true);
                 
+                // Assign button listener for THIS checkpoint instance
+                if (contButton != null)
+                {
+                    Button btn = contButton.GetComponent<Button>();
+                    if (btn != null)
+                    {
+                        btn.onClick.RemoveAllListeners(); // Clear previous listeners (from other checkpoints)
+                        btn.onClick.AddListener(NextLine); // Add THIS checkpoint's NextLine
+                    }
+                }
+
                 // Show first line with typing effect
                 index = 0;
                 if (dialogue != null && dialogue.Length > 0)
@@ -299,7 +336,11 @@ public class Checkpoint : MonoBehaviour
                 playerIsClose = false;
                 if (dialogPanel.activeInHierarchy)
                 {
-                    zeroText();
+                   // Only close if it's NOT player dialogue
+                   if (ShouldShowUI(index))
+                   {
+                       zeroText();
+                   }
                 }
             }
         }
@@ -475,6 +516,22 @@ public class Checkpoint : MonoBehaviour
                 Debug.LogWarning($"Checkpoint ID {id} does not have a corresponding GameEventType. Add Checkpoint{id}Reached to the enum.");
                 return GameEventType.BombEncountered; // Return a default (not ideal, but prevents errors)
         }
+    }
+
+    /// <summary>
+    /// Determines if the portrait and name title should be shown for the given dialogue index.
+    /// </summary>
+    private bool ShouldShowUI(int dialogueIndex)
+    {
+        // EXCEPTION: Checkpoint 2 (Third Checkpoint)
+        // First two dialogues (0 and 1) should appear without title and pic.
+        if (checkpointID == 2 && dialogueIndex <= 1)
+        {
+            return false;
+        }
+
+        // Default Rule: Show on odd indices (1, 3, 5...), Hide on even (0, 2, 4...)
+        return (dialogueIndex % 2 != 0);
     }
 }
 
