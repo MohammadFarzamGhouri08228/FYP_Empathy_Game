@@ -2,33 +2,29 @@ using UnityEngine;
 
 public class Key : MonoBehaviour
 {
-    [Header("Key Settings")]
-    [Tooltip("Unique ID for this key (useful if you have multiple keys/doors)")]
-    public string keyID = "default";
+    [Header("Key Indicator")]
+    [Tooltip("A small sprite prefab to show above the player's head when carrying the key.")]
+    [SerializeField] private GameObject keyIndicatorPrefab;
 
-    [Header("Collection Settings")]
-    [Tooltip("Time before key disappears after collection (for animation)")]
-    public float collectionDelay = 0.1f;
+    [Tooltip("Offset from the player's pivot where the indicator floats.")]
+    [SerializeField] private Vector3 indicatorOffset = new Vector3(0f, 1.5f, 0f);
 
-    // Static counter for total keys collected
-    public static int totalKeysCollected = 0;
+    // --- Static state (read by Lock.cs) ---
+    public static bool hasKey = false;
+    public static GameObject keyIndicatorInstance;
 
     private bool isCollected = false;
 
     void OnTriggerEnter2D(Collider2D other)
     {
         if (!isCollected && IsPlayer(other.gameObject))
-        {
-            CollectKey();
-        }
+            CollectKey(other.gameObject);
     }
 
     void OnCollisionEnter2D(Collision2D collision)
     {
         if (!isCollected && IsPlayer(collision.gameObject))
-        {
-            CollectKey();
-        }
+            CollectKey(collision.gameObject);
     }
 
     private bool IsPlayer(GameObject obj)
@@ -37,28 +33,33 @@ public class Key : MonoBehaviour
                obj.GetComponent<PlayerController>() != null;
     }
 
-    private void CollectKey()
+    private void CollectKey(GameObject player)
     {
         if (isCollected) return;
-
         isCollected = true;
-        totalKeysCollected++;
+        hasKey = true;
 
-        Debug.Log($"Key '{keyID}' collected! Total keys: {totalKeysCollected}");
+        Debug.Log("Key collected! Carry it to a lock and press E to unlock.");
 
-        // Destroy the key object
-        Destroy(gameObject, collectionDelay);
+        // Show indicator above player's head
+        if (keyIndicatorPrefab != null)
+        {
+            keyIndicatorInstance = Instantiate(keyIndicatorPrefab, player.transform);
+            keyIndicatorInstance.transform.localPosition = indicatorOffset;
+        }
+
+        // Remove the pickup from the scene
+        Destroy(gameObject);
     }
 
-    // Reset key counter (useful for game restarts)
-    public static void ResetKeyCounter()
+    /// <summary>Call on scene restart / game over to clear key state.</summary>
+    public static void ResetKey()
     {
-        totalKeysCollected = 0;
-    }
-
-    // Get current key count
-    public static int GetKeyCount()
-    {
-        return totalKeysCollected;
+        hasKey = false;
+        if (keyIndicatorInstance != null)
+        {
+            Destroy(keyIndicatorInstance);
+            keyIndicatorInstance = null;
+        }
     }
 }
