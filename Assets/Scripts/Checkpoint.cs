@@ -48,6 +48,10 @@ public class Checkpoint : MonoBehaviour
     public GameObject contButton;
     public float wordSpeed = 0.02f;
     
+    // START CHANGES: Dialogue Tracking State
+    private bool dialogueCompleted = false; // Track if player finished the dialogue
+    private bool isTyping = false; // Track if text is currently typing
+    // END CHANGES
     
     void Start()
     {
@@ -137,20 +141,28 @@ public class Checkpoint : MonoBehaviour
         // Only allow E key if the dialogue is actually shown
         if (dialogPanel.activeInHierarchy && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
         {
-            if (dialogText.maxVisibleCharacters < dialogText.textInfo.characterCount)
+            // START CHANGES: Prevent manual skip for auto-advancing player dialogue
+            if (index < dialogue.Length && !IsPlayerDialogue(dialogue[index]))
             {
-                // Instant finish typing
-                dialogText.maxVisibleCharacters = dialogText.textInfo.characterCount;
+                if (dialogText.maxVisibleCharacters < dialogText.textInfo.characterCount)
+                {
+                    // Instant finish typing
+                    dialogText.maxVisibleCharacters = dialogText.textInfo.characterCount;
+                }
+                else
+                {
+                    NextLine();
+                }
             }
-            else
-            {
-                NextLine();
-            }
+            // END CHANGES
         }
 
         if (dialogPanel.activeInHierarchy && dialogText.textInfo != null && dialogText.maxVisibleCharacters >= dialogText.textInfo.characterCount)
         {
-            if(contButton != null) contButton.SetActive(true);
+            // START CHANGES: Hide button for auto-advancing player dialogue
+            bool showButton = (index < dialogue.Length && !IsPlayerDialogue(dialogue[index]));
+            if(contButton != null) contButton.SetActive(showButton);
+            // END CHANGES
         }
     }
 
@@ -161,23 +173,21 @@ public class Checkpoint : MonoBehaviour
         index = 0;
         dialogText.maxVisibleCharacters = 0;
         dialogPanel.SetActive(false);
+        // Do NOT reset dialogueCompleted here, as we want to remember if they finished it.
     }
 
     IEnumerator Typing()
     {
+        isTyping = true;
+        
         // Determine if UI should be shown based on current index
         bool showUI = ShouldShowUI(index);
 
-        if (portraitImage != null)
 
-        if (portraitImage != null)
+        if (portraitImage != null && nameTitle != null)
         {
-            portraitImage.SetActive(showUI);
-        }
-
-        if (nameTitle != null)
-        {
-            nameTitle.SetActive(showUI);
+             portraitImage.SetActive(showUI);
+             nameTitle.SetActive(showUI);
         }
 
         dialogText.text = dialogue[index];
@@ -196,10 +206,23 @@ public class Checkpoint : MonoBehaviour
             counter++;
             yield return new WaitForSeconds(wordSpeed);
         }
+        
+        isTyping = false;
+        
+        // START CHANGES: Auto-advance for player dialogue
+        if (IsPlayerDialogue(dialogue[index]))
+        {
+             // Wait 2 seconds then advance
+             yield return new WaitForSeconds(2.0f);
+             NextLine();
+        }
+        // END CHANGES
     }
 
     public void NextLine()
     {
+        if (isTyping) return;
+        
         contButton.SetActive(false);
 
         // If player has moved away, clicking continue should close the dialogue immediately
@@ -216,6 +239,17 @@ public class Checkpoint : MonoBehaviour
         }
         else
         {
+            // START CHANGES: Record completion
+            if (!dialogueCompleted)
+            {
+                dialogueCompleted = true;
+                Debug.Log($"Checkpoint {checkpointID}: Dialogue Finished. Recording 'Listening'.");
+                if (AdaptiveBackend.Instance != null)
+                {
+                     AdaptiveBackend.Instance.ReceiveData($"Checkpoint_{checkpointID}", "DialogueInteraction", "Listening");
+                }
+            }
+            // END CHANGES
             zeroText();
         }
     }
@@ -232,18 +266,38 @@ public class Checkpoint : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            playerIsClose = false;
-            
-            // Only close if it's NOT player dialogue (i.e. if UI is shown)
-            // If UI is invalid (false), it means it's the player's internal monologue, so it should persist.
-            if (ShouldShowUI(index)) 
-            {
-                zeroText();
-            }
+            // START CHANGES: Handle exit logic
+            HandlePlayerExit();
+            // END CHANGES
         }
     }
+    
+    // START CHANGES: Handle exit logic to record 'Not Listening'
+    private void HandlePlayerExit()
+    {
+        playerIsClose = false;
+        
+        // If dialogue was active and NOT completed, record "Not Listening"
+        if (dialogPanel.activeInHierarchy && !dialogueCompleted)
+        {
+             Debug.Log($"Checkpoint {checkpointID}: Player left early. Recording 'Not Listening'.");
+             if (AdaptiveBackend.Instance != null)
+             {
+                 AdaptiveBackend.Instance.ReceiveData($"Checkpoint_{checkpointID}", "DialogueInteraction", "Not Listening");
+             }
+        }
+
+        // Only close if it's NOT player dialogue (i.e. if UI is shown)
+        // If UI is invalid (false), it means it's the player's internal monologue, so it should persist.
+        if (ShouldShowUI(index)) 
+        {
+            zeroText();
+        }
+    }
+    // END CHANGES
 
 
+    
     
 
 
@@ -303,6 +357,7 @@ public class Checkpoint : MonoBehaviour
             {
                 hasDialogOpened = true; // Mark as opened so it doesn't auto-pop again
                 dialogPanel.SetActive(true);
+                dialogueCompleted = false; // Reset completion tracking
                 
                 // Assign button listener for THIS checkpoint instance
                 if (contButton != null)
@@ -333,15 +388,9 @@ public class Checkpoint : MonoBehaviour
             // Player moved away
             if (playerIsClose) // State change: Close -> Far
             {
-                playerIsClose = false;
-                if (dialogPanel.activeInHierarchy)
-                {
-                   // Only close if it's NOT player dialogue
-                   if (ShouldShowUI(index))
-                   {
-                       zeroText();
-                   }
-                }
+                // START CHANGES: Use HandlePlayerExit
+                HandlePlayerExit();
+                // END CHANGES
             }
         }
     }
@@ -523,15 +572,28 @@ public class Checkpoint : MonoBehaviour
     /// </summary>
     private bool ShouldShowUI(int dialogueIndex)
     {
-        // EXCEPTION: Checkpoint 2 (Third Checkpoint)
-        // First two dialogues (0 and 1) should appear without title and pic.
-        if (checkpointID == 2 && dialogueIndex <= 1)
+        if (dialogue == null || dialogueIndex < 0 || dialogueIndex >= dialogue.Length) return false;
+
+        string line = dialogue[dialogueIndex];
+        
+        // START CHANGES: Updated UI Visibility Logic
+        // If it's the player's dialogue ("Musa: ..."), we HIDE usage of the UI panel (portrait/name)
+        if (IsPlayerDialogue(line))
         {
             return false;
         }
+        // END CHANGES
 
-        // Default Rule: Show on odd indices (1, 3, 5...), Hide on even (0, 2, 4...)
-        return (dialogueIndex % 2 != 0);
+        return true;
     }
+    
+    // START CHANGES: Helper helper to check for player dialogue
+    private bool IsPlayerDialogue(string line)
+    {
+        if (string.IsNullOrEmpty(line)) return false;
+        // Check if line starts with "Musa:" (case sensitive or insensitive?)
+        // Let's assume sensitive for now as per request.
+        return line.TrimStart().StartsWith("Musa:");
+    }
+    // END CHANGES
 }
-
