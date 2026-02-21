@@ -60,6 +60,7 @@ public class CandyGameManager : MonoBehaviour
         if (!isGameActive) return;
         score += amount;
         UpdateScoreUI();
+        Debug.Log("Current Score: " + score);
     }
 
     private void UpdateScoreUI()

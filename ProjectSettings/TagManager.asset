@@ -6,6 +6,7 @@ TagManager:
   tags:
   - candy
   - Ground
+  - bomb
   layers:
   - Default
   - TransparentFX

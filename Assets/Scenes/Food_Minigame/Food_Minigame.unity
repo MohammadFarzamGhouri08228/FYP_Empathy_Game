@@ -953,6 +953,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   candyPrefab: {fileID: 7539684706877077979, guid: 838f8645a3772af438bfeec314304360, type: 3}
+  bombPrefab: {fileID: 8160573991984429825, guid: 59c11880d891bfa41ba7397fe3ab30cb, type: 3}
+  bombSpawnChance: 0.2
   spawnInterval: 1
   xSpawnRange: 8
   totalCandiesToSpawn: 30

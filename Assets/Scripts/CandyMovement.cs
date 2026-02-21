@@ -44,6 +44,11 @@ public class CandyMovement : MonoBehaviour
             if (CandyGameManager.Instance != null) CandyGameManager.Instance.AddScore(1);
             Destroy(collision.gameObject);
         }
+        else if (collision.gameObject.CompareTag("bomb"))
+        {
+            if (CandyGameManager.Instance != null) CandyGameManager.Instance.AddScore(-2);
+            Destroy(collision.gameObject);
+        }
         else 
         {
             // As long as we bumped into something solid OTHER than a candy, we can jump again
@@ -64,6 +69,11 @@ public class CandyMovement : MonoBehaviour
         if (collision.gameObject.CompareTag("candy"))
         {
             if (CandyGameManager.Instance != null) CandyGameManager.Instance.AddScore(1);
+            Destroy(collision.gameObject);
+        }
+        else if (collision.gameObject.CompareTag("bomb"))
+        {
+            if (CandyGameManager.Instance != null) CandyGameManager.Instance.AddScore(-2);
             Destroy(collision.gameObject);
         }
     }
