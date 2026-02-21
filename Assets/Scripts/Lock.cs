@@ -3,21 +3,22 @@ using System.Collections;
 
 public enum LockRetractDirection
 {
-    Up,     // Top edge anchored – retracts upward
-    Down,   // Bottom edge anchored – retracts downward
-    Left,   // Left edge anchored – retracts leftward
-    Right   // Right edge anchored – retracts rightward
+    Up,
+    Down,
+    Left,
+    Right
 }
 
-/// <summary>
-/// A gate/barrier that uses a Tiled sprite and retracts to size 0 when the player
-/// has a Key and presses the interact button nearby.
-/// One key unlocks ALL Lock instances in the scene.
-/// </summary>
-[RequireComponent(typeof(SpriteRenderer))]
+public enum LockMode
+{
+    TiledSprite,
+    ScaleTransform
+}
+
 public class Lock : MonoBehaviour
 {
     [Header("Retract Settings")]
+    [SerializeField] private LockMode mode = LockMode.TiledSprite;
     [SerializeField] private LockRetractDirection retractDirection = LockRetractDirection.Up;
 
     [Tooltip("How fast the lock retracts (world-units per second).")]
@@ -26,46 +27,51 @@ public class Lock : MonoBehaviour
     [Header("Interaction")]
     [SerializeField] private KeyCode interactKey = KeyCode.E;
 
-    [Tooltip("How close the player must be to interact (measured from anchor edge).")]
+    [Tooltip("How close the player must be to interact.")]
     [SerializeField] private float interactRange = 2.5f;
 
     [Tooltip("Optional child object (text / sprite) shown when the player can interact.")]
     [SerializeField] private GameObject interactPrompt;
 
-    [Header("Collider")]
+    [Header("Collider (TiledSprite mode only)")]
     [SerializeField] private bool autoSizeCollider = true;
 
-    // ---- runtime state ----
     private SpriteRenderer sr;
     private BoxCollider2D col;
     private float currentSize;
-    private Vector3 anchorWorld;      // the fixed edge that stays in place
+    private Vector3 anchorWorld;
+    private Vector3 initialScale;
+    private Vector3 initialPosition;
     private bool isRetracting = false;
-    private bool isAxisX;             // true = width (Left/Right), false = height (Up/Down)
+    private bool isAxisX;
     private Transform playerTransform;
 
-    /// <summary>Read-only access to this lock's direction (used by the sequencer).</summary>
     public LockRetractDirection RetractDir => retractDirection;
-
-    // ═══════════════════════════════════════════
-    //  LIFECYCLE
-    // ═══════════════════════════════════════════
 
     void Awake()
     {
         sr = GetComponent<SpriteRenderer>();
         col = GetComponent<BoxCollider2D>();
 
-        if (col == null && autoSizeCollider)
-            col = gameObject.AddComponent<BoxCollider2D>();
+        if (mode == LockMode.TiledSprite)
+        {
+            if (sr == null)
+                Debug.LogError("Lock set to TiledSprite but no SpriteRenderer found!", this);
+            if (col == null && autoSizeCollider)
+                col = gameObject.AddComponent<BoxCollider2D>();
+        }
 
         isAxisX = (retractDirection == LockRetractDirection.Left ||
                    retractDirection == LockRetractDirection.Right);
 
-        // Record the starting size from the current tiled sprite
-        currentSize = isAxisX ? sr.size.x : sr.size.y;
+        initialScale = transform.localScale;
+        initialPosition = transform.position;
 
-        // Calculate the anchor (the edge that stays fixed)
+        if (mode == LockMode.TiledSprite && sr != null)
+            currentSize = isAxisX ? sr.size.x : sr.size.y;
+        else
+            currentSize = 1f;
+
         anchorWorld = CalculateAnchor();
 
         if (interactPrompt != null)
@@ -81,11 +87,19 @@ public class Lock : MonoBehaviour
 
     void Update()
     {
-        // ---- Retract animation ----
         if (isRetracting)
         {
-            currentSize = Mathf.MoveTowards(currentSize, 0f, retractSpeed * Time.deltaTime);
-            ApplySize(currentSize);
+            if (mode == LockMode.TiledSprite)
+            {
+                currentSize = Mathf.MoveTowards(currentSize, 0f, retractSpeed * Time.deltaTime);
+                ApplySizeTiled(currentSize);
+            }
+            else
+            {
+                float scaleSpeed = retractSpeed * 0.5f;
+                currentSize = Mathf.MoveTowards(currentSize, 0f, scaleSpeed * Time.deltaTime);
+                ApplySizeScaled(currentSize);
+            }
 
             if (currentSize <= 0.001f)
                 Destroy(gameObject);
@@ -93,59 +107,45 @@ public class Lock : MonoBehaviour
             return;
         }
 
-        // ---- Interaction check (distance-based) ----
         if (playerTransform == null) return;
 
         float dist = Vector2.Distance(anchorWorld, playerTransform.position);
         bool inRange = dist <= interactRange;
 
-        // Show / hide prompt
         if (interactPrompt != null)
             interactPrompt.SetActive(inRange && Key.hasKey);
 
-        // Unlock on key press
         if (inRange && Key.hasKey && Input.GetKeyDown(interactKey))
             UnlockAll();
     }
 
-    // ═══════════════════════════════════════════
-    //  ANCHOR CALCULATION
-    // ═══════════════════════════════════════════
-
     private Vector3 CalculateAnchor()
     {
         Vector3 pos = transform.position;
+        Vector3 size = Vector3.one;
 
-        switch (retractDirection)
+        if (mode == LockMode.TiledSprite && sr != null)
         {
-            case LockRetractDirection.Up:
-                // Anchor = top edge
-                return pos + Vector3.up * (sr.size.y * 0.5f);
-
-            case LockRetractDirection.Down:
-                // Anchor = bottom edge
-                return pos - Vector3.up * (sr.size.y * 0.5f);
-
-            case LockRetractDirection.Left:
-                // Anchor = left edge
-                return pos - Vector3.right * (sr.size.x * 0.5f);
-
-            case LockRetractDirection.Right:
-                // Anchor = right edge
-                return pos + Vector3.right * (sr.size.x * 0.5f);
-
-            default:
-                return pos;
+            size = new Vector3(sr.size.x, sr.size.y, 0);
         }
+        else
+        {
+            Renderer r = GetComponentInChildren<Renderer>();
+            if (r != null) size = r.bounds.size;
+        }
+
+        return retractDirection switch
+        {
+            LockRetractDirection.Up    => pos + Vector3.up    * (size.y * 0.5f),
+            LockRetractDirection.Down  => pos - Vector3.up    * (size.y * 0.5f),
+            LockRetractDirection.Left  => pos - Vector3.right * (size.x * 0.5f),
+            LockRetractDirection.Right => pos + Vector3.right * (size.x * 0.5f),
+            _ => pos
+        };
     }
 
-    // ═══════════════════════════════════════════
-    //  SIZE APPLICATION (keeps anchor edge fixed)
-    // ═══════════════════════════════════════════
-
-    private void ApplySize(float size)
+    private void ApplySizeTiled(float size)
     {
-        // Clamp to a tiny value so the tiled renderer doesn't complain
         float safeSize = Mathf.Max(size, 0.01f);
         Vector2 spriteSize = sr.size;
 
@@ -154,47 +154,32 @@ public class Lock : MonoBehaviour
             spriteSize.x = safeSize;
             sr.size = spriteSize;
 
+            Vector3 pos = anchorWorld;
             if (retractDirection == LockRetractDirection.Left)
-            {
-                // Left anchor fixed → centre = left + halfWidth
-                Vector3 pos = anchorWorld + Vector3.right * (size * 0.5f);
-                pos.y = transform.position.y;
-                pos.z = transform.position.z;
-                transform.position = pos;
-            }
-            else // Right
-            {
-                // Right anchor fixed → centre = right − halfWidth
-                Vector3 pos = anchorWorld - Vector3.right * (size * 0.5f);
-                pos.y = transform.position.y;
-                pos.z = transform.position.z;
-                transform.position = pos;
-            }
+                pos += Vector3.right * (size * 0.5f);
+            else
+                pos -= Vector3.right * (size * 0.5f);
+
+            pos.y = transform.position.y;
+            pos.z = transform.position.z;
+            transform.position = pos;
         }
         else
         {
             spriteSize.y = safeSize;
             sr.size = spriteSize;
 
+            Vector3 pos = anchorWorld;
             if (retractDirection == LockRetractDirection.Up)
-            {
-                // Top anchor fixed → centre = top − halfHeight
-                Vector3 pos = anchorWorld - Vector3.up * (size * 0.5f);
-                pos.x = transform.position.x;
-                pos.z = transform.position.z;
-                transform.position = pos;
-            }
-            else // Down
-            {
-                // Bottom anchor fixed → centre = bottom + halfHeight
-                Vector3 pos = anchorWorld + Vector3.up * (size * 0.5f);
-                pos.x = transform.position.x;
-                pos.z = transform.position.z;
-                transform.position = pos;
-            }
+                pos -= Vector3.up * (size * 0.5f);
+            else
+                pos += Vector3.up * (size * 0.5f);
+
+            pos.x = transform.position.x;
+            pos.z = transform.position.z;
+            transform.position = pos;
         }
 
-        // Keep collider in sync
         if (col != null && autoSizeCollider)
         {
             col.size = spriteSize;
@@ -202,11 +187,36 @@ public class Lock : MonoBehaviour
         }
     }
 
-    // ═══════════════════════════════════════════
-    //  PUBLIC HELPERS
-    // ═══════════════════════════════════════════
+    private void ApplySizeScaled(float scalePercent)
+    {
+        Vector3 newScale = initialScale;
+        if (isAxisX) newScale.x *= scalePercent;
+        else         newScale.y *= scalePercent;
 
-    /// <summary>Begin retracting this individual lock.</summary>
+        transform.localScale = newScale;
+
+        Renderer r = GetComponentInChildren<Renderer>();
+        if (r == null) return;
+
+        Vector3 currentWorldSize = r.bounds.size;
+        Vector3 pos = anchorWorld;
+
+        if (retractDirection == LockRetractDirection.Up)
+            pos -= Vector3.up * (currentWorldSize.y * 0.5f);
+        else if (retractDirection == LockRetractDirection.Down)
+            pos += Vector3.up * (currentWorldSize.y * 0.5f);
+        else if (retractDirection == LockRetractDirection.Left)
+            pos += Vector3.right * (currentWorldSize.x * 0.5f);
+        else
+            pos -= Vector3.right * (currentWorldSize.x * 0.5f);
+
+        if (isAxisX) pos.y = transform.position.y;
+        else         pos.x = transform.position.x;
+        pos.z = transform.position.z;
+
+        transform.position = pos;
+    }
+
     public void StartRetracting()
     {
         isRetracting = true;
@@ -214,25 +224,18 @@ public class Lock : MonoBehaviour
             interactPrompt.SetActive(false);
     }
 
-    // ═══════════════════════════════════════════
-    //  UNLOCK ALL LOCKS (sequenced)
-    // ═══════════════════════════════════════════
-
     public static void UnlockAll()
     {
-        // Consume the key
         Key.hasKey = false;
 
-        // Remove the key indicator floating above the player
         if (Key.keyIndicatorInstance != null)
         {
             Destroy(Key.keyIndicatorInstance);
             Key.keyIndicatorInstance = null;
         }
 
-        Debug.Log("All locks unlocking (sequenced: Up → Left → Down → Right)");
+        Debug.Log("All locks unlocking (sequenced: Up -> Left -> Down -> Right)");
 
-        // Hide all prompts immediately
         Lock[] allLocks = FindObjectsByType<Lock>(FindObjectsSortMode.None);
         foreach (Lock lk in allLocks)
         {
@@ -240,27 +243,16 @@ public class Lock : MonoBehaviour
                 lk.interactPrompt.SetActive(false);
         }
 
-        // Spawn a temporary object to run the sequenced coroutine
-        // (it survives even as individual locks get destroyed)
         GameObject runner = new GameObject("_LockSequencer");
         LockSequencer seq = runner.AddComponent<LockSequencer>();
         seq.Run(allLocks);
     }
 
-    // ═══════════════════════════════════════════
-    //  GIZMOS (editor helpers)
-    // ═══════════════════════════════════════════
-
     void OnDrawGizmosSelected()
     {
-        // Interaction range sphere
         Gizmos.color = new Color(1f, 0.9f, 0f, 0.35f);
         Vector3 gizmoCenter = Application.isPlaying ? anchorWorld : transform.position;
         Gizmos.DrawWireSphere(gizmoCenter, interactRange);
-
-        // Retract direction arrow
-        if (sr == null) sr = GetComponent<SpriteRenderer>();
-        if (sr == null) return;
 
         Gizmos.color = Color.red;
         Vector3 dir = retractDirection switch
@@ -275,14 +267,8 @@ public class Lock : MonoBehaviour
     }
 }
 
-// ═════════════════════════════════════════════════════════
-//  Helper: runs the sequenced unlock coroutine on a
-//  temporary GameObject so it survives lock destruction.
-// ═════════════════════════════════════════════════════════
-
 public class LockSequencer : MonoBehaviour
 {
-    // Order in which direction groups retract
     private static readonly LockRetractDirection[] order =
     {
         LockRetractDirection.Up,
@@ -300,7 +286,6 @@ public class LockSequencer : MonoBehaviour
     {
         foreach (LockRetractDirection dir in order)
         {
-            // Start retracting every lock that matches this direction
             bool anyInGroup = false;
             foreach (Lock lk in locks)
             {
@@ -313,7 +298,6 @@ public class LockSequencer : MonoBehaviour
 
             if (!anyInGroup) continue;
 
-            // Wait until every lock in this group has been destroyed
             bool groupDone = false;
             while (!groupDone)
             {
@@ -330,7 +314,6 @@ public class LockSequencer : MonoBehaviour
             }
         }
 
-        // All groups done – clean up the sequencer
         Destroy(gameObject);
     }
 }
