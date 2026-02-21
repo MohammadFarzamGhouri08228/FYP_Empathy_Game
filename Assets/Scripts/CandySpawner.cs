@@ -6,22 +6,46 @@ public class CandySpawner : MonoBehaviour
     public float spawnInterval = 1f; // How often to spawn (in seconds)
     public float xSpawnRange = 8f;   // The width of your spawn area!
 
-    void Start()
+    private int candiesSpawned = 0;
+    public int totalCandiesToSpawn = 30;
+    private float timer = 0f;
+
+    void Update()
     {
-        // Spawns a candy repeatedly every 'spawnInterval' seconds
-        InvokeRepeating(nameof(SpawnCandy), 0f, spawnInterval);
+        // Only spawn if game is active
+        if (CandyGameManager.Instance != null && CandyGameManager.Instance.isGameActive)
+        {
+            timer += Time.deltaTime;
+            
+            // Time to spawn another candy
+            if (timer >= spawnInterval && candiesSpawned < totalCandiesToSpawn)
+            {
+                SpawnCandy();
+                timer = 0f;
+            }
+            
+            // Check if we reached the max amount
+            if (candiesSpawned >= totalCandiesToSpawn)
+            {
+                CandyGameManager.Instance.isGameActive = false; // Stop tracking score and spawning
+                Invoke(nameof(CallGameOver), 3f); // Wait 3s before concluding to let final candies drop
+            }
+        }
+    }
+
+    void CallGameOver()
+    {
+        if (CandyGameManager.Instance != null)
+        {
+            CandyGameManager.Instance.GameOver();
+        }
     }
 
     void SpawnCandy()
     {
-        // THIS IS THE LINE THAT RANDOMIZES THE POSITION
-        // It picks a random number between -8 and 8 (or whatever you set xSpawnRange to)
+        candiesSpawned++;
         float randomX = Random.Range(-xSpawnRange, xSpawnRange);
-
-        // Sets the spawn point at the spawner's Y, but the new random X
         Vector3 spawnPosition = new Vector3(randomX, transform.position.y, 0f);
-
-        // Creates the candy prefab at that location
         Instantiate(candyPrefab, spawnPosition, Quaternion.identity);
     }
 }

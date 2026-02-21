@@ -5,7 +5,7 @@ public class CandyMovement : MonoBehaviour
 {
     public float moveSpeed = 8f;
     public float jumpForce = 12f;
-    public int candyScore = 0;
+    // Score is now tracked by CandyGameManager
 
     private Rigidbody2D rb;
     private float moveInput;
@@ -41,8 +41,7 @@ public class CandyMovement : MonoBehaviour
         // If it's a candy that hit us physically (not a trigger), collect it!
         if (collision.gameObject.CompareTag("candy"))
         {
-            candyScore += 1;
-            Debug.Log("Caught a candy! Total Score: " + candyScore);
+            if (CandyGameManager.Instance != null) CandyGameManager.Instance.AddScore(1);
             Destroy(collision.gameObject);
         }
         else 
@@ -64,8 +63,7 @@ public class CandyMovement : MonoBehaviour
 
         if (collision.gameObject.CompareTag("candy"))
         {
-            candyScore += 1;
-            Debug.Log("Caught a candy! Total Score: " + candyScore);
+            if (CandyGameManager.Instance != null) CandyGameManager.Instance.AddScore(1);
             Destroy(collision.gameObject);
         }
     }
