@@ -67,7 +67,12 @@ public class CandyGameManager : MonoBehaviour
     {
         if (scoreText != null)
         {
-            scoreText.text = "Score: " + score;
+            scoreText.text = score.ToString();
+            Debug.Log("[UI OK] Text updated to: " + score);
+        }
+        else
+        {
+            Debug.LogError("[UI BROKEN] scoreText is NULL! Drag your TextMeshPro into the Score Text slot on GameManager.");
         }
     }
 
