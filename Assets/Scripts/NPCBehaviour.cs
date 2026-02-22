@@ -58,6 +58,7 @@ public class NPCBehaviour : MonoBehaviour
     }
 
     private bool waitingForCheckpoint1Choice = false;
+    private bool waitingForCheckpoint2Choice = false;
 
     void Update()
     {
@@ -67,15 +68,36 @@ public class NPCBehaviour : MonoBehaviour
             {
                 if (Keyboard.current.digit1Key.wasPressedThisFrame || Keyboard.current.numpad1Key.wasPressedThisFrame)
                 {
-                    Debug.Log("NPCBehaviour: Option 1 selected (Move then Jump).");
-                    waitingForCheckpoint1Choice = false;
+                    Debug.Log("NPCBehaviour: Checkpoint 1 - Option 1 selected (Move then Jump). Removing prompt.");
+                    waitingForCheckpoint1Choice = false; // Only 1 removes the prompt
                     StartCoroutine(PerformJumpRoutine(null, 0.5f)); // Small hesitation before moving
                 }
                 else if (Keyboard.current.digit2Key.wasPressedThisFrame || Keyboard.current.numpad2Key.wasPressedThisFrame)
                 {
-                    Debug.Log("NPCBehaviour: Option 2 selected (Jump immediately).");
-                    waitingForCheckpoint1Choice = false;
+                    Debug.Log("NPCBehaviour: Checkpoint 1 - Option 2 selected (Jump immediately). Keeping prompt active for more jumps.");
+                    // We DO NOT set waitingForCheckpoint1Choice = false here!
+                    // This allows the player to keep pressing '2' to jump again until they hit next checkpoint.
                     Jump(); // Jump immediately
+                }
+            }
+        }
+        else if (waitingForCheckpoint2Choice)
+        {
+            if (Keyboard.current != null)
+            {
+                if (Keyboard.current.digit1Key.wasPressedThisFrame || Keyboard.current.numpad1Key.wasPressedThisFrame)
+                {
+                    Debug.Log("NPCBehaviour: Checkpoint 2 - Option 1 selected (Move 4 units then Jump). Removing prompt.");
+                    waitingForCheckpoint2Choice = false; // 1 always removes the prompt
+                    // Optional hesitation (e.g., 1f), then move 4 units right, then jump
+                    StartCoroutine(PerformJumpRoutine(new Vector2(6f, 9f), 1f, 4f)); 
+                }
+                else if (Keyboard.current.digit2Key.wasPressedThisFrame || Keyboard.current.numpad2Key.wasPressedThisFrame)
+                {
+                    Debug.Log("NPCBehaviour: Checkpoint 2 - Option 2 selected (Direct jump without moving). Keeping prompt active for more jumps or '1'.");
+                    // Jump immediately without moving (0 units), with a 1 second hesitation. 
+                    // We DO NOT set waitingForCheckpoint2Choice to false, so this keeps listening for 1 or 2 again!
+                    StartCoroutine(PerformJumpRoutine(new Vector2(6f, 9f), 1f, 0f)); 
                 }
             }
         }
@@ -89,37 +111,43 @@ public class NPCBehaviour : MonoBehaviour
         {
              Debug.Log($"NPCBehaviour: Checkpoint {eventType} reached! Waiting for player input: Press '1' for Move+Jump, '2' for Immediate Jump.");
              waitingForCheckpoint1Choice = true;
+             waitingForCheckpoint2Choice = false;
         }
         else if (eventType == GameEventType.Checkpoint2Reached)
         {
-            Debug.Log($"NPCBehaviour: Checkpoint {eventType} reached! Preparing to jump (Custom Force) in 1 second...");
-            StartCoroutine(PerformJumpRoutine(new Vector2(6f, 9f), 1f));
+            Debug.Log($"NPCBehaviour: Checkpoint {eventType} reached! Waiting for player input: Press '1' for Move+Jump, '2' for Immediate Jump.");
+            waitingForCheckpoint1Choice = false; // Cancel the continuous option 2 jumps
+            waitingForCheckpoint2Choice = true;
         }
         else if (eventType == GameEventType.Checkpoint3Reached ||
             eventType == GameEventType.Checkpoint4Reached ||
             eventType == GameEventType.Checkpoint5Reached)
         {
             Debug.Log($"NPCBehaviour: Checkpoint {eventType} reached! Preparing to jump (Default Force) in {hesitationTime} seconds...");
+            waitingForCheckpoint1Choice = false; // Cancel the continuous option 2 jumps
+            waitingForCheckpoint2Choice = false;
             StartCoroutine(PerformJumpRoutine(null));
         }
         else if (eventType == GameEventType.Checkpoint0Reached)
         {
-            Debug.Log("NPCBehaviour: Checkpoint 0 reached - ignoring jump as requested.");
+            Debug.Log("NPCBehaviour: Checkpoint 0 reached - acting as Checkpoint 1 prompt again after a fall.");
+            waitingForCheckpoint1Choice = true; // Wait for input again
         }
     }
 
-    private IEnumerator PerformJumpRoutine(Vector2? customForce, float? customHesitation = null)
+    private IEnumerator PerformJumpRoutine(Vector2? customForce, float? customHesitation = null, float? customMoveDistance = null)
     {
         float timeToWait = customHesitation ?? hesitationTime;
         Debug.Log($"NPCBehaviour: Starting hesitation routine ({timeToWait}s)");
         // 1. Hesitate
         yield return new WaitForSeconds(timeToWait);
         
+        float distanceToMove = customMoveDistance ?? moveDistance;
         // 2. Move Right
-        Debug.Log($"NPCBehaviour: Moving {moveDistance} units right at speed {moveSpeed}...");
+        Debug.Log($"NPCBehaviour: Moving {distanceToMove} units right at speed {moveSpeed}...");
         
         float startX = transform.position.x;
-        float targetX = startX + moveDistance;
+        float targetX = startX + distanceToMove;
         
         // Move loop
         while (transform.position.x < targetX)
