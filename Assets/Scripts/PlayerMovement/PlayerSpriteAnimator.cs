@@ -44,6 +44,7 @@ public class PlayerSpriteAnimator : MonoBehaviour
 
     private PlayerMotor motor;
     private PlayerClimb playerClimb;
+    private Player_Slope_Right_Down slopeRight;
     private SpriteRenderer spriteRenderer;
     private float animTimer;
 
@@ -55,6 +56,7 @@ public class PlayerSpriteAnimator : MonoBehaviour
     {
         motor = GetComponent<PlayerMotor>();
         playerClimb = GetComponent<PlayerClimb>();
+        slopeRight = GetComponent<Player_Slope_Right_Down>();
         spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
@@ -69,7 +71,11 @@ public class PlayerSpriteAnimator : MonoBehaviour
         }
 
         // Pick the right animation based on priority
-        if (playerClimb != null && playerClimb.IsClimbing)
+        if (slopeRight != null && slopeRight.IsSliding)
+        {
+            return; // Player_Slope_Right_Down handles the slide sprite directly
+        }
+        else if (playerClimb != null && playerClimb.IsClimbing)
         {
             AnimateClimb();
         }
