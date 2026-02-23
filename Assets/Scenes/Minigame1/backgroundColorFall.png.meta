@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 85f9afce9dfaeff428477216ad3009ad
+guid: 4f68d14c47420f34da18c0603835342a
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -7604554343882209616
-    second: backgroundColorDesert_0
+      213: 117884226133922057
+    second: backgroundColorFall_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -122,11 +122,24 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WindowsStoreApps
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: backgroundColorDesert_0
+      name: backgroundColorFall_0
       rect:
         serializedVersion: 2
         x: 0
@@ -141,8 +154,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0b64fb96d12377690800000000000000
-      internalID: -7604554343882209616
+      spriteID: 901955f341fc2a100800000000000000
+      internalID: 117884226133922057
       vertices: []
       indices: 
       edges: []
@@ -161,7 +174,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      backgroundColorDesert_0: -7604554343882209616
+      backgroundColorFall_0: 117884226133922057
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

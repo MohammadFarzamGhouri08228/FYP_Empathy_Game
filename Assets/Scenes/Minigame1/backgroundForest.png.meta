@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 4f68d14c47420f34da18c0603835342a
+guid: dc69950e6eeea6049a190cec57467530
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 117884226133922057
-    second: backgroundColorFall_0
+      213: 795466036022460962
+    second: backgroundForest_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -122,11 +122,24 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WindowsStoreApps
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: backgroundColorFall_0
+      name: backgroundForest_0
       rect:
         serializedVersion: 2
         x: 0
@@ -141,8 +154,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 901955f341fc2a100800000000000000
-      internalID: 117884226133922057
+      spriteID: 222c10c25201a0b00800000000000000
+      internalID: 795466036022460962
       vertices: []
       indices: 
       edges: []
@@ -161,7 +174,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      backgroundColorFall_0: 117884226133922057
+      backgroundForest_0: 795466036022460962
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

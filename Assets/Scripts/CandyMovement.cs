@@ -7,6 +7,11 @@ public class CandyMovement : MonoBehaviour
     public float jumpForce = 12f;
     // Score is now tracked by CandyGameManager
 
+    [Header("Sprites")]
+    public Sprite idleSprite;
+    public Sprite jumpSprite;
+    private SpriteRenderer sr;
+
     private Rigidbody2D rb;
     private float moveInput;
     private bool isGrounded; // We will track this automatically now!
@@ -14,6 +19,7 @@ public class CandyMovement : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        sr = GetComponent<SpriteRenderer>();
     }
 
     void Update()
@@ -26,6 +32,19 @@ public class CandyMovement : MonoBehaviour
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
             isGrounded = false; // We just jumped, so we leave the ground
+        }
+
+        // Update Sprite
+        if (sr != null)
+        {
+            if (isGrounded && idleSprite != null)
+            {
+                sr.sprite = idleSprite;
+            }
+            else if (!isGrounded && jumpSprite != null)
+            {
+                sr.sprite = jumpSprite;
+            }
         }
     }
 
@@ -59,6 +78,15 @@ public class CandyMovement : MonoBehaviour
     private void OnCollisionStay2D(Collision2D collision)
     {
         isGrounded = true;
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        // When we leave a solid surface (like jumping or falling)
+        if (!collision.gameObject.CompareTag("candy") && !collision.gameObject.CompareTag("bomb"))
+        {
+            isGrounded = false;
+        }
     }
 
     // 4. This collects candies when we touch them (candies must be Triggers!)

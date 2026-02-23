@@ -12,6 +12,11 @@ public class PlayerGrounded : MonoBehaviour
     public LayerMask groundLayer;      // Set this to your "Ground" layer in Inspector
     public float groundCheckRadius = 0.2f; 
     public Vector2 groundCheckOffset = new Vector2(0, -0.5f);
+
+    [Header("Sprites")]
+    public Sprite idleSprite;
+    public Sprite jumpSprite;
+    private SpriteRenderer sr;
     
     private Rigidbody2D rb;
     private Vector2 moveInput;
@@ -21,6 +26,7 @@ public class PlayerGrounded : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         rb.freezeRotation = true;
+        sr = GetComponent<SpriteRenderer>();
     }
 
     void Update()
@@ -28,6 +34,19 @@ public class PlayerGrounded : MonoBehaviour
         // Ground Check Logic
         // We check if the circle at our feet overlaps with anything on the "groundLayer"
         isGrounded = Physics2D.OverlapCircle((Vector2)transform.position + groundCheckOffset, groundCheckRadius, groundLayer);
+
+        // Update Sprite
+        if (sr != null)
+        {
+            if (isGrounded && idleSprite != null)
+            {
+                sr.sprite = idleSprite;
+            }
+            else if (!isGrounded && jumpSprite != null)
+            {
+                sr.sprite = jumpSprite;
+            }
+        }
 
         moveInput = Vector2.zero;
 
