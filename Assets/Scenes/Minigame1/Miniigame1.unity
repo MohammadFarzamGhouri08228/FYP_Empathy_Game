@@ -1277,7 +1277,7 @@ GameObject:
   - component: {fileID: 690365957}
   - component: {fileID: 690365956}
   - component: {fileID: 690365958}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Normalkid
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -2946,6 +2946,10 @@ PrefabInstance:
     - target: {fileID: 1788866620526685054, guid: 18266a26b98e81f449e209ec3ee4758c, type: 3}
       propertyPath: m_Name
       value: DSKid
+      objectReference: {fileID: 0}
+    - target: {fileID: 1788866620526685054, guid: 18266a26b98e81f449e209ec3ee4758c, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 7972574929866013809, guid: 18266a26b98e81f449e209ec3ee4758c, type: 3}
       propertyPath: m_LocalPosition.x
