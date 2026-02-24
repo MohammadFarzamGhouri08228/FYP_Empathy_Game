@@ -3704,7 +3704,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a40750fad93e6240861bfb3ed58d60b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  minigameSceneName: Background
+  minigameSceneName: Miniigame1
   returnSceneName: Level2
   canInteractMultipleTimes: 0
   isActive: 1

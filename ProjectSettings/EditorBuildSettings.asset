@@ -6,14 +6,17 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/Minigame1/Miniigame1.unity
-    guid: 8c9cfa26abfee488c85f1582747f6a02
-  - enabled: 1
     path: Assets/Scenes/Main Menu/Main_Menu.unity
     guid: 486a946d79c97984290771a9e7c76775
   - enabled: 1
     path: Assets/Scenes/Maze2/Maze2.unity
     guid: 3673c70c63c00a84a9cba5694169cc52
+  - enabled: 1
+    path: Assets/Scenes/Minigame1/Miniigame1.unity
+    guid: 8c9cfa26abfee488c85f1582747f6a02
+  - enabled: 1
+    path: Assets/Scenes/Level2/Level2.unity
+    guid: 1d21e6366ff6ef34ba0a4e7ae72698e4
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0
