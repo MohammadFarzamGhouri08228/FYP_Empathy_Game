@@ -33,6 +33,16 @@ public class NPCBehaviour : MonoBehaviour
     [Tooltip("Press this key to teleport the NPC back to its start position and replay all jumps to catch up to the player")]
     [SerializeField] private UnityEngine.InputSystem.Key debugRespawnKey = UnityEngine.InputSystem.Key.R;
 
+    [Header("Sprites")]
+    public Sprite idleSprite;
+    public Sprite walkSprite1;
+    public Sprite walkSprite2;
+    public float walkAnimSpeed = 0.2f;
+    public Sprite jumpSprite;
+
+    private SpriteRenderer sr;
+    private float walkTimer;
+    private bool isWalkSprite1 = true;
     private Rigidbody2D rb;
     private Vector3 startPosition;
     private Quaternion startRotation;
@@ -88,6 +98,7 @@ public class NPCBehaviour : MonoBehaviour
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        sr = GetComponent<SpriteRenderer>();
     }
 
     void Start()
@@ -134,6 +145,37 @@ public class NPCBehaviour : MonoBehaviour
     // =========================================================================
     void Update()
     {
+        if (sr != null)
+        {
+            if (Mathf.Abs(rb.linearVelocity.y) > 0.1f)
+            {
+                if (jumpSprite != null) sr.sprite = jumpSprite;
+            }
+            else if (Mathf.Abs(rb.linearVelocity.x) > 0.1f)
+            {
+                walkTimer += Time.deltaTime;
+                if (walkTimer >= walkAnimSpeed)
+                {
+                    walkTimer = 0f;
+                    isWalkSprite1 = !isWalkSprite1;
+                }
+                
+                if (isWalkSprite1 && walkSprite1 != null)
+                    sr.sprite = walkSprite1;
+                else if (!isWalkSprite1 && walkSprite2 != null)
+                    sr.sprite = walkSprite2;
+            }
+            else
+            {
+                if (idleSprite != null) sr.sprite = idleSprite;
+            }
+
+            if (rb.linearVelocity.x < -0.01f)
+                sr.flipX = true;
+            else if (rb.linearVelocity.x > 0.01f)
+                sr.flipX = false;
+        }
+
         if (Keyboard.current == null) return;
 
         if (Keyboard.current[(UnityEngine.InputSystem.Key)debugRespawnKey].wasPressedThisFrame)
