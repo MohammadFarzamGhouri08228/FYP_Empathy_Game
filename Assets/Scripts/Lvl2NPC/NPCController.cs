@@ -46,12 +46,21 @@ public class NPCController : MonoBehaviour
     [Tooltip("How long the fallen sprite is shown before teleporting back")]
     [SerializeField] private float fallenDisplayTime = 2f;
 
+    [Header("Slope Detection")]
+    [Tooltip("Layer(s) that count as 'Slope'.")]
+    [SerializeField] private LayerMask slopeLayer;
+    [SerializeField] private float slopeCheckRadius = 0.2f;
+    [SerializeField] private Vector2 slopeCheckOffset = new Vector2(0f, -0.5f);
+
     // ═══════════════════════════════════════════
     //  Public Read-Only State
     // ═══════════════════════════════════════════
 
     /// <summary>Current NPC behaviour state.</summary>
     public NPCState CurrentState { get; private set; } = NPCState.Idle;
+
+    /// <summary>True if the NPC is currently standing on a slope.</summary>
+    public bool IsOnSlope { get; private set; }
 
     // ═══════════════════════════════════════════
     //  Private Fields
@@ -74,8 +83,14 @@ public class NPCController : MonoBehaviour
 
     void Update()
     {
+        // Always check for slope (even if not idle)
+        CheckForSlope();
+
         // Only accept commands while idle
         if (CurrentState != NPCState.Idle) return;
+        
+        // Skip if input is handled elsewhere (e.g. NPCSlopeController)
+        if (IgnoreInput) return;
 
         if (Keyboard.current == null) return;
 
@@ -89,9 +104,41 @@ public class NPCController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Check if the NPC is standing on a slope layer.
+    /// </summary>
+    private void CheckForSlope()
+    {
+        Collider2D hit = Physics2D.OverlapCircle((Vector2)transform.position + slopeCheckOffset, slopeCheckRadius, slopeLayer);
+        IsOnSlope = (hit != null);
+    }
+
     // ═══════════════════════════════════════════
     //  Public API
     // ═══════════════════════════════════════════
+
+    /// <summary>
+    /// If true, this script ignores keyboard input (allowing other scripts like NPCSlopeController to take over).
+    /// </summary>
+    public bool IgnoreInput { get; set; } = false;
+
+    /// <summary>
+    /// Trigger the Success path (Key 1 behavior) externally.
+    /// </summary>
+    public void TriggerSuccessSequence()
+    {
+        if (CurrentState == NPCState.Idle)
+            StartCoroutine(SuccessPath());
+    }
+
+    /// <summary>
+    /// Trigger the Failure path (Key 2 behavior) externally.
+    /// </summary>
+    public void TriggerFailureSequence()
+    {
+        if (CurrentState == NPCState.Idle)
+            StartCoroutine(FailurePath());
+    }
 
     /// <summary>
     /// Set the NPC state. Called by NPCCheckpointManager when a checkpoint
@@ -137,6 +184,10 @@ public class NPCController : MonoBehaviour
 
         // Teleport back to the previous home (do NOT update home)
         motor.TeleportTo(checkpointMgr.HomePosition);
+        
+        // Forget the checkpoint we just visited so we can try to reach it again
+        checkpointMgr.ForgetLastCheckpoint();
+        
         CurrentState = NPCState.Idle;
     }
 

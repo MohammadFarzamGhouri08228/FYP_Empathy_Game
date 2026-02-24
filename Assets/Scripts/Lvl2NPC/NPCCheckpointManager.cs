@@ -64,6 +64,8 @@ public class NPCCheckpointManager : MonoBehaviour
     private Checkpoint[] allCheckpoints;
     // Track which checkpoints the NPC has already visited (by instance ID)
     private HashSet<int> visitedCheckpointIDs = new HashSet<int>();
+    // Stack to track the order of visited checkpoints so we can undo the last one on failure
+    private Stack<int> checkpointIdStack = new Stack<int>();
 
     // ═══════════════════════════════════════════
     //  Unity Lifecycle
@@ -83,6 +85,29 @@ public class NPCCheckpointManager : MonoBehaviour
         // Cache all checkpoints in the scene
         allCheckpoints = FindObjectsByType<Checkpoint>(FindObjectsSortMode.None);
         Debug.Log($"[NPCCheckpointManager] Found {allCheckpoints.Length} checkpoints in scene.");
+
+        // FIX: Check if we spawned on/near a checkpoint. If so, mark it as visited 
+        // so we don't immediately "reach" it and stop moving when trying to walk away.
+        foreach (Checkpoint cp in allCheckpoints)
+        {
+            if (cp == null) continue;
+            
+            float dist = Vector2.Distance((Vector2)transform.position, (Vector2)cp.transform.position);
+            if (dist <= detectionRadius)
+            {
+                int id = cp.GetInstanceID();
+                if (!visitedCheckpointIDs.Contains(id))
+                {
+                    visitedCheckpointIDs.Add(id);
+                    checkpointIdStack.Push(id); // Treat spawn checkpoint as the first "safe" spot
+                    LastCheckpointPosition = cp.transform.position;
+                    // Also update Home to be exactly this checkpoint
+                    HomePosition = cp.transform.position;
+                    
+                    Debug.Log($"[NPCCheckpointManager] Spawned at Checkpoint {cp.CheckpointID}. Marked as visited.");
+                }
+            }
+        }
     }
 
     void Update()
@@ -173,6 +198,7 @@ public class NPCCheckpointManager : MonoBehaviour
 
         // Mark as visited so we don't trigger on it again
         visitedCheckpointIDs.Add(cp.GetInstanceID());
+        checkpointIdStack.Push(cp.GetInstanceID());
 
         LastCheckpointPosition = checkpointPos;
         CheckpointsReached++;
@@ -181,6 +207,10 @@ public class NPCCheckpointManager : MonoBehaviour
 
         // ── Concluding step: always stop and go idle ──
         motor.Stop();
+        
+        // Snap X position to checkpoint for precision (ensure it visually stops AT the checkpoint)
+        transform.position = new Vector3(checkpointPos.x, transform.position.y, transform.position.z);
+        
         controller.SetState(NPCState.Idle);
 
         // ── Report to central CheckpointManager ──
@@ -215,6 +245,29 @@ public class NPCCheckpointManager : MonoBehaviour
             return checkpointHistory[checkpointHistory.Count - 2];
 
         return HomePosition;
+    }
+
+    /// <summary>
+    /// Forget the last visited checkpoint. Call this when the NPC fails/dies 
+    /// and teleports back, so it can trigger the same checkpoint again on retry.
+    /// </summary>
+    public void ForgetLastCheckpoint()
+    {
+        if (checkpointIdStack.Count > 0)
+        {
+            int id = checkpointIdStack.Pop();
+            visitedCheckpointIDs.Remove(id);
+            
+            if (checkpointHistory.Count > 0)
+                checkpointHistory.RemoveAt(checkpointHistory.Count - 1);
+                
+            CheckpointsReached--;
+            
+            // Reset reached flag to be safe
+            ReachedCheckpoint = false;
+            
+            Debug.Log("[NPCCheckpointManager] Forgot last checkpoint (reset for retry).");
+        }
     }
 
     // ═══════════════════════════════════════════
