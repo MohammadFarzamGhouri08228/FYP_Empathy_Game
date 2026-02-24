@@ -2090,6 +2090,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VFX_TorchLight
       objectReference: {fileID: 0}
+    - target: {fileID: 3599447086356864173, guid: 56f02590ce7db2347803864c84dd78d3, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8422160780352259166, guid: 56f02590ce7db2347803864c84dd78d3, type: 3}
       propertyPath: InitialModule.startColor.maxColor.b
       value: 0
@@ -10645,6 +10649,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NPCController
   walkDirection: {x: 1, y: 0}
   fallenDisplayTime: 2
+  slopeLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  slopeCheckRadius: 0.2
+  slopeCheckOffset: {x: 0, y: -0.5}
 --- !u!114 &1572325113
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10889,6 +10898,7 @@ GameObject:
   - component: {fileID: 1572805638}
   - component: {fileID: 1572805640}
   - component: {fileID: 1572805641}
+  - component: {fileID: 1572805642}
   m_Layer: 0
   m_Name: DS2
   m_TagString: Untagged
@@ -10930,6 +10940,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NPCController
   walkDirection: {x: 1, y: 0}
   fallenDisplayTime: 2
+  slopeLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  slopeCheckRadius: 0.2
+  slopeCheckOffset: {x: 0, y: -0.5}
 --- !u!114 &1572805633
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11184,6 +11199,25 @@ MonoBehaviour:
   climbSpeed: 2.5
   dismountHopForce: {x: 3, y: 4}
   topExitOffset: 0.5
+--- !u!114 &1572805642
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1572805630}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 454dc659d790b67448fb4786a7e11d31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NPCSlopeController
+  slopeLayer:
+    m_Bits: 8
+  detectionRadius: 0.2
+  detectionOffset: {x: 0, y: -0.5}
+  <IsOnSlope>k__BackingField: 0
+  controller: {fileID: 0}
+  motor: {fileID: 0}
 --- !u!1 &1636258241
 GameObject:
   m_ObjectHideFlags: 0
@@ -12182,6 +12216,10 @@ PrefabInstance:
     - target: {fileID: 5712219488875869251, guid: 29f4c72f9a1d9d446945740c2819895b, type: 3}
       propertyPath: m_Name
       value: VFX_Fire 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5712219488875869251, guid: 29f4c72f9a1d9d446945740c2819895b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7800046302039599656, guid: 29f4c72f9a1d9d446945740c2819895b, type: 3}
       propertyPath: m_LocalScale.x
