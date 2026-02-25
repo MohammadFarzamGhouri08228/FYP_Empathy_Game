@@ -51,11 +51,12 @@ public class Checkpoint : MonoBehaviour
     // START CHANGES: Dialogue Tracking State
     private bool dialogueCompleted = false; // Track if player finished the dialogue
     private bool isTyping = false; // Track if text is currently typing
+    private bool isDialogueActive = false; // True only for the checkpoint currently running dialogue
     // END CHANGES
     
     void Start()
     {
-        wordSpeed = 0.05f; // Ensure fast typing speed
+        wordSpeed = 0.03f; // Faster typing speed
 
         // Find CheckpointManager
         checkpointManager = CheckpointManager.Instance;
@@ -137,32 +138,24 @@ public class Checkpoint : MonoBehaviour
             CheckPlayerDistance();
         }
 
-        // Allow advancing text with E key if dialogue is already active
-        // Only allow E key if the dialogue is actually shown
-        if (dialogPanel.activeInHierarchy && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+        // Only process dialogue input/button logic if THIS checkpoint owns the active dialogue
+        if (isDialogueActive && dialogPanel.activeInHierarchy)
         {
-            // START CHANGES: Prevent manual skip for auto-advancing player dialogue
-            if (index < dialogue.Length && !IsPlayerDialogue(dialogue[index]))
+            // Allow advancing text with E key
+            if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
             {
-                if (dialogText.maxVisibleCharacters < dialogText.textInfo.characterCount)
+                if (index < dialogue.Length && !IsPlayerDialogue(dialogue[index]))
                 {
-                    // Instant finish typing
-                    dialogText.maxVisibleCharacters = dialogText.textInfo.characterCount;
-                }
-                else
-                {
-                    NextLine();
+                    if (dialogText.maxVisibleCharacters < dialogText.textInfo.characterCount)
+                    {
+                        dialogText.maxVisibleCharacters = dialogText.textInfo.characterCount;
+                    }
+                    else
+                    {
+                        NextLine();
+                    }
                 }
             }
-            // END CHANGES
-        }
-
-        if (dialogPanel.activeInHierarchy && dialogText.textInfo != null && dialogText.maxVisibleCharacters >= dialogText.textInfo.characterCount)
-        {
-            // START CHANGES: Hide button for auto-advancing player dialogue
-            bool showButton = (index < dialogue.Length && !IsPlayerDialogue(dialogue[index]));
-            if(contButton != null) contButton.SetActive(showButton);
-            // END CHANGES
         }
     }
 
@@ -173,6 +166,7 @@ public class Checkpoint : MonoBehaviour
         index = 0;
         dialogText.maxVisibleCharacters = 0;
         dialogPanel.SetActive(false);
+        isDialogueActive = false; // Release ownership of the UI
         // Do NOT reset dialogueCompleted here, as we want to remember if they finished it.
     }
 
@@ -180,9 +174,11 @@ public class Checkpoint : MonoBehaviour
     {
         isTyping = true;
         
+        // Always hide continue button at start of each new line
+        if (contButton != null) contButton.SetActive(false);
+        
         // Determine if UI should be shown based on current index
         bool showUI = ShouldShowUI(index);
-
 
         if (portraitImage != null && nameTitle != null)
         {
@@ -209,14 +205,18 @@ public class Checkpoint : MonoBehaviour
         
         isTyping = false;
         
-        // START CHANGES: Auto-advance for player dialogue
+        // After typing finishes: show continue button ONLY for NPC dialogue
         if (IsPlayerDialogue(dialogue[index]))
         {
-             // Wait 2 seconds then advance
-             yield return new WaitForSeconds(2.0f);
+             // Player dialogue: no button, auto-advance after a short pause
+             yield return new WaitForSeconds(1.2f);
              NextLine();
         }
-        // END CHANGES
+        else
+        {
+             // NPC dialogue: show continue button so player can proceed
+             if (contButton != null) contButton.SetActive(true);
+        }
     }
 
     public void NextLine()
@@ -357,6 +357,7 @@ public class Checkpoint : MonoBehaviour
             {
                 hasDialogOpened = true; // Mark as opened so it doesn't auto-pop again
                 dialogPanel.SetActive(true);
+                isDialogueActive = true; // THIS checkpoint now owns the dialogue UI
                 dialogueCompleted = false; // Reset completion tracking
                 
                 // Assign button listener for THIS checkpoint instance
