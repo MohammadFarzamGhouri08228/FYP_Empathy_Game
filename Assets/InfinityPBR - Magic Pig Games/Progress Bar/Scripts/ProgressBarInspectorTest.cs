@@ -18,6 +18,13 @@ namespace MagicPigGames
         protected virtual void Update()
         {
             if (!enableTesting) return;
+
+            if (Input.GetKeyDown(KeyCode.Q))
+                progress = Mathf.Clamp01(progress + 0.2f);
+
+            if (Input.GetKeyDown(KeyCode.P))
+                progress = Mathf.Clamp01(progress - 0.2f);
+
             if (Math.Abs(_lastProgress - progress) < 0.001) return;
 
             _lastProgress = progress;
