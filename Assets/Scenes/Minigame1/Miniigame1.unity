@@ -3193,7 +3193,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4067632282247864623, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
       propertyPath: checkpointID
-      value: 2
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 4067632282247864623, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
       propertyPath: inactiveColor.b
@@ -3274,8 +3274,31 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7072488218379039735, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1433140148}
   m_SourcePrefab: {fileID: 100100000, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
+--- !u!1 &1433140147 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7072488218379039735, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
+  m_PrefabInstance: {fileID: 1433140146}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1433140148
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1433140147}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e29bccd88b5f3b24184167452f7ad791, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MinigameSceneExit
+  targetSceneName: Level2
+  arrivalPosition: {x: 50, y: -1.5, z: 0}
+  transitionDelay: 2
 --- !u!1 &1491826266
 GameObject:
   m_ObjectHideFlags: 0
@@ -3457,7 +3480,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4067632282247864623, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
       propertyPath: checkpointID
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 4067632282247864623, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
       propertyPath: inactiveColor.b

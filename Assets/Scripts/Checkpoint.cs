@@ -26,6 +26,7 @@ public class Checkpoint : MonoBehaviour
     [SerializeField] private AudioClip checkpointSound; // Sound to play when checkpoint is activated
     
     private bool hasBeenActivated = false; // Track if this checkpoint has been activated
+    public bool HasBeenActivated => hasBeenActivated;
     private CheckpointManager checkpointManager;
     private GameObject player; // Cache player reference
     private DSmovementScript dsPlayer; // Reference to Distorted Self
