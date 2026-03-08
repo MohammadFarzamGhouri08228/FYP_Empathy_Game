@@ -7,7 +7,6 @@ using TMPro;
 
 public class Checkpoint : MonoBehaviour
 {
-
     [Header("Checkpoint Settings")]
     [SerializeField] private bool isActive = true; // Whether this checkpoint is active
     [SerializeField] private int checkpointID = 0; // Unique ID for this checkpoint (used for dialogue system)
@@ -248,6 +247,11 @@ public class Checkpoint : MonoBehaviour
                 {
                      AdaptiveBackend.Instance.ReceiveData($"Checkpoint_{checkpointID}", "DialogueInteraction", "Listening");
                 }
+                // Report to CheckpointManager for listening metric
+                if (checkpointManager != null)
+                {
+                     checkpointManager.RecordDialogueInteraction(checkpointID, true);
+                }
             }
             // END CHANGES
             zeroText();
@@ -277,20 +281,26 @@ public class Checkpoint : MonoBehaviour
     {
         playerIsClose = false;
         
-        // If dialogue was active and NOT completed, record "Not Listening"
-        if (dialogPanel.activeInHierarchy && !dialogueCompleted)
+        // If dialogue was opened and NOT completed, record "Not Listening"
+        // Check both: panel is active OR dialogue was opened (covers player monologue case)
+        if ((dialogPanel.activeInHierarchy || isDialogueActive) && !dialogueCompleted)
         {
              Debug.Log($"Checkpoint {checkpointID}: Player left early. Recording 'Not Listening'.");
              if (AdaptiveBackend.Instance != null)
              {
                  AdaptiveBackend.Instance.ReceiveData($"Checkpoint_{checkpointID}", "DialogueInteraction", "Not Listening");
              }
+             // Report to CheckpointManager for listening metric
+             if (checkpointManager != null)
+             {
+                 checkpointManager.RecordDialogueInteraction(checkpointID, false);
+             }
         }
 
-        // Only close if it's NOT player dialogue (i.e. if UI is shown)
-        // If UI is invalid (false), it means it's the player's internal monologue, so it should persist.
-        if (ShouldShowUI(index)) 
+        // Always close dialogue when player exits
+        if (dialogPanel.activeInHierarchy || isDialogueActive)
         {
+            StopAllCoroutines(); // Stop any typing/auto-advance coroutines
             zeroText();
         }
     }
