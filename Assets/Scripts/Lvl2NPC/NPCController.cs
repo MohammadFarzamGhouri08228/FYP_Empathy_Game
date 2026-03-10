@@ -1,11 +1,12 @@
 /*
     NPCController.cs  –  NPC brain / command handler
     ─────────────────────────────────────────────────
-    Listens for Key 1 and Key 2 presses and drives the NPC through
-    walk-to-checkpoint behaviour sequences using coroutines.
+    Key 1 press → probabilistically chooses Success or Failure path.
+    The NPC learns from each attempt, reducing its fail probability over time.
+    Each attempt is reported to AdaptiveBackend for cross-level tracking.
 
-    Key 1 (Success):  Walk right → reach checkpoint → idle (checkpoint becomes new home).
-    Key 2 (Failure):  Walk right → reach checkpoint → fallen → teleport back to home → idle.
+    Success:  Walk right → reach checkpoint → idle (checkpoint becomes new home).
+    Failure:  Walk right → reach checkpoint → fallen → teleport back to home → idle.
 
     Checkpoint detection and the concluding stop/idle step are handled
     by NPCCheckpointManager. This script only orchestrates the sequences.
@@ -46,6 +47,14 @@ public class NPCController : MonoBehaviour
     [Tooltip("How long the fallen sprite is shown before teleporting back")]
     [SerializeField] private float fallenDisplayTime = 2f;
 
+    [Header("Probabilistic Learning")]
+    [Tooltip("Starting probability of failure (high = NPC is unskilled at first)")]
+    [SerializeField] [Range(0f, 1f)] private float initialFailProbability = 0.7f;
+    [Tooltip("How much the fail probability decreases per attempt (NPC learns each try)")]
+    [SerializeField] [Range(0f, 1f)] private float learningRate = 0.08f;
+    [Tooltip("Minimum fail probability floor (NPC can never be perfect)")]
+    [SerializeField] [Range(0f, 1f)] private float minFailProbability = 0.05f;
+
     [Header("Slope Detection")]
     [Tooltip("Layer(s) that count as 'Slope'.")]
     [SerializeField] private LayerMask slopeLayer;
@@ -70,6 +79,9 @@ public class NPCController : MonoBehaviour
     private NPCCheckpointManager checkpointMgr;
     private NPCLadderClimber ladderClimber;   // optional – null if not attached
 
+    private float currentFailProbability;
+    private int totalAttempts = 0;
+
     // ═══════════════════════════════════════════
     //  Unity Lifecycle
     // ═══════════════════════════════════════════
@@ -79,6 +91,7 @@ public class NPCController : MonoBehaviour
         motor = GetComponent<NPCMotor>();
         checkpointMgr = GetComponent<NPCCheckpointManager>();
         ladderClimber = GetComponent<NPCLadderClimber>();
+        currentFailProbability = initialFailProbability;
     }
 
     void Update()
@@ -96,11 +109,7 @@ public class NPCController : MonoBehaviour
 
         if (Keyboard.current.digit1Key.wasPressedThisFrame)
         {
-            StartCoroutine(SuccessPath());
-        }
-        else if (Keyboard.current.digit2Key.wasPressedThisFrame)
-        {
-            StartCoroutine(FailurePath());
+            StartCoroutine(ProbabilisticAttempt());
         }
     }
 
@@ -123,7 +132,7 @@ public class NPCController : MonoBehaviour
     public bool IgnoreInput { get; set; } = false;
 
     /// <summary>
-    /// Trigger the Success path (Key 1 behavior) externally.
+    /// Trigger the Success path externally.
     /// </summary>
     public void TriggerSuccessSequence()
     {
@@ -132,12 +141,21 @@ public class NPCController : MonoBehaviour
     }
 
     /// <summary>
-    /// Trigger the Failure path (Key 2 behavior) externally.
+    /// Trigger the Failure path externally.
     /// </summary>
     public void TriggerFailureSequence()
     {
         if (CurrentState == NPCState.Idle)
             StartCoroutine(FailurePath());
+    }
+
+    /// <summary>
+    /// Trigger a probabilistic attempt externally (same as Key 1).
+    /// </summary>
+    public void TriggerNextAttempt()
+    {
+        if (CurrentState == NPCState.Idle)
+            StartCoroutine(ProbabilisticAttempt());
     }
 
     /// <summary>
@@ -154,7 +172,36 @@ public class NPCController : MonoBehaviour
     // ═══════════════════════════════════════════
 
     /// <summary>
-    /// Key 1 -- Success path.
+    /// Probabilistic attempt: roll fail chance, then run success or failure path.
+    /// Each attempt reduces fail probability (NPC learns).
+    /// Reports results to AdaptiveBackend for cross-level tracking.
+    /// </summary>
+    private IEnumerator ProbabilisticAttempt()
+    {
+        totalAttempts++;
+        float roll = Random.value;
+        bool willFail = roll < currentFailProbability;
+        string result = willFail ? "Failure" : "Success";
+
+        Debug.Log($"<color=yellow>[NPCController] Attempt #{totalAttempts}: {result} " +
+                  $"(roll: {roll:F2} vs threshold: {currentFailProbability:F2})</color>");
+
+        // Report to AdaptiveBackend
+        AdaptiveBackend.Instance.ReceiveData("NPCController", $"AttemptResult_{result}", totalAttempts);
+        AdaptiveBackend.Instance.ReceiveData("NPCController", "FailProbability", currentFailProbability);
+
+        // NPC learns from each attempt
+        currentFailProbability = Mathf.Max(minFailProbability, currentFailProbability - learningRate);
+        Debug.Log($"<color=yellow>[NPCController] Learning! New fail probability: {currentFailProbability:P0}</color>");
+
+        if (willFail)
+            yield return StartCoroutine(FailurePath());
+        else
+            yield return StartCoroutine(SuccessPath());
+    }
+
+    /// <summary>
+    /// Success path.
     /// Walk right → (climb any ladders along the way) →
     /// NPCCheckpointManager stops at checkpoint → idle.
     /// The reached checkpoint becomes the new home.

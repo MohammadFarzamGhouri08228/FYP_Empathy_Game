@@ -272,14 +272,19 @@ public class NPCBehaviour : MonoBehaviour
 
                 float roll = Random.value;
                 bool willFail = roll < currentFailProbability;
+                string result = willFail ? "FAILURE" : "SUCCESS";
 
-                Debug.Log($"<color=yellow>[NPCBehaviour] Decision: {(willFail ? "FAILURE" : "SUCCESS")} " +
+                Debug.Log($"<color=yellow>[NPCBehaviour] Decision: {result} " +
                           $"(roll: {roll:F2} vs threshold: {currentFailProbability:F2}, attempt #{totalAttempts + 1})</color>");
 
                 // NPC learns from each attempt — reduce fail probability
                 totalAttempts++;
                 currentFailProbability = Mathf.Max(minFailProbability, currentFailProbability - learningRate);
                 Debug.Log($"<color=yellow>[NPCBehaviour] Learning! New fail probability: {currentFailProbability:P0}</color>");
+
+                // Report to AdaptiveBackend for cross-level tracking
+                AdaptiveBackend.Instance.ReceiveData("NPCBehaviour", $"AttemptResult_{result}", totalAttempts);
+                AdaptiveBackend.Instance.ReceiveData("NPCBehaviour", "FailProbability", currentFailProbability);
 
                 if (willFail)
                 {
