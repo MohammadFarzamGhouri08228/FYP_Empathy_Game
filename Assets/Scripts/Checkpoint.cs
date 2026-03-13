@@ -31,6 +31,20 @@ public class Checkpoint : MonoBehaviour
     [SerializeField] private AudioSource audioSource; // Optional audio source for checkpoint sound
     [SerializeField] private AudioClip checkpointSound; // Sound to play when checkpoint is activated
     
+    [Header("Dialogue UI")]
+    [SerializeField] private GameObject dialogPanel;
+    [SerializeField] private TextMeshProUGUI dialogText;
+    [SerializeField] private GameObject contButton;
+    [SerializeField] private GameObject portraitImage;
+    [SerializeField] private GameObject nameTitle;
+    [SerializeField] private string[] dialogue;
+
+    private float wordSpeed;
+    private int index;
+    private bool isTyping;
+    private bool isDialogueActive;
+    private bool dialogueCompleted;
+
     private bool hasBeenActivated = false; // Track if this checkpoint has been activated
     public bool HasBeenActivated => hasBeenActivated;
     private CheckpointManager checkpointManager;
