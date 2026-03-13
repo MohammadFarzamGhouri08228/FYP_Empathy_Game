@@ -16,11 +16,16 @@ public class PlayerGrounded : MonoBehaviour
     [Header("Sprites")]
     public Sprite idleSprite;
     public Sprite jumpSprite;
+    public Sprite walkSprite1;
+    public Sprite walkSprite2;
+    public float walkAnimSpeed = 0.2f;
+
     private SpriteRenderer sr;
-    
     private Rigidbody2D rb;
     private Vector2 moveInput;
     private bool isGrounded;
+    private float walkTimer;
+    private bool isWalkSprite1 = true;
 
     void Awake()
     {
@@ -34,19 +39,6 @@ public class PlayerGrounded : MonoBehaviour
         // Ground Check Logic
         // We check if the circle at our feet overlaps with anything on the "groundLayer"
         isGrounded = Physics2D.OverlapCircle((Vector2)transform.position + groundCheckOffset, groundCheckRadius, groundLayer);
-
-        // Update Sprite
-        if (sr != null)
-        {
-            if (isGrounded && idleSprite != null)
-            {
-                sr.sprite = idleSprite;
-            }
-            else if (!isGrounded && jumpSprite != null)
-            {
-                sr.sprite = jumpSprite;
-            }
-        }
 
         moveInput = Vector2.zero;
 
@@ -68,6 +60,43 @@ public class PlayerGrounded : MonoBehaviour
                 Debug.Log("Jumped from ground!");
                 // Using linearVelocity (Unity 2023+) or velocity
                 rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+            }
+        }
+
+        // Update Sprite
+        if (sr != null)
+        {
+            // Flip sprite depending on direction
+            if (moveInput.x < 0)
+                sr.flipX = true;
+            else if (moveInput.x > 0)
+                sr.flipX = false;
+
+            if (!isGrounded && jumpSprite != null)
+            {
+                sr.sprite = jumpSprite;
+            }
+            else if (isGrounded)
+            {
+                if (Mathf.Abs(moveInput.x) > 0.1f)
+                {
+                    walkTimer += Time.deltaTime;
+                    if (walkTimer >= walkAnimSpeed)
+                    {
+                        walkTimer = 0f;
+                        isWalkSprite1 = !isWalkSprite1;
+                    }
+                    
+                    if (isWalkSprite1 && walkSprite1 != null)
+                        sr.sprite = walkSprite1;
+                    else if (!isWalkSprite1 && walkSprite2 != null)
+                        sr.sprite = walkSprite2;
+                }
+                else
+                {
+                    if (idleSprite != null)
+                        sr.sprite = idleSprite;
+                }
             }
         }
     }

@@ -1,4 +1,9 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.InputSystem;
+using TMPro;
 
 public class Checkpoint : MonoBehaviour
 {
@@ -13,7 +18,8 @@ public class Checkpoint : MonoBehaviour
     [Header("Detection Settings")]
     [SerializeField] private bool useDistanceDetection = true; // Use distance-based detection instead of collider
     [SerializeField] private float detectionRadius = 1.5f; // Distance to detect player (if using distance detection)
-    
+    public bool playerIsClose;
+
     [Header("Visual Settings")]
     [SerializeField] private SpriteRenderer checkpointVisual; // Optional visual indicator
     [SerializeField] private Sprite activeSprite; // Sprite to show when checkpoint is active
@@ -26,12 +32,15 @@ public class Checkpoint : MonoBehaviour
     [SerializeField] private AudioClip checkpointSound; // Sound to play when checkpoint is activated
     
     private bool hasBeenActivated = false; // Track if this checkpoint has been activated
+    public bool HasBeenActivated => hasBeenActivated;
     private CheckpointManager checkpointManager;
     private GameObject player; // Cache player reference
     private DSmovementScript dsPlayer; // Reference to Distorted Self
     
     void Start()
     {
+        wordSpeed = 0.03f; // Faster typing speed
+
         // Find CheckpointManager
         checkpointManager = CheckpointManager.Instance;
         if (checkpointManager == null)
@@ -83,8 +92,28 @@ public class Checkpoint : MonoBehaviour
         
         // Initialize visual state
         UpdateVisualState();
+
+        if (dialogPanel != null)
+        {
+            dialogPanel.SetActive(false);
+        }
+        
+        // Ensure the continue button has the event listener attached
+        // REMOVED: Should not attach in Start if button is shared. Attached in StartDialogue instead.
+        if (contButton == null)
+        {
+             Debug.LogWarning($"Checkpoint {checkpointID}: 'contButton' not assigned!");
+        }
         
         Debug.Log($"Checkpoint {checkpointID}: Initialized at position ({transform.position.x:F2}, {transform.position.y:F2}, {transform.position.z:F2}). Detection: {(useDistanceDetection ? "Distance-based" : "Collider-based")}");
+        if (dialogue != null)
+        {
+            Debug.Log($"Checkpoint {checkpointID} Dialogue Content: {string.Join(" | ", dialogue)}");
+        }
+        else
+        {
+            Debug.LogError($"Checkpoint {checkpointID} has NULL dialogue array!");
+        }
     }
     
     void Update()
@@ -114,10 +143,183 @@ public class Checkpoint : MonoBehaviour
             // Register this checkpoint for the DS
             dsPlayer.RegisterCheckpoint(transform.position);
         }
+
+        // Only process dialogue input/button logic if THIS checkpoint owns the active dialogue
+        if (isDialogueActive && dialogPanel.activeInHierarchy)
+        {
+            // Allow advancing text with E key
+            if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+            {
+                if (index < dialogue.Length && !IsPlayerDialogue(dialogue[index]))
+                {
+                    if (dialogText.maxVisibleCharacters < dialogText.textInfo.characterCount)
+                    {
+                        dialogText.maxVisibleCharacters = dialogText.textInfo.characterCount;
+                    }
+                    else
+                    {
+                        NextLine();
+                    }
+                }
+            }
+        }
+    }
+
+
+    public void zeroText()
+    {
+        dialogText.text = "";
+        index = 0;
+        dialogText.maxVisibleCharacters = 0;
+        dialogPanel.SetActive(false);
+        isDialogueActive = false; // Release ownership of the UI
+        // Do NOT reset dialogueCompleted here, as we want to remember if they finished it.
+    }
+
+    IEnumerator Typing()
+    {
+        isTyping = true;
+        
+        // Always hide continue button at start of each new line
+        if (contButton != null) contButton.SetActive(false);
+        
+        // Determine if UI should be shown based on current index
+        bool showUI = ShouldShowUI(index);
+
+        if (portraitImage != null && nameTitle != null)
+        {
+             portraitImage.SetActive(showUI);
+             nameTitle.SetActive(showUI);
+        }
+
+        dialogText.text = dialogue[index];
+        dialogText.maxVisibleCharacters = 0;
+        dialogText.ForceMeshUpdate(); // Ensure textInfo is updated
+        
+        // Wait one frame to ensure UI is ready
+        yield return null;
+
+        int totalVisibleCharacters = dialogText.textInfo.characterCount;
+        int counter = 0;
+
+        while (counter <= totalVisibleCharacters)
+        {
+            dialogText.maxVisibleCharacters = counter;
+            counter++;
+            yield return new WaitForSeconds(wordSpeed);
+        }
+        
+        isTyping = false;
+        
+        // After typing finishes: show continue button ONLY for NPC dialogue
+        if (IsPlayerDialogue(dialogue[index]))
+        {
+             // Player dialogue: no button, auto-advance after a short pause
+             yield return new WaitForSeconds(1.2f);
+             NextLine();
+        }
+        else
+        {
+             // NPC dialogue: show continue button so player can proceed
+             if (contButton != null) contButton.SetActive(true);
+        }
+    }
+
+    public void NextLine()
+    {
+        if (isTyping) return;
+        
+        contButton.SetActive(false);
+
+        // If player has moved away, clicking continue should close the dialogue immediately
+        if (!playerIsClose)
+        {
+            zeroText();
+            return;
+        }
+
+        if (index < dialogue.Length - 1)
+        {
+            index++;
+            StartCoroutine(Typing());
+        }
+        else
+        {
+            // START CHANGES: Record completion
+            if (!dialogueCompleted)
+            {
+                dialogueCompleted = true;
+                Debug.Log($"Checkpoint {checkpointID}: Dialogue Finished. Recording 'Listening'.");
+                if (AdaptiveBackend.Instance != null)
+                {
+                     AdaptiveBackend.Instance.ReceiveData($"Checkpoint_{checkpointID}", "DialogueInteraction", "Listening");
+                }
+                // Report to CheckpointManager for listening metric
+                if (checkpointManager != null)
+                {
+                     checkpointManager.RecordDialogueInteraction(checkpointID, true);
+                }
+            }
+            // END CHANGES
+            zeroText();
+        }
+    }
+
+    // private void OnTriggerEnter2D(Collider2D other)
+    // {
+    //     if (other.CompareTag("Player"))
+    //     {
+    //         playerIsClose = true;
+    //     }
+    // }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            // START CHANGES: Handle exit logic
+            HandlePlayerExit();
+            // END CHANGES
+        }
     }
     
+    // START CHANGES: Handle exit logic to record 'Not Listening'
+    private void HandlePlayerExit()
+    {
+        playerIsClose = false;
+        
+        // If dialogue was opened and NOT completed, record "Not Listening"
+        // Check both: panel is active OR dialogue was opened (covers player monologue case)
+        if ((dialogPanel.activeInHierarchy || isDialogueActive) && !dialogueCompleted)
+        {
+             Debug.Log($"Checkpoint {checkpointID}: Player left early. Recording 'Not Listening'.");
+             if (AdaptiveBackend.Instance != null)
+             {
+                 AdaptiveBackend.Instance.ReceiveData($"Checkpoint_{checkpointID}", "DialogueInteraction", "Not Listening");
+             }
+             // Report to CheckpointManager for listening metric
+             if (checkpointManager != null)
+             {
+                 checkpointManager.RecordDialogueInteraction(checkpointID, false);
+             }
+        }
+
+        // Always close dialogue when player exits
+        if (dialogPanel.activeInHierarchy || isDialogueActive)
+        {
+            StopAllCoroutines(); // Stop any typing/auto-advance coroutines
+            zeroText();
+        }
+    }
+    // END CHANGES
+
+
+    
+    
+
+
     /// <summary>
-    /// Finds the player GameObject.
+    /// Finds the player GameObject using tags or controllers.
     /// </summary>
     private void FindPlayer()
     {
@@ -134,10 +336,12 @@ public class Checkpoint : MonoBehaviour
             }
         }
     }
-    
+
     /// <summary>
     /// Checks if player is within detection radius (for distance-based detection).
     /// </summary>
+    private bool hasDialogOpened = false; // Track if dialogue has already auto-opened
+
     private void CheckPlayerDistance()
     {
         if (player == null)
@@ -147,10 +351,60 @@ public class Checkpoint : MonoBehaviour
         }
         
         float distance = Vector3.Distance(transform.position, player.transform.position);
+        
+        // Update close status
         if (distance <= detectionRadius)
         {
-            Debug.Log($"Checkpoint {checkpointID}: Player detected within range! Distance: {distance:F2}, Position: ({player.transform.position.x:F2}, {player.transform.position.y:F2}, {player.transform.position.z:F2})");
-            ActivateCheckpoint();
+            playerIsClose = true;
+            
+            // Only log and activate if not already done
+            if (!hasBeenActivated)
+            {
+                Debug.Log($"Checkpoint {checkpointID}: Player detected within range! Distance: {distance:F2}");
+                ActivateCheckpoint();
+            }
+
+            // Auto-open dialogue if not active, NOT opened before, and not currently shown
+            if (!dialogPanel.activeInHierarchy && !hasDialogOpened)
+            {
+                hasDialogOpened = true; // Mark as opened so it doesn't auto-pop again
+                dialogPanel.SetActive(true);
+                isDialogueActive = true; // THIS checkpoint now owns the dialogue UI
+                dialogueCompleted = false; // Reset completion tracking
+                
+                // Assign button listener for THIS checkpoint instance
+                if (contButton != null)
+                {
+                    Button btn = contButton.GetComponent<Button>();
+                    if (btn != null)
+                    {
+                        btn.onClick.RemoveAllListeners(); // Clear previous listeners (from other checkpoints)
+                        btn.onClick.AddListener(NextLine); // Add THIS checkpoint's NextLine
+                    }
+                }
+
+                // Show first line with typing effect
+                index = 0;
+                if (dialogue != null && dialogue.Length > 0)
+                {
+                    Debug.Log($"Checkpoint {checkpointID}: Starting dialogue typing for: '{dialogue[index]}'");
+                    StartCoroutine(Typing());
+                }
+                else
+                {
+                    Debug.LogWarning($"Checkpoint {checkpointID}: Dialogue empty or null!");
+                }
+            }
+        }
+        else
+        {
+            // Player moved away
+            if (playerIsClose) // State change: Close -> Far
+            {
+                // START CHANGES: Use HandlePlayerExit
+                HandlePlayerExit();
+                // END CHANGES
+            }
         }
     }
     
@@ -166,6 +420,8 @@ public class Checkpoint : MonoBehaviour
         {
             Debug.Log($"Checkpoint {checkpointID}: Player entered trigger zone! Player position: ({other.transform.position.x:F2}, {other.transform.position.y:F2}, {other.transform.position.z:F2})");
             ActivateCheckpoint();
+            playerIsClose = true;
+            zeroText();
         }
         else
         {
@@ -323,5 +579,34 @@ public class Checkpoint : MonoBehaviour
                 return GameEventType.BombEncountered; // Return a default (not ideal, but prevents errors)
         }
     }
-}
 
+    /// <summary>
+    /// Determines if the portrait and name title should be shown for the given dialogue index.
+    /// </summary>
+    private bool ShouldShowUI(int dialogueIndex)
+    {
+        if (dialogue == null || dialogueIndex < 0 || dialogueIndex >= dialogue.Length) return false;
+
+        string line = dialogue[dialogueIndex];
+        
+        // START CHANGES: Updated UI Visibility Logic
+        // If it's the player's dialogue ("Musa: ..."), we HIDE usage of the UI panel (portrait/name)
+        if (IsPlayerDialogue(line))
+        {
+            return false;
+        }
+        // END CHANGES
+
+        return true;
+    }
+    
+    // START CHANGES: Helper helper to check for player dialogue
+    private bool IsPlayerDialogue(string line)
+    {
+        if (string.IsNullOrEmpty(line)) return false;
+        // Check if line starts with "Musa:" (case sensitive or insensitive?)
+        // Let's assume sensitive for now as per request.
+        return line.TrimStart().StartsWith("Musa:");
+    }
+    // END CHANGES
+}
