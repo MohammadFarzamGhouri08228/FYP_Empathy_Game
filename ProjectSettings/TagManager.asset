@@ -3,18 +3,21 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 3
-  tags: []
+  tags:
+  - candy
+  - Ground
+  - bomb
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Slope_R
   - Water
   - UI
-  - 
-  - 
-  - 
-  - 
+  - Ground
+  - Player
+  - Npc
+  - Obstacles
   - 
   - 
   - 
@@ -38,6 +41,12 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: Background
+    uniqueID: 2912755249
+    locked: 0
+  - name: UI
+    uniqueID: 2174775631
+    locked: 0
   - name: Default
     uniqueID: 0
     locked: 0
