@@ -43,17 +43,17 @@ public class Maze2IntroController : MonoBehaviour
             stopwatchTimer = FindFirstObjectByType<StopwatchTimer>();
         }
         
-        if (dialogueController == null)
-        {
-            // Try to find SimpleDialogueController first
-            dialogueController = FindFirstObjectByType<SimpleDialogueController>();
+        // if (dialogueController == null)
+        // {
+        //     // Try to find SimpleDialogueController first
+        //     // dialogueController = FindFirstObjectByType<SimpleDialogueController>();
             
-            // If not found, try FarDistanceDialogueController
-            if (dialogueController == null)
-            {
-                dialogueController = FindFirstObjectByType<FarDistanceDialogueController>();
-            }
-        }
+        //     // If not found, try FarDistanceDialogueController
+        //     if (dialogueController == null)
+        //     {
+        //         dialogueController = FindFirstObjectByType<FarDistanceDialogueController>();
+        //     }
+        // }
         
         // Verify required components
         if (playerController == null)
@@ -66,10 +66,10 @@ public class Maze2IntroController : MonoBehaviour
             Debug.LogWarning("Maze2IntroController: StopwatchTimer not found! Timer control will be skipped.");
         }
         
-        if (dialogueController == null)
-        {
-            Debug.LogWarning("Maze2IntroController: Dialogue controller not found! Intro sequence may not work correctly.");
-        }
+        // if (dialogueController == null)
+        // {
+        //     Debug.LogWarning("Maze2IntroController: Dialogue controller not found! Intro sequence may not work correctly.");
+        // }
         
         // Start the intro sequence
         StartIntroSequence();

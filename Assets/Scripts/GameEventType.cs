@@ -9,6 +9,7 @@ public enum GameEventType
     FireEncountered,
     SpikeEncountered,
     ObstacleEncountered,
+    Checkpoint0Reached,
     Checkpoint1Reached,
     Checkpoint2Reached,
     Checkpoint3Reached,

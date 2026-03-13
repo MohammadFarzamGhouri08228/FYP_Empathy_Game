@@ -1,4 +1,6 @@
 using UnityEngine;
+
+using System.Collections;
 using System.Collections.Generic;
 
 public class CheckpointManager : MonoBehaviour
@@ -26,9 +28,17 @@ public class CheckpointManager : MonoBehaviour
     private StopwatchTimer gameTimer; // Reference to timer
     private bool lastCheckpointEvaluated = false; // Prevent multiple evaluations
     
+    // Dialogue interaction tracking: maps checkpointID -> true (listened) / false (not listened)
+    private Dictionary<int, bool> dialogueResults = new Dictionary<int, bool>();
+    
     // Singleton pattern for easy access
     private static CheckpointManager instance;
     public static CheckpointManager Instance => instance;
+
+
+
+
+
     
     void Awake()
     {
@@ -308,6 +318,9 @@ public class CheckpointManager : MonoBehaviour
     {
         Debug.Log($"<color=cyan>=== EVALUATING PLAYER PERFORMANCE ===</color>");
         
+        // Print dialogue listening metric
+        PrintDialogueMetric();
+        
         // Get backend instance and trigger evaluation
         AdaptiveBackend backend = AdaptiveBackend.Instance;
         
@@ -347,6 +360,62 @@ public class CheckpointManager : MonoBehaviour
         EndGame();
     }
     
+    /// <summary>
+    /// Records dialogue interaction result for a checkpoint.
+    /// Called by Checkpoint script when dialogue is completed or player leaves early.
+    /// Only the first result per checkpoint is recorded (prevents duplicates).
+    /// </summary>
+    public void RecordDialogueInteraction(int checkpointID, bool listened)
+    {
+        if (!dialogueResults.ContainsKey(checkpointID))
+        {
+            dialogueResults[checkpointID] = listened;
+            Debug.Log($"<color=yellow>[Dialogue Metric]</color> Checkpoint {checkpointID}: {(listened ? "Listened" : "Not Listened")}");
+        }
+        else
+        {
+            Debug.Log($"<color=yellow>[Dialogue Metric]</color> Checkpoint {checkpointID}: Already recorded, skipping.");
+        }
+    }
+    
+    /// <summary>
+    /// Prints the complete dialogue listening metric to the console.
+    /// Shows per-checkpoint results and overall listening rate.
+    /// </summary>
+    private void PrintDialogueMetric()
+    {
+        Debug.Log($"<color=magenta>╔═══════════════════════════════════════════════╗</color>");
+        Debug.Log($"<color=magenta>║       DIALOGUE LISTENING METRIC               ║</color>");
+        Debug.Log($"<color=magenta>╠═══════════════════════════════════════════════╣</color>");
+        
+        int listenedCount = 0;
+        int totalTracked = dialogueResults.Count;
+        
+        // Print per-checkpoint status
+        for (int i = 0; i < totalCheckpointsInLevel; i++)
+        {
+            if (dialogueResults.ContainsKey(i))
+            {
+                bool listened = dialogueResults[i];
+                if (listened) listenedCount++;
+                string status = listened ? "<color=green>LISTENED</color>" : "<color=red>NOT LISTENED</color>";
+                Debug.Log($"<color=magenta>║</color>  Checkpoint {i}: {status}");
+            }
+            else
+            {
+                Debug.Log($"<color=magenta>║</color>  Checkpoint {i}: <color=grey>NO DATA (not reached or no dialogue)</color>");
+            }
+        }
+        
+        // Calculate listening rate
+        float listeningRate = (totalTracked > 0) ? ((float)listenedCount / totalTracked) * 100f : 0f;
+        
+        Debug.Log($"<color=magenta>╠═══════════════════════════════════════════════╣</color>");
+        Debug.Log($"<color=magenta>║</color>  Checkpoints Listened: {listenedCount} / {totalTracked}");
+        Debug.Log($"<color=magenta>║</color>  <color=white>LISTENING RATE: {listeningRate:F1}%</color>");
+        Debug.Log($"<color=magenta>╚═══════════════════════════════════════════════╝</color>");
+    }
+
     /// <summary>
     /// Ends the game after last checkpoint evaluation.
     /// </summary>
