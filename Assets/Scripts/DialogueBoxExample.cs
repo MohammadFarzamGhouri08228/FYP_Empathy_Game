@@ -1,3 +1,4 @@
+/*
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -146,4 +147,5 @@ public class DialogueBoxExample : MonoBehaviour
         dialogueManager.ShowDialogueAtPosition("Dialogue at position!", worldPosition);
     }
 }
+*/
 

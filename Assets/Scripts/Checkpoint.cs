@@ -36,7 +36,20 @@ public class Checkpoint : MonoBehaviour
     private CheckpointManager checkpointManager;
     private GameObject player; // Cache player reference
     private DSmovementScript dsPlayer; // Reference to Distorted Self
+
+    [Header("Dialogue UI")]
+    [SerializeField] private GameObject dialogPanel;
+    [SerializeField] private TextMeshProUGUI dialogText;
+    [SerializeField] private string[] dialogue;
+    [SerializeField] private GameObject contButton;
+    [SerializeField] private GameObject portraitImage;
+    [SerializeField] private GameObject nameTitle;
     
+    private float wordSpeed = 0.03f;
+    private bool isDialogueActive = false;
+    private int index = 0;
+    private bool isTyping = false;
+    private bool dialogueCompleted = false;
     void Start()
     {
         wordSpeed = 0.03f; // Faster typing speed
