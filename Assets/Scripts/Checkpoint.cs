@@ -111,6 +111,10 @@ public class Checkpoint : MonoBehaviour
         {
             dialogPanel.SetActive(false);
         }
+        else
+        {
+            Debug.LogWarning($"Checkpoint {checkpointID}: 'dialogPanel' is not assigned in the Inspector. Dialogue will not display.");
+        }
         
         // Ensure the continue button has the event listener attached
         // REMOVED: Should not attach in Start if button is shared. Attached in StartDialogue instead.
@@ -159,7 +163,7 @@ public class Checkpoint : MonoBehaviour
         }
 
         // Only process dialogue input/button logic if THIS checkpoint owns the active dialogue
-        if (isDialogueActive && dialogPanel.activeInHierarchy)
+        if (isDialogueActive && dialogPanel != null && dialogPanel.activeInHierarchy)
         {
             // Allow advancing text with E key
             if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
@@ -185,7 +189,7 @@ public class Checkpoint : MonoBehaviour
         dialogText.text = "";
         index = 0;
         dialogText.maxVisibleCharacters = 0;
-        dialogPanel.SetActive(false);
+        if (dialogPanel != null) dialogPanel.SetActive(false);
         isDialogueActive = false; // Release ownership of the UI
         // Do NOT reset dialogueCompleted here, as we want to remember if they finished it.
     }
@@ -304,7 +308,7 @@ public class Checkpoint : MonoBehaviour
         
         // If dialogue was opened and NOT completed, record "Not Listening"
         // Check both: panel is active OR dialogue was opened (covers player monologue case)
-        if ((dialogPanel.activeInHierarchy || isDialogueActive) && !dialogueCompleted)
+        if (((dialogPanel != null && dialogPanel.activeInHierarchy) || isDialogueActive) && !dialogueCompleted)
         {
              Debug.Log($"Checkpoint {checkpointID}: Player left early. Recording 'Not Listening'.");
              if (AdaptiveBackend.Instance != null)
@@ -319,7 +323,7 @@ public class Checkpoint : MonoBehaviour
         }
 
         // Always close dialogue when player exits
-        if (dialogPanel.activeInHierarchy || isDialogueActive)
+        if ((dialogPanel != null && dialogPanel.activeInHierarchy) || isDialogueActive)
         {
             StopAllCoroutines(); // Stop any typing/auto-advance coroutines
             zeroText();
@@ -379,7 +383,7 @@ public class Checkpoint : MonoBehaviour
             }
 
             // Auto-open dialogue if not active, NOT opened before, and not currently shown
-            if (!dialogPanel.activeInHierarchy && !hasDialogOpened)
+            if (dialogPanel != null && !dialogPanel.activeInHierarchy && !hasDialogOpened)
             {
                 hasDialogOpened = true; // Mark as opened so it doesn't auto-pop again
                 dialogPanel.SetActive(true);
