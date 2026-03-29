@@ -31,25 +31,27 @@ public class Checkpoint : MonoBehaviour
     [SerializeField] private AudioSource audioSource; // Optional audio source for checkpoint sound
     [SerializeField] private AudioClip checkpointSound; // Sound to play when checkpoint is activated
     
-    [Header("Dialogue UI")]
-    [SerializeField] private GameObject dialogPanel;
-    [SerializeField] private TextMeshProUGUI dialogText;
-    [SerializeField] private GameObject contButton;
-    [SerializeField] private GameObject portraitImage;
-    [SerializeField] private GameObject nameTitle;
-    [SerializeField] private string[] dialogue;
-
-    private float wordSpeed;
-    private int index;
-    private bool isTyping;
-    private bool isDialogueActive;
-    private bool dialogueCompleted;
-
     private bool hasBeenActivated = false; // Track if this checkpoint has been activated
-    public bool HasBeenActivated => hasBeenActivated;
     private CheckpointManager checkpointManager;
     private GameObject player; // Cache player reference
-    private DSmovementScript dsPlayer; // Reference to Distorted Self
+
+    [Header("Dialogue UI")]
+    public GameObject dialogPanel;
+    public TMP_Text dialogText;
+    public string[] dialogue;
+    private int index;
+
+    public GameObject portraitImage;
+    public GameObject nameTitle;
+
+    public GameObject contButton;
+    public float wordSpeed = 0.02f;
+    
+    // START CHANGES: Dialogue Tracking State
+    private bool dialogueCompleted = false; // Track if player finished the dialogue
+    private bool isTyping = false; // Track if text is currently typing
+    private bool isDialogueActive = false; // True only for the checkpoint currently running dialogue
+    // END CHANGES
     
     void Start()
     {
@@ -70,9 +72,6 @@ public class Checkpoint : MonoBehaviour
         
         // Find player
         FindPlayer();
-
-        // Find DS
-        dsPlayer = FindFirstObjectByType<DSmovementScript>();
         
         // Get visual component if not assigned
         if (checkpointVisual == null)
@@ -135,27 +134,7 @@ public class Checkpoint : MonoBehaviour
         // Use distance-based detection if enabled
         if (useDistanceDetection && isActive)
         {
-            if (!hasBeenActivated)
-            {
-                CheckPlayerDistance();
-            }
-            CheckDSDistance();
-        }
-    }
-
-    private void CheckDSDistance()
-    {
-        if (dsPlayer == null)
-        {
-            dsPlayer = FindFirstObjectByType<DSmovementScript>();
-            if (dsPlayer == null) return;
-        }
-
-        float distance = Vector3.Distance(transform.position, dsPlayer.transform.position);
-        if (distance <= detectionRadius)
-        {
-            // Register this checkpoint for the DS
-            dsPlayer.RegisterCheckpoint(transform.position);
+            CheckPlayerDistance();
         }
 
         // Only process dialogue input/button logic if THIS checkpoint owns the active dialogue
@@ -340,13 +319,18 @@ public class Checkpoint : MonoBehaviour
         player = GameObject.FindGameObjectWithTag("Player");
         if (player == null)
         {
-            // Try to find any player-like component
-            MonoBehaviour pc = (MonoBehaviour)FindFirstObjectByType<PlayerController>() ?? 
-                               (MonoBehaviour)FindFirstObjectByType<Lvl2movement>();
-            
+            PlayerController pc = FindFirstObjectByType<PlayerController>();
             if (pc != null)
             {
                 player = pc.gameObject;
+            }
+            else
+            {
+                PlayerController2 pc2 = FindFirstObjectByType<PlayerController2>();
+                if (pc2 != null)
+                {
+                    player = pc2.gameObject;
+                }
             }
         }
     }
@@ -437,14 +421,6 @@ public class Checkpoint : MonoBehaviour
             playerIsClose = true;
             zeroText();
         }
-        else
-        {
-            DSmovementScript ds = other.GetComponent<DSmovementScript>();
-            if (ds != null)
-            {
-                ds.RegisterCheckpoint(transform.position);
-            }
-        }
     }
     
     /// <summary>
@@ -454,7 +430,7 @@ public class Checkpoint : MonoBehaviour
     {
         return obj.CompareTag("Player") || 
                obj.GetComponent<PlayerController>() != null ||
-               obj.GetComponent<Lvl2movement>() != null;
+               obj.GetComponent<PlayerController2>() != null;
     }
     
     /// <summary>
@@ -480,16 +456,24 @@ public class Checkpoint : MonoBehaviour
             FindPlayer();
         }
         
-        // Register checkpoint position (use the checkpoint's own position so player respawns directly on it)
-        Vector3 checkpointPosition = transform.position;
-        
-        Debug.Log($"=== CHECKPOINT ENCOUNTERED ===");
-        Debug.Log($"Checkpoint ID: {checkpointID}");
-        Debug.Log($"Checkpoint Position (stored for respawn): ({checkpointPosition.x:F2}, {checkpointPosition.y:F2}, {checkpointPosition.z:F2})");
-        
+        // Register checkpoint position (use player's position when they pass through)
+        Vector3 checkpointPosition;
         if (player != null)
         {
-            Debug.Log($"Player Position at detection: ({player.transform.position.x:F2}, {player.transform.position.y:F2}, {player.transform.position.z:F2})");
+            checkpointPosition = player.transform.position;
+            Debug.Log($"=== CHECKPOINT ENCOUNTERED ===");
+            Debug.Log($"Checkpoint ID: {checkpointID}");
+            Debug.Log($"Checkpoint GameObject Position: ({transform.position.x:F2}, {transform.position.y:F2}, {transform.position.z:F2})");
+            Debug.Log($"Player Position (stored as checkpoint): ({checkpointPosition.x:F2}, {checkpointPosition.y:F2}, {checkpointPosition.z:F2})");
+        }
+        else
+        {
+            // Fallback to checkpoint's own position
+            checkpointPosition = transform.position;
+            Debug.LogWarning($"Checkpoint {checkpointID}: Player not found, using checkpoint's own position.");
+            Debug.Log($"=== CHECKPOINT ENCOUNTERED ===");
+            Debug.Log($"Checkpoint ID: {checkpointID}");
+            Debug.Log($"Checkpoint Position (fallback): ({checkpointPosition.x:F2}, {checkpointPosition.y:F2}, {checkpointPosition.z:F2})");
         }
         
         // Register with CheckpointManager

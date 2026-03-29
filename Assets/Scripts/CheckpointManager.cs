@@ -12,13 +12,6 @@ public class CheckpointManager : MonoBehaviour
     [Header("Player Reference")]
     [SerializeField] private GameObject player; // Player GameObject (auto-found if not assigned)
     
-    [Header("NPC Reference")]
-    [SerializeField] public GameObject npcPlayer; // NPC GameObject (auto-found if not assigned)
-    
-    [Header("NPC Checkpoint Tracking")]
-    [SerializeField] private Vector3[] npcCheckpointPositions = new Vector3[0]; // NPC position when it reached each checkpoint
-    [SerializeField] private int npcMostRecentCheckpointIndex = -1;
-    
     [Header("Respawn Settings")]
     [SerializeField] private bool resetHealthOnRespawn = false; // Whether to reset health to max on respawn
     [SerializeField] private Vector3 defaultSpawnPosition = Vector3.zero; // Fallback position if no checkpoint exists
@@ -70,31 +63,12 @@ public class CheckpointManager : MonoBehaviour
             player = GameObject.FindGameObjectWithTag("Player");
             if (player == null)
             {
-                // Try finding any of the movement scripts
-                MonoBehaviour pc = (MonoBehaviour)FindFirstObjectByType<PlayerController>() ?? 
-                                   (MonoBehaviour)FindFirstObjectByType<Lvl2movement>() ?? 
-                                   (MonoBehaviour)FindFirstObjectByType<DSmovementScript>();
-                if (pc != null) player = pc.gameObject;
+                player = FindFirstObjectByType<PlayerController>()?.gameObject;
             }
-            
             if (player == null)
             {
-                Debug.LogWarning("CheckpointManager: No player found in Start. This is okay if player is spawned later.");
-            }
-        }
-        
-        // Find NPC if not assigned
-        if (npcPlayer == null)
-        {
-            NPCController npc = FindFirstObjectByType<NPCController>();
-            if (npc != null)
-            {
-                npcPlayer = npc.gameObject;
-                Debug.Log($"CheckpointManager: Found NPC automatically on '{npcPlayer.name}'");
-            }
-            else
-            {
-                Debug.LogWarning("CheckpointManager: No NPC found in scene. NPC tracking will be skipped.");
+                Debug.LogError("CheckpointManager: Player not found! Please assign player GameObject or ensure it has 'Player' tag.");
+                return;
             }
         }
         
@@ -242,20 +216,15 @@ public class CheckpointManager : MonoBehaviour
     /// <summary>
     /// Teleports player to the most recent checkpoint position.
     /// </summary>
-    public void RespawnAtCheckpoint(GameObject targetOverride = null)
+    public void RespawnAtCheckpoint()
     {
         Debug.Log($"=== RESPAWN AT CHECKPOINT ===");
         
-        GameObject target = targetOverride != null ? targetOverride : player;
-
-        if (target == null)
+        if (playerTransform == null)
         {
-            Debug.LogError("CheckpointManager: Cannot respawn - target GameObject is null!");
+            Debug.LogError("CheckpointManager: Cannot respawn - player Transform is null!");
             return;
         }
-
-        Transform targetTransform = target.transform;
-        Rigidbody2D targetRigidbody = target.GetComponent<Rigidbody2D>();
         
         Vector3 respawnPosition;
         
@@ -263,28 +232,35 @@ public class CheckpointManager : MonoBehaviour
         if (mostRecentCheckpointIndex >= 0 && mostRecentCheckpointIndex < checkpointPositions.Length)
         {
             respawnPosition = checkpointPositions[mostRecentCheckpointIndex];
-            Debug.Log($"CheckpointManager: Respawning {target.name} at checkpoint index {mostRecentCheckpointIndex}");
+            Debug.Log($"CheckpointManager: Respawning at checkpoint index {mostRecentCheckpointIndex}");
+            Debug.Log($"Respawn Position: ({respawnPosition.x:F2}, {respawnPosition.y:F2}, {respawnPosition.z:F2})");
+            Debug.Log($"Current Player Position: ({playerTransform.position.x:F2}, {playerTransform.position.y:F2}, {playerTransform.position.z:F2})");
         }
         else
         {
             // No checkpoint yet, use default spawn position
             respawnPosition = defaultSpawnPosition;
-            Debug.LogWarning($"CheckpointManager: No checkpoint available! Respawning {target.name} at default position.");
+            Debug.LogWarning($"CheckpointManager: No checkpoint available! mostRecentCheckpointIndex = {mostRecentCheckpointIndex}, checkpointPositions.Length = {checkpointPositions.Length}");
+            Debug.LogWarning($"Respawning at default position: ({respawnPosition.x:F2}, {respawnPosition.y:F2}, {respawnPosition.z:F2})");
         }
         
         // Teleport player
-        targetTransform.position = respawnPosition;
-        Debug.Log($"{target.name} teleported to: {targetTransform.position}");
+        playerTransform.position = respawnPosition;
+        Debug.Log($"Player teleported to: ({playerTransform.position.x:F2}, {playerTransform.position.y:F2}, {playerTransform.position.z:F2})");
         
         // Reset velocity if Rigidbody2D exists
-        if (targetRigidbody != null)
+        if (playerRigidbody != null)
         {
-            targetRigidbody.linearVelocity = Vector2.zero;
-            Debug.Log($"CheckpointManager: Reset {target.name} velocity.");
+            playerRigidbody.linearVelocity = Vector2.zero;
+            Debug.Log("CheckpointManager: Reset player velocity.");
+        }
+        else
+        {
+            Debug.LogWarning("CheckpointManager: Player Rigidbody2D not found - velocity not reset.");
         }
         
-        // Reset health ONLY if it's the main player and configured
-        if (target == player && resetHealthOnRespawn)
+        // Reset health if configured
+        if (resetHealthOnRespawn)
         {
             if (playerHealthSystem != null)
             {
@@ -332,64 +308,6 @@ public class CheckpointManager : MonoBehaviour
         defaultSpawnPosition = position;
         Debug.Log($"CheckpointManager: Default spawn position set to {position}");
     }
-    
-    // ═══════════════════════════════════════════
-    //  NPC Checkpoint Tracking
-    // ═══════════════════════════════════════════
-    
-    /// <summary>
-    /// Registers the NPC's position when it reaches a checkpoint.
-    /// Called by NPCCheckpointManager each time the NPC hits a checkpoint.
-    /// </summary>
-    public void RegisterNPCCheckpoint(Vector3 npcPosition, Vector3 checkpointPosition)
-    {
-        int oldLength = npcCheckpointPositions != null ? npcCheckpointPositions.Length : 0;
-        System.Array.Resize(ref npcCheckpointPositions, oldLength + 1);
-        npcMostRecentCheckpointIndex = npcCheckpointPositions.Length - 1;
-        npcCheckpointPositions[npcMostRecentCheckpointIndex] = npcPosition;
-        
-        Debug.Log($"=== NPC CHECKPOINT REGISTERED ===");
-        Debug.Log($"NPC Position: ({npcPosition.x:F2}, {npcPosition.y:F2}, {npcPosition.z:F2})");
-        Debug.Log($"At Checkpoint: ({checkpointPosition.x:F2}, {checkpointPosition.y:F2}, {checkpointPosition.z:F2})");
-        Debug.Log($"NPC Total Checkpoints: {npcCheckpointPositions.Length}");
-        
-        // Report to Agent
-        float time = gameTimer != null ? gameTimer.GetTime() : 0f;
-        AdaptiveBackend.Instance.ReceiveData("CheckpointManager", $"NPCCheckpointReached_{npcMostRecentCheckpointIndex}", time);
-        
-        // Print all NPC checkpoint positions
-        Debug.Log($"All NPC Checkpoint Positions:");
-        for (int i = 0; i < npcCheckpointPositions.Length; i++)
-        {
-            Vector3 pos = npcCheckpointPositions[i];
-            string marker = (i == npcMostRecentCheckpointIndex) ? " <-- MOST RECENT" : "";
-            Debug.Log($"  [{i}] ({pos.x:F2}, {pos.y:F2}, {pos.z:F2}){marker}");
-        }
-        Debug.Log($"=================================");
-    }
-    
-    /// <summary>
-    /// Gets the number of checkpoints the NPC has reached.
-    /// </summary>
-    public int GetNPCCheckpointCount()
-    {
-        return npcCheckpointPositions != null ? npcCheckpointPositions.Length : 0;
-    }
-    
-    /// <summary>
-    /// Gets the NPC's position at a specific checkpoint index.
-    /// </summary>
-    public Vector3 GetNPCCheckpointPosition(int index)
-    {
-        if (npcCheckpointPositions != null && index >= 0 && index < npcCheckpointPositions.Length)
-            return npcCheckpointPositions[index];
-        return Vector3.zero;
-    }
-    
-    /// <summary>
-    /// Gets the NPC GameObject reference.
-    /// </summary>
-    public GameObject GetNPC() => npcPlayer;
     
     /// <summary>
     /// Evaluates player performance at the last checkpoint using AI backend.
