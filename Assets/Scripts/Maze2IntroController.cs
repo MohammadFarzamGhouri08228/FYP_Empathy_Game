@@ -58,12 +58,12 @@ public class Maze2IntroController : MonoBehaviour
         // Verify required components
         if (playerController == null)
         {
-            // Debug.LogError("Maze2IntroController: PlayerController2 not found! Cannot freeze player.");
+            Debug.LogError("Maze2IntroController: PlayerController2 not found! Cannot freeze player.");
         }
         
         if (stopwatchTimer == null)
         {
-            // Debug.LogWarning("Maze2IntroController: StopwatchTimer not found! Timer control will be skipped.");
+            Debug.LogWarning("Maze2IntroController: StopwatchTimer not found! Timer control will be skipped.");
         }
         
         // if (dialogueController == null)
@@ -106,7 +106,7 @@ public class Maze2IntroController : MonoBehaviour
     /// </summary>
     private void StartIntroSequence()
     {
-        // Debug.Log("Maze2IntroController: Starting intro sequence...");
+        Debug.Log("Maze2IntroController: Starting intro sequence...");
         
         // Freeze the player
         FreezePlayer();
@@ -115,7 +115,7 @@ public class Maze2IntroController : MonoBehaviour
         if (stopwatchTimer != null)
         {
             stopwatchTimer.StopTimer();
-            // Debug.Log("Maze2IntroController: Timer stopped.");
+            Debug.Log("Maze2IntroController: Timer stopped.");
         }
         
         // Show instruction text if available
@@ -125,7 +125,7 @@ public class Maze2IntroController : MonoBehaviour
             instructionText.gameObject.SetActive(true);
         }
         
-        // Debug.Log("Maze2IntroController: Player frozen. Waiting for arrow key press to start...");
+        Debug.Log("Maze2IntroController: Player frozen. Waiting for arrow key press to start...");
     }
     
     /// <summary>
@@ -137,7 +137,7 @@ public class Maze2IntroController : MonoBehaviour
         
         introComplete = true;
         
-        // Debug.Log("Maze2IntroController: Arrow key pressed! Starting game...");
+        Debug.Log("Maze2IntroController: Arrow key pressed! Starting game...");
         
         // Unfreeze the player
         UnfreezePlayer();
@@ -146,7 +146,7 @@ public class Maze2IntroController : MonoBehaviour
         if (stopwatchTimer != null)
         {
             stopwatchTimer.StartTimer();
-            // Debug.Log("Maze2IntroController: Timer started.");
+            Debug.Log("Maze2IntroController: Timer started.");
         }
         
         // Hide instruction text
@@ -155,7 +155,7 @@ public class Maze2IntroController : MonoBehaviour
             instructionText.gameObject.SetActive(false);
         }
         
-        // Debug.Log("Maze2IntroController: Intro sequence complete! Player can now move and timer is running.");
+        Debug.Log("Maze2IntroController: Intro sequence complete! Player can now move and timer is running.");
     }
     
     /// <summary>
@@ -167,7 +167,7 @@ public class Maze2IntroController : MonoBehaviour
         {
             playerController.enabled = false;
             playerWasFrozen = true;
-            // Debug.Log("Maze2IntroController: Player frozen (controller disabled).");
+            Debug.Log("Maze2IntroController: Player frozen (controller disabled).");
         }
     }
     
@@ -180,7 +180,7 @@ public class Maze2IntroController : MonoBehaviour
         {
             playerController.enabled = true;
             playerWasFrozen = false;
-            // Debug.Log("Maze2IntroController: Player unfrozen (controller enabled).");
+            Debug.Log("Maze2IntroController: Player unfrozen (controller enabled).");
         }
     }
     

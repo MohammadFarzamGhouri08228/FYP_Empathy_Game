@@ -1,7 +1,3 @@
-/*
-THIS IS OUR PLAYER MOVEMENT SCRIPT 
-*/
-
 using UnityEngine;
 using UnityEngine.InputSystem;
 
