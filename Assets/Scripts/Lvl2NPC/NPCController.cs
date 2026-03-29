@@ -97,6 +97,8 @@ public class NPCController : MonoBehaviour
         checkpointMgr = GetComponent<NPCCheckpointManager>();
         ladderClimber = GetComponent<NPCLadderClimber>();
         progressBarSpawner = GetComponent<NPCProgressBarSpawner>();
+        
+        currentFailProbability = initialFailProbability;
     }
 
     void Update()

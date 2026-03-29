@@ -281,6 +281,35 @@ public class CheckpointManager : MonoBehaviour
     }
     
     /// <summary>
+    /// Teleports a specific GameObject to the most recent checkpoint.
+    /// Used for resetting both the player and the NPC based on shared checkpoints.
+    /// </summary>
+    public void RespawnAtCheckpoint(GameObject targetObj)
+    {
+        if (targetObj == null) 
+        {
+            RespawnAtCheckpoint(); // Default to player
+            return;
+        }
+
+        Vector3 respawnPosition = GetMostRecentCheckpointPosition();
+        targetObj.transform.position = respawnPosition;
+        
+        Rigidbody2D rb = targetObj.GetComponent<Rigidbody2D>();
+        if (rb != null) rb.linearVelocity = Vector2.zero;
+        
+        Debug.Log($"[CheckpointManager] Respawned {targetObj.name} at {respawnPosition}");
+    }
+    
+    /// <summary>
+    /// Tracks NPC checkpoints. Called by NPCCheckpointManager.
+    /// </summary>
+    public void RegisterNPCCheckpoint(Vector3 npcPos, Vector3 checkpointPos)
+    {
+        Debug.Log($"[CheckpointManager] NPC Reached Checkpoint at {checkpointPos}");
+    }
+    
+    /// <summary>
     /// Gets the most recent checkpoint position. Returns default spawn if no checkpoint exists.
     /// </summary>
     public Vector3 GetMostRecentCheckpointPosition()

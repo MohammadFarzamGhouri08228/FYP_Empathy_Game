@@ -30,8 +30,10 @@ public class PlayerController : MonoBehaviour
     private float currentButtonMoveDirection = 0f; // Stores the last direction from a button click
     private bool isMovingWithButton = false; // Tracks if player is currently moving due to button click
     private float walkAnimationTimer = 0f;
-    private bool isWalking = false;
-    private bool isJumping = false;
+    public bool isWalking = false;
+    public bool isJumping = false;
+    public bool IsOnSlope { get; set; }
+    public Vector2 SlopeDownDirection { get; set; }
     private bool isJumpingHorizontally = false;
     
     void Start()

@@ -32,6 +32,7 @@ public class Checkpoint : MonoBehaviour
     [SerializeField] private AudioClip checkpointSound; // Sound to play when checkpoint is activated
     
     private bool hasBeenActivated = false; // Track if this checkpoint has been activated
+    public bool HasBeenActivated => hasBeenActivated; // Public getter
     private CheckpointManager checkpointManager;
     private GameObject player; // Cache player reference
 
