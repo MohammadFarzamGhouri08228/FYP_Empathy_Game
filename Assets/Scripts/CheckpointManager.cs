@@ -18,6 +18,7 @@ public class CheckpointManager : MonoBehaviour
     
     [Header("Last Checkpoint Evaluation")]
     [SerializeField] private int totalCheckpointsInLevel = 5; // Total number of checkpoints in the level
+    [SerializeField] private string nextSceneName = "Level2"; // Scene to load after the last checkpoint
     
     private HealthSystem playerHealthSystem;
     private HeartManager playerHeartManager; // Support for HeartManager as well
@@ -204,10 +205,26 @@ public class CheckpointManager : MonoBehaviour
         }
         Debug.Log($"=============================");
         
-        // Check if this is the last checkpoint
+        // Old array length check logic left here just in case,
+        // but robust completion is now handled by NotifyCheckpointReached based on ID
         if (checkpointPositions.Length >= totalCheckpointsInLevel && !lastCheckpointEvaluated)
         {
-            Debug.Log($"<color=green>=== LAST CHECKPOINT REACHED ===</color>");
+            Debug.Log($"<color=green>=== LAST CHECKPOINT REACHED (Array full) ===</color>");
+            EvaluatePlayerAtLastCheckpoint();
+            lastCheckpointEvaluated = true;
+        }
+    }
+    
+    /// <summary>
+    /// Notifies the manager which checkpoint ID was just reached.
+    /// Used as a robust method to determine if the level end was reached.
+    /// </summary>
+    public void NotifyCheckpointReached(int checkpointID)
+    {
+        // For Example: total=5 means IDs 0,1,2,3,4. 
+        if (checkpointID >= totalCheckpointsInLevel - 1 && !lastCheckpointEvaluated)
+        {
+            Debug.Log($"<color=green>=== LAST CHECKPOINT REACHED (ID: {checkpointID}) ===</color>");
             EvaluatePlayerAtLastCheckpoint();
             lastCheckpointEvaluated = true;
         }
@@ -461,11 +478,15 @@ public class CheckpointManager : MonoBehaviour
             gameTimer.StopTimer();
         }
         
-        // Pause the game
-        Time.timeScale = 0f;
+        // Ensure time is flowing normally before transition
+        Time.timeScale = 1f;
         
-        // Optional: You can also load a game over scene or show a UI panel
-        // UnityEngine.SceneManagement.SceneManager.LoadScene("GameOverScene");
+        // Teleport to the next level
+        if (!string.IsNullOrEmpty(nextSceneName))
+        {
+            Debug.Log($"<color=green>Teleporting to next level: {nextSceneName}</color>");
+            UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
+        }
     }
 }
 

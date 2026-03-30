@@ -137,6 +137,23 @@ public class CheckpointInteraction : MonoBehaviour
             ResetInteraction();
         }
     }
+    
+    // NEW: Expose range setting for distance-based detection from Checkpoint.cs
+    public void SetPlayerInRange(bool inRange)
+    {
+        isPlayerInRange = inRange;
+        if (inRange)
+        {
+            if (!isShowingChoices && !hasMadeChoice) 
+            {
+                interactionBubble.SetActive(true);
+            }
+        }
+        else
+        {
+            ResetInteraction();
+        }
+    }
 
     private void ResetInteraction()
     {
