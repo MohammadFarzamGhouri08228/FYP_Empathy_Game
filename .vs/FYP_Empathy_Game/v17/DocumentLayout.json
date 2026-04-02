@@ -3,11 +3,15 @@
   "WorkspaceRootPath": "C:\\Users\\VICTUS\\Desktop\\FYP\\FYP_Empathy_Game\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{51DAF1E2-F3DB-D952-47F3-10B4FF4E8DE6}|Assembly-CSharp.csproj|c:\\users\\victus\\desktop\\fyp\\fyp_empathy_game\\assets\\scripts\\checkpoint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{51DAF1E2-F3DB-D952-47F3-10B4FF4E8DE6}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\checkpoint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{51DAF1E2-F3DB-D952-47F3-10B4FF4E8DE6}|Assembly-CSharp.csproj|c:\\users\\victus\\desktop\\fyp\\fyp_empathy_game\\assets\\scripts\\dialogueboxexample.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{51DAF1E2-F3DB-D952-47F3-10B4FF4E8DE6}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\dialogueboxexample.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{51DAF1E2-F3DB-D952-47F3-10B4FF4E8DE6}|Assembly-CSharp.csproj|c:\\users\\victus\\desktop\\fyp\\fyp_empathy_game\\assets\\scripts\\candyspawner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{51DAF1E2-F3DB-D952-47F3-10B4FF4E8DE6}|Assembly-CSharp.csproj|C:\\Users\\VICTUS\\Desktop\\FYP\\FYP_Empathy_Game\\assets\\scripts\\candyspawner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{51DAF1E2-F3DB-D952-47F3-10B4FF4E8DE6}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\candyspawner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
@@ -27,6 +31,19 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "Checkpoint.cs",
+              "DocumentMoniker": "C:\\Users\\VICTUS\\Desktop\\FYP\\FYP_Empathy_Game\\Assets\\Scripts\\Checkpoint.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Checkpoint.cs",
+              "ToolTip": "C:\\Users\\VICTUS\\Desktop\\FYP\\FYP_Empathy_Game\\Assets\\Scripts\\Checkpoint.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Checkpoint.cs",
+              "ViewState": "AgIAAPoAAAAAAAAAAAAqwCUBAABWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-02T13:19:46.887Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "DialogueBoxExample.cs",
               "DocumentMoniker": "C:\\Users\\VICTUS\\Desktop\\FYP\\FYP_Empathy_Game\\Assets\\Scripts\\DialogueBoxExample.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\DialogueBoxExample.cs",
@@ -39,7 +56,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "CandyMovement.cs",
               "DocumentMoniker": "C:\\Users\\VICTUS\\Desktop\\FYP\\FYP_Empathy_Game\\Assets\\Scripts\\CandyMovement.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\CandyMovement.cs",
@@ -51,7 +68,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "CandySpawner.cs",
               "DocumentMoniker": "C:\\Users\\VICTUS\\Desktop\\FYP\\FYP_Empathy_Game\\Assets\\Scripts\\CandySpawner.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\CandySpawner.cs",
@@ -59,8 +76,7 @@
               "RelativeToolTip": "Assets\\Scripts\\CandySpawner.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABsAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-20T12:58:18.405Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-20T12:58:18.405Z"
             }
           ]
         }

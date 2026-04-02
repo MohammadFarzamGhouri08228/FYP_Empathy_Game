@@ -32,6 +32,10 @@ public class DeathLayer : MonoBehaviour
         {
             ApplyDeathEffect(other.gameObject);
         }
+        else if (IsNPC(other.gameObject))
+        {
+            ApplyNPCDeathEffect(other.gameObject);
+        }
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -39,6 +43,47 @@ public class DeathLayer : MonoBehaviour
         if (IsPlayer(collision.gameObject))
         {
             ApplyDeathEffect(collision.gameObject);
+        }
+        else if (IsNPC(collision.gameObject))
+        {
+            ApplyNPCDeathEffect(collision.gameObject);
+        }
+    }
+
+    private bool IsNPC(GameObject obj)
+    {
+        return obj.GetComponentInParent<NPCBehaviour>() != null || 
+               obj.GetComponentInParent<MimicNPC>() != null || 
+               obj.CompareTag("NPC");
+    }
+
+    private void ApplyNPCDeathEffect(GameObject npcObj)
+    {
+        Debug.Log("[DeathLayer] NPC hit death layer. Teleporting to most recent checkpoint.");
+        
+        // Ensure we operate on the root NPC GameObject if the collider is on a child
+        NPCBehaviour behaviour = npcObj.GetComponentInParent<NPCBehaviour>();
+        if (behaviour != null) npcObj = behaviour.gameObject;
+        else 
+        {
+            MimicNPC mimic = npcObj.GetComponentInParent<MimicNPC>();
+            if (mimic != null) npcObj = mimic.gameObject;
+        }
+
+        if (CheckpointManager.Instance != null)
+        {
+            CheckpointManager.Instance.RespawnAtCheckpoint(npcObj);
+            
+            Rigidbody2D rb = npcObj.GetComponent<Rigidbody2D>();
+            if (rb != null)
+            {
+                rb.linearVelocity = Vector2.zero;
+                rb.angularVelocity = 0f;
+            }
+        }
+        else
+        {
+            Debug.LogWarning("[DeathLayer] CheckpointManager instance not found! Cannot teleport NPC.");
         }
     }
 

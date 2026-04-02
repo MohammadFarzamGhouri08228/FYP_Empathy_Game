@@ -278,7 +278,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1583570691
-  m_SortingLayer: 2
+  m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 6630341104690361922, guid: eb7a9d5a5094a814ba94710793b58779, type: 3}
   m_Color: {r: 0.012552914, g: 0.007141331, b: 0.06415099, a: 1}
@@ -456,6 +456,38 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &305285047 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7072488218379039735, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
+  m_PrefabInstance: {fileID: 1880805156}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &305285052
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 305285047}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 266f79bfeb80bd848bca7954bee1267f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Checkpoint2
+  isActive: 1
+  checkpointID: 3
+  allowMultipleActivations: 0
+  isFinalCheckpoint: 0
+  nextSceneName: Level2
+  useDistanceDetection: 1
+  detectionRadius: 1.5
+  playerIsClose: 0
+  checkpointVisual: {fileID: 0}
+  activeSprite: {fileID: 0}
+  inactiveSprite: {fileID: 0}
+  activeColor: {r: 0, g: 1, b: 0, a: 1}
+  inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  audioSource: {fileID: 0}
+  checkpointSound: {fileID: 0}
 --- !u!1 &333832179
 GameObject:
   m_ObjectHideFlags: 0
@@ -591,6 +623,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 619394802}
     m_Modifications:
     - target: {fileID: 4067632282247864623, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
       propertyPath: inactiveColor.b
       value: 0.15305795
       objectReference: {fileID: 0}
@@ -648,7 +684,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5691769554764773402, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
       propertyPath: m_SortingLayer
-      value: 2
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5691769554764773402, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
       propertyPath: m_SortingOrder
@@ -669,7 +705,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7072488218379039735, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1496206998}
   m_SourcePrefab: {fileID: 100100000, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
 --- !u!1 &348708056
 GameObject:
@@ -795,7 +834,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1583570691
-  m_SortingLayer: 2
+  m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 6630341104690361922, guid: eb7a9d5a5094a814ba94710793b58779, type: 3}
   m_Color: {r: 0.012552914, g: 0.007141331, b: 0.06415099, a: 1}
@@ -947,7 +986,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1583570691
-  m_SortingLayer: 2
+  m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 6630341104690361922, guid: eb7a9d5a5094a814ba94710793b58779, type: 3}
   m_Color: {r: 0.012552914, g: 0.007141331, b: 0.06415099, a: 1}
@@ -1084,8 +1123,8 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1583570691
-  m_SortingLayer: 2
-  m_SortingOrder: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 6630341104690361922, guid: eb7a9d5a5094a814ba94710793b58779, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1244,7 +1283,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalPosition: {x: -240.26, y: -0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -1379,8 +1418,8 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1583570691
-  m_SortingLayer: 2
-  m_SortingOrder: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 6630341104690361922, guid: eb7a9d5a5094a814ba94710793b58779, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1640,8 +1679,6 @@ MonoBehaviour:
   playerSortingOrder: 15
   isWalking: 0
   isJumping: 1
-  IsOnSlope: 0
-  SlopeDownDirection: {x: 0, y: 0}
 --- !u!212 &690365954
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1687,7 +1724,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1583570691
-  m_SortingLayer: 2
+  m_SortingLayer: 0
   m_SortingOrder: 2
   m_Sprite: {fileID: -5115618752126089108, guid: 6fc03813c5b3f0d4f84da6d38cffd7e6, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -1761,7 +1798,7 @@ MonoBehaviour:
   groundCheckRadius: 0.2
   groundLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 0
 --- !u!114 &690365958
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1778,7 +1815,7 @@ MonoBehaviour:
   jumpForce: 10
   groundLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 65
   groundCheckRadius: 0.2
   groundCheckOffset: {x: 0, y: -0.5}
   idleSprite: {fileID: -5115618752126089108, guid: 6fc03813c5b3f0d4f84da6d38cffd7e6, type: 3}
@@ -1895,8 +1932,8 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1583570691
-  m_SortingLayer: 2
-  m_SortingOrder: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 6630341104690361922, guid: eb7a9d5a5094a814ba94710793b58779, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -2077,7 +2114,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1583570691
-  m_SortingLayer: 2
+  m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 6630341104690361922, guid: eb7a9d5a5094a814ba94710793b58779, type: 3}
   m_Color: {r: 0.012552914, g: 0.007141331, b: 0.06415099, a: 1}
@@ -2099,8 +2136,8 @@ Transform:
   m_GameObject: {fileID: 763271375}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -246.89, y: -5.74, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: -246.89, y: -5.6952, z: 0}
+  m_LocalScale: {x: 1, y: 0.9266, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -2174,6 +2211,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 4067632282247864623, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
       propertyPath: checkpointID
       value: 2
       objectReference: {fileID: 0}
@@ -2235,7 +2276,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5691769554764773402, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
       propertyPath: m_SortingLayer
-      value: 2
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5691769554764773402, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
       propertyPath: m_SortingOrder
@@ -2256,7 +2297,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7072488218379039735, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 947842107}
   m_SourcePrefab: {fileID: 100100000, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
 --- !u!1001 &896014053
 PrefabInstance:
@@ -2319,6 +2363,38 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ccaa79cf3dcab8143b81ffa42c12fc72, type: 3}
+--- !u!1 &947842102 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7072488218379039735, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
+  m_PrefabInstance: {fileID: 815756509}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &947842107
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 947842102}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 266f79bfeb80bd848bca7954bee1267f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Checkpoint2
+  isActive: 1
+  checkpointID: 2
+  allowMultipleActivations: 0
+  isFinalCheckpoint: 0
+  nextSceneName: Level2
+  useDistanceDetection: 1
+  detectionRadius: 1.5
+  playerIsClose: 0
+  checkpointVisual: {fileID: 0}
+  activeSprite: {fileID: 0}
+  inactiveSprite: {fileID: 0}
+  activeColor: {r: 0, g: 1, b: 0, a: 1}
+  inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  audioSource: {fileID: 0}
+  checkpointSound: {fileID: 0}
 --- !u!1 &1014292072
 GameObject:
   m_ObjectHideFlags: 0
@@ -2443,7 +2519,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1583570691
-  m_SortingLayer: 2
+  m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 6630341104690361922, guid: eb7a9d5a5094a814ba94710793b58779, type: 3}
   m_Color: {r: 0.012552914, g: 0.007141331, b: 0.06415099, a: 1}
@@ -2631,7 +2707,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5691769554764773402, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
       propertyPath: m_SortingLayer
-      value: 2
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5691769554764773402, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
       propertyPath: m_SortingOrder
@@ -2652,7 +2728,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7072488218379039735, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1893103091}
   m_SourcePrefab: {fileID: 100100000, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
 --- !u!1 &1227863579
 GameObject:
@@ -2913,7 +2992,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1583570691
-  m_SortingLayer: 2
+  m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 6630341104690361922, guid: eb7a9d5a5094a814ba94710793b58779, type: 3}
   m_Color: {r: 0.012552914, g: 0.007141331, b: 0.06415099, a: 1}
@@ -3095,7 +3174,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1583570691
-  m_SortingLayer: 2
+  m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 6630341104690361922, guid: eb7a9d5a5094a814ba94710793b58779, type: 3}
   m_Color: {r: 0.012552914, g: 0.007141331, b: 0.06415099, a: 1}
@@ -3192,6 +3271,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 4067632282247864623, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
       propertyPath: checkpointID
       value: 4
       objectReference: {fileID: 0}
@@ -3253,7 +3336,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5691769554764773402, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
       propertyPath: m_SortingLayer
-      value: 2
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5691769554764773402, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
       propertyPath: m_SortingOrder
@@ -3278,6 +3361,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7072488218379039735, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1433140148}
+    - targetCorrespondingSourceObject: {fileID: 7072488218379039735, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1433140153}
   m_SourcePrefab: {fileID: 100100000, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
 --- !u!1 &1433140147 stripped
 GameObject:
@@ -3299,6 +3385,33 @@ MonoBehaviour:
   targetSceneName: Level2
   arrivalPosition: {x: 50, y: -1.5, z: 0}
   transitionDelay: 2
+--- !u!114 &1433140153
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1433140147}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 266f79bfeb80bd848bca7954bee1267f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Checkpoint2
+  isActive: 1
+  checkpointID: 4
+  allowMultipleActivations: 0
+  isFinalCheckpoint: 0
+  nextSceneName: Level2
+  useDistanceDetection: 1
+  detectionRadius: 1.5
+  playerIsClose: 0
+  checkpointVisual: {fileID: 0}
+  activeSprite: {fileID: 0}
+  inactiveSprite: {fileID: 0}
+  activeColor: {r: 0, g: 1, b: 0, a: 1}
+  inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  audioSource: {fileID: 0}
+  checkpointSound: {fileID: 0}
 --- !u!1 &1491826266
 GameObject:
   m_ObjectHideFlags: 0
@@ -3408,8 +3521,8 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1583570691
-  m_SortingLayer: 2
-  m_SortingOrder: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 6630341104690361922, guid: eb7a9d5a5094a814ba94710793b58779, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -3436,6 +3549,38 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1496206994 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7072488218379039735, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
+  m_PrefabInstance: {fileID: 342845427}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1496206998
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1496206994}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 266f79bfeb80bd848bca7954bee1267f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Checkpoint2
+  isActive: 1
+  checkpointID: 0
+  allowMultipleActivations: 0
+  isFinalCheckpoint: 0
+  nextSceneName: Level2
+  useDistanceDetection: 1
+  detectionRadius: 1.5
+  playerIsClose: 0
+  checkpointVisual: {fileID: 0}
+  activeSprite: {fileID: 0}
+  inactiveSprite: {fileID: 0}
+  activeColor: {r: 0, g: 1, b: 0, a: 1}
+  inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  audioSource: {fileID: 0}
+  checkpointSound: {fileID: 0}
 --- !u!1 &1647646129
 GameObject:
   m_ObjectHideFlags: 0
@@ -3478,6 +3623,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 4067632282247864623, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4067632282247864623, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
       propertyPath: checkpointID
       value: 3
@@ -3540,7 +3689,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5691769554764773402, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
       propertyPath: m_SortingLayer
-      value: 2
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5691769554764773402, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
       propertyPath: m_SortingOrder
@@ -3561,8 +3710,43 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7072488218379039735, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 305285052}
   m_SourcePrefab: {fileID: 100100000, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
+--- !u!1 &1893103086 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7072488218379039735, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
+  m_PrefabInstance: {fileID: 1185940148}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1893103091
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1893103086}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 266f79bfeb80bd848bca7954bee1267f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Checkpoint2
+  isActive: 1
+  checkpointID: 1
+  allowMultipleActivations: 0
+  isFinalCheckpoint: 0
+  nextSceneName: Level2
+  useDistanceDetection: 1
+  detectionRadius: 1.5
+  playerIsClose: 0
+  checkpointVisual: {fileID: 0}
+  activeSprite: {fileID: 0}
+  inactiveSprite: {fileID: 0}
+  activeColor: {r: 0, g: 1, b: 0, a: 1}
+  inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  audioSource: {fileID: 0}
+  checkpointSound: {fileID: 0}
 --- !u!1 &1995146326
 GameObject:
   m_ObjectHideFlags: 0
@@ -3703,8 +3887,8 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1583570691
-  m_SortingLayer: 2
-  m_SortingOrder: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 6630341104690361922, guid: eb7a9d5a5094a814ba94710793b58779, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -3855,7 +4039,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1583570691
-  m_SortingLayer: 2
+  m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 6630341104690361922, guid: eb7a9d5a5094a814ba94710793b58779, type: 3}
   m_Color: {r: 0.012552914, g: 0.007141331, b: 0.06415099, a: 1}
@@ -3995,6 +4179,10 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 7942023380099145952, guid: 677223885dc536f48b04595a3a2c7c10, type: 3}
+    - target: {fileID: 9056072377096070408, guid: 18266a26b98e81f449e209ec3ee4758c, type: 3}
+      propertyPath: m_SortingOrder
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
