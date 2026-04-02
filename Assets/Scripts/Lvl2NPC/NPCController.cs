@@ -61,6 +61,10 @@ public class NPCController : MonoBehaviour
     [SerializeField] private float slopeCheckRadius = 0.2f;
     [SerializeField] private Vector2 slopeCheckOffset = new Vector2(0f, -0.5f);
 
+    [Header("Obstacle Detection")]
+    [Tooltip("Layer(s) that count as 'Obstacles' which hurt the NPC.")]
+    [SerializeField] private LayerMask obstacleLayer;
+
     // ═══════════════════════════════════════════
     //  Public Read-Only State
     // ═══════════════════════════════════════════
@@ -78,6 +82,7 @@ public class NPCController : MonoBehaviour
     private NPCMotor motor;
     private NPCCheckpointManager checkpointMgr;
     private NPCLadderClimber ladderClimber;   // optional – null if not attached
+    private NPCProgressBarSpawner progressBarSpawner;
 
     private float currentFailProbability;
     private int totalAttempts = 0;
@@ -91,6 +96,8 @@ public class NPCController : MonoBehaviour
         motor = GetComponent<NPCMotor>();
         checkpointMgr = GetComponent<NPCCheckpointManager>();
         ladderClimber = GetComponent<NPCLadderClimber>();
+        progressBarSpawner = GetComponent<NPCProgressBarSpawner>();
+        
         currentFailProbability = initialFailProbability;
     }
 
@@ -120,6 +127,54 @@ public class NPCController : MonoBehaviour
     {
         Collider2D hit = Physics2D.OverlapCircle((Vector2)transform.position + slopeCheckOffset, slopeCheckRadius, slopeLayer);
         IsOnSlope = (hit != null);
+    }
+
+    // ═══════════════════════════════════════════
+    //  Collision Handling (Obstacles)
+    // ═══════════════════════════════════════════
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        HandleObstacleCollision(collision.gameObject);
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        HandleObstacleCollision(other.gameObject);
+    }
+
+    private void HandleObstacleCollision(GameObject obj)
+    {
+        // Only react if we are active (not already fallen or idle)
+        // Actually, if we hit an obstacle while idle, we might still want to hurt?
+        // Let's restrict to Walking/Climbing for now, or just allow all non-fallen.
+        if (CurrentState == NPCState.Fallen) return;
+
+        // Check layer mask
+        if (((1 << obj.layer) & obstacleLayer) != 0)
+        {
+            Debug.Log($"[NPCController] Hit obstacle: {obj.name}. Teleporting home.");
+            
+            // 1. Reduce Progress
+            if (progressBarSpawner != null)
+            {
+                progressBarSpawner.ReduceProgress(0.15f);
+            }
+
+            // 2. Stop Movement
+            StopAllCoroutines();
+            motor.Stop();
+            if (ladderClimber != null) ladderClimber.ConsumeClimb(); // Reset climb state if needed
+
+            // 3. Teleport to Home (Previous safe checkpoint)
+            motor.TeleportTo(checkpointMgr.HomePosition);
+
+            // 4. Reset State
+            CurrentState = NPCState.Idle;
+            
+            // Also ensure we aren't "carrying" a checkpoint reached flag
+            checkpointMgr.ConsumeCheckpoint();
+        }
     }
 
     // ═══════════════════════════════════════════

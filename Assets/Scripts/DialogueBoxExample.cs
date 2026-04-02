@@ -2,10 +2,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-/// <summary>
-/// Example script showing how to use the DialogueBoxManager system.
-/// Attach this to a GameObject and configure it in the Inspector.
-/// </summary>
 public class DialogueBoxExample : MonoBehaviour
 {
     [Header("Dialogue Manager Reference")]
@@ -34,7 +30,6 @@ public class DialogueBoxExample : MonoBehaviour
     
     void Start()
     {
-        // Auto-find dialogue manager if not assigned
         if (dialogueManager == null)
         {
             dialogueManager = FindFirstObjectByType<DialogueBoxManager>();
@@ -50,19 +45,16 @@ public class DialogueBoxExample : MonoBehaviour
     {
         if (Keyboard.current == null) return;
 
-        // Example: Press Space to show next dialogue
         if (Keyboard.current.spaceKey.wasPressedThisFrame)
         {
             ShowNextDialogue();
         }
         
-        // Example: Press H to hide dialogue
         if (Keyboard.current.hKey.wasPressedThisFrame)
         {
             HideDialogue();
         }
         
-        // Example: Press 1-9 to show dialogue with specific sprite index
         if (Keyboard.current.digit1Key.wasPressedThisFrame) ShowDialogueWithSprite(0);
         if (Keyboard.current.digit2Key.wasPressedThisFrame) ShowDialogueWithSprite(1);
         if (Keyboard.current.digit3Key.wasPressedThisFrame) ShowDialogueWithSprite(2);
@@ -74,9 +66,6 @@ public class DialogueBoxExample : MonoBehaviour
         if (Keyboard.current.digit9Key.wasPressedThisFrame) ShowDialogueWithSprite(8);
     }
     
-    /// <summary>
-    /// Shows the next test message
-    /// </summary>
     public void ShowNextDialogue()
     {
         if (dialogueManager == null) return;
@@ -104,9 +93,6 @@ public class DialogueBoxExample : MonoBehaviour
         currentMessageIndex++;
     }
     
-    /// <summary>
-    /// Shows dialogue with a specific sprite index
-    /// </summary>
     public void ShowDialogueWithSprite(int spriteIndex)
     {
         if (dialogueManager == null) return;
@@ -115,9 +101,6 @@ public class DialogueBoxExample : MonoBehaviour
         dialogueManager.ShowDialogue(message, spriteIndex);
     }
     
-    /// <summary>
-    /// Hides the current dialogue
-    /// </summary>
     public void HideDialogue()
     {
         if (dialogueManager != null)
@@ -126,9 +109,6 @@ public class DialogueBoxExample : MonoBehaviour
         }
     }
     
-    /// <summary>
-    /// Example: Show dialogue when player enters trigger
-    /// </summary>
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Player"))
@@ -137,9 +117,6 @@ public class DialogueBoxExample : MonoBehaviour
         }
     }
     
-    /// <summary>
-    /// Example: Show dialogue at specific world position
-    /// </summary>
     public void ShowDialogueAtPosition(Vector3 worldPosition)
     {
         if (dialogueManager == null) return;

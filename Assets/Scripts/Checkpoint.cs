@@ -11,6 +11,10 @@ public class Checkpoint : MonoBehaviour
     [SerializeField] private bool isActive = true; // Whether this checkpoint is active
     [SerializeField] private int checkpointID = 0; // Unique ID for this checkpoint (used for dialogue system)
     [SerializeField] private bool allowMultipleActivations = false; // Whether checkpoint can be activated multiple times
+
+    [Header("Level Transition")]
+    [SerializeField] private bool isFinalCheckpoint = false; // Check this for the very last checkpoint!
+    [SerializeField] private string nextSceneName = "Level2"; // Scene to load when reached
     
     // Public getter for checkpoint ID (used by dialogue system)
     public int CheckpointID => checkpointID;
@@ -32,26 +36,33 @@ public class Checkpoint : MonoBehaviour
     [SerializeField] private AudioClip checkpointSound; // Sound to play when checkpoint is activated
     
     private bool hasBeenActivated = false; // Track if this checkpoint has been activated
-    public bool HasBeenActivated => hasBeenActivated;
+    public bool HasBeenActivated => hasBeenActivated; // Public getter
     private CheckpointManager checkpointManager;
     private GameObject player; // Cache player reference
-    private DSmovementScript dsPlayer; // Reference to Distorted Self
 
     [Header("Dialogue UI")]
-    [SerializeField] private GameObject dialogPanel;
-    [SerializeField] private TextMeshProUGUI dialogText;
-    [SerializeField] private string[] dialogue;
-    [SerializeField] private GameObject contButton;
-    [SerializeField] private GameObject portraitImage;
-    [SerializeField] private GameObject nameTitle;
+    public GameObject dialogPanel;
+    public TMP_Text dialogText;
+    public string[] dialogue;
+    private int index;
+
+    public GameObject portraitImage;
+    public GameObject nameTitle;
+
+    public GameObject contButton;
+    public float wordSpeed = 0.02f;
     
-    private float wordSpeed = 0.03f;
-    private bool isDialogueActive = false;
-    private int index = 0;
-    private bool isTyping = false;
-    private bool dialogueCompleted = false;
+    // START CHANGES: Dialogue Tracking State
+    private bool dialogueCompleted = false; // Track if player finished the dialogue
+    private bool isTyping = false; // Track if text is currently typing
+    private bool isDialogueActive = false; // True only for the checkpoint currently running dialogue
+    // END CHANGES
+    
+    private CheckpointInteraction choiceInteraction; // Declared to fix CS0103
+
     void Start()
     {
+        choiceInteraction = GetComponent<CheckpointInteraction>();
         wordSpeed = 0.03f; // Faster typing speed
 
         // Find CheckpointManager
@@ -69,9 +80,6 @@ public class Checkpoint : MonoBehaviour
         
         // Find player
         FindPlayer();
-
-        // Find DS
-        dsPlayer = FindFirstObjectByType<DSmovementScript>();
         
         // Get visual component if not assigned
         if (checkpointVisual == null)
@@ -134,27 +142,7 @@ public class Checkpoint : MonoBehaviour
         // Use distance-based detection if enabled
         if (useDistanceDetection && isActive)
         {
-            if (!hasBeenActivated)
-            {
-                CheckPlayerDistance();
-            }
-            CheckDSDistance();
-        }
-    }
-
-    private void CheckDSDistance()
-    {
-        if (dsPlayer == null)
-        {
-            dsPlayer = FindFirstObjectByType<DSmovementScript>();
-            if (dsPlayer == null) return;
-        }
-
-        float distance = Vector3.Distance(transform.position, dsPlayer.transform.position);
-        if (distance <= detectionRadius)
-        {
-            // Register this checkpoint for the DS
-            dsPlayer.RegisterCheckpoint(transform.position);
+            CheckPlayerDistance();
         }
 
         // Only process dialogue input/button logic if THIS checkpoint owns the active dialogue
@@ -339,13 +327,18 @@ public class Checkpoint : MonoBehaviour
         player = GameObject.FindGameObjectWithTag("Player");
         if (player == null)
         {
-            // Try to find any player-like component
-            MonoBehaviour pc = (MonoBehaviour)FindFirstObjectByType<PlayerController>() ?? 
-                               (MonoBehaviour)FindFirstObjectByType<Lvl2movement>();
-            
+            PlayerController pc = FindFirstObjectByType<PlayerController>();
             if (pc != null)
             {
                 player = pc.gameObject;
+            }
+            else
+            {
+                PlayerController2 pc2 = FindFirstObjectByType<PlayerController2>();
+                if (pc2 != null)
+                {
+                    player = pc2.gameObject;
+                }
             }
         }
     }
@@ -377,8 +370,15 @@ public class Checkpoint : MonoBehaviour
                 ActivateCheckpoint();
             }
 
+            // Start Choice Bubble UI if it exists!
+            if (choiceInteraction != null)
+            {
+                choiceInteraction.SetPlayerInRange(true);
+            }
+
             // Auto-open dialogue if not active, NOT opened before, and not currently shown
-            if (!dialogPanel.activeInHierarchy && !hasDialogOpened)
+            // SKIP auto-opening if there is a choice Interaction attached instead.
+            if (choiceInteraction == null && dialogPanel != null && !dialogPanel.activeInHierarchy && !hasDialogOpened)
             {
                 hasDialogOpened = true; // Mark as opened so it doesn't auto-pop again
                 dialogPanel.SetActive(true);
@@ -414,6 +414,11 @@ public class Checkpoint : MonoBehaviour
             // Player moved away
             if (playerIsClose) // State change: Close -> Far
             {
+                if (choiceInteraction != null)
+                {
+                    choiceInteraction.SetPlayerInRange(false);
+                }
+
                 // START CHANGES: Use HandlePlayerExit
                 HandlePlayerExit();
                 // END CHANGES
@@ -436,14 +441,6 @@ public class Checkpoint : MonoBehaviour
             playerIsClose = true;
             zeroText();
         }
-        else
-        {
-            DSmovementScript ds = other.GetComponent<DSmovementScript>();
-            if (ds != null)
-            {
-                ds.RegisterCheckpoint(transform.position);
-            }
-        }
     }
     
     /// <summary>
@@ -453,7 +450,7 @@ public class Checkpoint : MonoBehaviour
     {
         return obj.CompareTag("Player") || 
                obj.GetComponent<PlayerController>() != null ||
-               obj.GetComponent<Lvl2movement>() != null;
+               obj.GetComponent<PlayerController2>() != null;
     }
     
     /// <summary>
@@ -479,21 +476,43 @@ public class Checkpoint : MonoBehaviour
             FindPlayer();
         }
         
-        // Register checkpoint position (use the checkpoint's own position so player respawns directly on it)
-        Vector3 checkpointPosition = transform.position;
-        
-        Debug.Log($"=== CHECKPOINT ENCOUNTERED ===");
-        Debug.Log($"Checkpoint ID: {checkpointID}");
-        Debug.Log($"Checkpoint Position (stored for respawn): ({checkpointPosition.x:F2}, {checkpointPosition.y:F2}, {checkpointPosition.z:F2})");
-        
+        // Register checkpoint position (use player's position when they pass through)
+        Vector3 checkpointPosition;
         if (player != null)
         {
-            Debug.Log($"Player Position at detection: ({player.transform.position.x:F2}, {player.transform.position.y:F2}, {player.transform.position.z:F2})");
+            checkpointPosition = player.transform.position;
+            Debug.Log($"=== CHECKPOINT ENCOUNTERED ===");
+            Debug.Log($"Checkpoint ID: {checkpointID}");
+            Debug.Log($"Checkpoint GameObject Position: ({transform.position.x:F2}, {transform.position.y:F2}, {transform.position.z:F2})");
+            Debug.Log($"Player Position (stored as checkpoint): ({checkpointPosition.x:F2}, {checkpointPosition.y:F2}, {checkpointPosition.z:F2})");
+        }
+        else
+        {
+            // Fallback to checkpoint's own position
+            checkpointPosition = transform.position;
+            Debug.LogWarning($"Checkpoint {checkpointID}: Player not found, using checkpoint's own position.");
+            Debug.Log($"=== CHECKPOINT ENCOUNTERED ===");
+            Debug.Log($"Checkpoint ID: {checkpointID}");
+            Debug.Log($"Checkpoint Position (fallback): ({checkpointPosition.x:F2}, {checkpointPosition.y:F2}, {checkpointPosition.z:F2})");
         }
         
         // Register with CheckpointManager
         checkpointManager.RegisterCheckpoint(checkpointPosition);
         hasBeenActivated = true;
+        
+        // Notify manager of our ID for robust end-level evaluation
+        checkpointManager.NotifyCheckpointReached(checkpointID);
+
+        // IMMEDIATE TELEPORT IF FINAL CHECKPOINT
+        if (isFinalCheckpoint)
+        {
+            Debug.Log($"<color=green>Final Checkpoint {checkpointID} Reached! Teleporting to {nextSceneName}...</color>");
+            
+            // Unpause time just in case it was frozen elsewhere
+            Time.timeScale = 1f;
+            UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
+            return; // Exit out of the rest of the activation logic so no empty dialogues pop up!
+        }
         
         // Trigger specific checkpoint event based on checkpoint ID for dialogue system
         GameEventType checkpointEvent = GetCheckpointEventType(checkpointID);

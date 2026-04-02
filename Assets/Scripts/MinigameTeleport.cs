@@ -8,7 +8,7 @@ using System.Collections;
 public class MinigameTeleport : MonoBehaviour
 {
     [Header("Scene Settings")]
-    [SerializeField] private string minigameSceneName = "Miniigame"; // Name of the minigame scene
+    [SerializeField] private string minigameSceneName = "Background"; // Name of the minigame scene
     [SerializeField] private string returnSceneName = "Level2"; // Name of the scene to return to
     
     [Header("Interaction Settings")]
@@ -32,8 +32,6 @@ public class MinigameTeleport : MonoBehaviour
     {
         if (!isActive) return;
         
-        Debug.Log($"MinigameTeleport Triggered by: {other.gameObject.name} with tag {other.tag}");
-
         // Check if Player touched us
         if (IsPlayer(other.gameObject))
         {
@@ -48,8 +46,6 @@ public class MinigameTeleport : MonoBehaviour
     {
         if (!isActive) return;
         
-        Debug.Log($"MinigameTeleport Collided with: {collision.gameObject.name} with tag {collision.gameObject.tag}");
-
         // Check if Player hit us
         if (IsPlayer(collision.gameObject))
         {
@@ -64,8 +60,7 @@ public class MinigameTeleport : MonoBehaviour
     {
         return obj.CompareTag("Player") || 
                obj.GetComponent<PlayerController2>() != null ||
-               obj.GetComponent<PlayerController>() != null ||
-               obj.GetComponent<PlayerMotor>() != null;
+               obj.GetComponent<PlayerController>() != null;
     }
     
     /// <summary>
