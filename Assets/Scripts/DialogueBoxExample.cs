@@ -1,6 +1,3 @@
-// This file has been disabled - DialogueBoxManager is not used in this project.
-// Original content commented out to prevent compile errors from missing DialogueBoxManager.cs
-
 /*
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -128,3 +125,4 @@ public class DialogueBoxExample : MonoBehaviour
     }
 }
 */
+
