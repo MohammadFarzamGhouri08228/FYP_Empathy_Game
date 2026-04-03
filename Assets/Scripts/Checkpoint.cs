@@ -52,6 +52,10 @@ public class Checkpoint : MonoBehaviour
     public GameObject contButton;
     public float wordSpeed = 0.02f;
     
+    [Header("Text to Speech")]
+    public ElevenLabsTTS ttsSystem;
+    public bool readDialogueAloud = true;
+
     // START CHANGES: Dialogue Tracking State
     private bool dialogueCompleted = false; // Track if player finished the dialogue
     private bool isTyping = false; // Track if text is currently typing
@@ -64,6 +68,12 @@ public class Checkpoint : MonoBehaviour
     {
         choiceInteraction = GetComponent<CheckpointInteraction>();
         wordSpeed = 0.03f; // Faster typing speed
+
+        // Automatically find the TTS system if it's not assigned
+        if (ttsSystem == null)
+        {
+            ttsSystem = FindFirstObjectByType<ElevenLabsTTS>();
+        }
 
         // Find CheckpointManager
         checkpointManager = CheckpointManager.Instance;
@@ -174,6 +184,12 @@ public class Checkpoint : MonoBehaviour
         dialogText.maxVisibleCharacters = 0;
         dialogPanel.SetActive(false);
         isDialogueActive = false; // Release ownership of the UI
+        
+        if (readDialogueAloud && ttsSystem != null)
+        {
+            ttsSystem.StopSpeaking();
+        }
+        
         // Do NOT reset dialogueCompleted here, as we want to remember if they finished it.
     }
 
@@ -191,6 +207,18 @@ public class Checkpoint : MonoBehaviour
         {
              portraitImage.SetActive(showUI);
              nameTitle.SetActive(showUI);
+        }
+
+        // Play TTS for this line
+        if (readDialogueAloud && ttsSystem != null && !string.IsNullOrWhiteSpace(dialogue[index]))
+        {
+            // Strip out "Musa: " from the spoken text so it doesn't say her name every time
+            string spokenText = dialogue[index];
+            if (spokenText.StartsWith("Musa:"))
+            {
+                spokenText = spokenText.Substring(5).Trim();
+            }
+            ttsSystem.Speak(spokenText);
         }
 
         dialogText.text = dialogue[index];
@@ -303,6 +331,9 @@ public class Checkpoint : MonoBehaviour
              {
                  checkpointManager.RecordDialogueInteraction(checkpointID, false);
              }
+
+             // Allow the player to retry the dialogue if they come back!
+             hasDialogOpened = false;
         }
 
         // Always close dialogue when player exits
@@ -370,15 +401,11 @@ public class Checkpoint : MonoBehaviour
                 ActivateCheckpoint();
             }
 
-            // Start Choice Bubble UI if it exists!
-            if (choiceInteraction != null)
-            {
-                choiceInteraction.SetPlayerInRange(true);
-            }
+            // Check if we actually have dialogue to show
+            bool hasDialogueToPlay = dialogPanel != null && dialogue != null && dialogue.Length > 0;
 
             // Auto-open dialogue if not active, NOT opened before, and not currently shown
-            // SKIP auto-opening if there is a choice Interaction attached instead.
-            if (choiceInteraction == null && dialogPanel != null && !dialogPanel.activeInHierarchy && !hasDialogOpened)
+            if (hasDialogueToPlay && !dialogPanel.activeInHierarchy && !hasDialogOpened)
             {
                 hasDialogOpened = true; // Mark as opened so it doesn't auto-pop again
                 dialogPanel.SetActive(true);
@@ -398,15 +425,20 @@ public class Checkpoint : MonoBehaviour
 
                 // Show first line with typing effect
                 index = 0;
-                if (dialogue != null && dialogue.Length > 0)
-                {
-                    Debug.Log($"Checkpoint {checkpointID}: Starting dialogue typing for: '{dialogue[index]}'");
-                    StartCoroutine(Typing());
-                }
-                else
-                {
-                    Debug.LogWarning($"Checkpoint {checkpointID}: Dialogue empty or null!");
-                }
+                Debug.Log($"Checkpoint {checkpointID}: Starting dialogue typing for: '{dialogue[index]}'");
+                StartCoroutine(Typing());
+            }
+            else if (!hasDialogueToPlay && !hasDialogOpened)
+            {
+                // If there's no dialogue, mark it as completed so we don't block other features
+                hasDialogOpened = true;
+                dialogueCompleted = true;
+            }
+
+            // ONLY Start Choice Bubble UI if dialogue has FULLY completed (or if there was no dialogue)
+            if (choiceInteraction != null && dialogueCompleted)
+            {
+                choiceInteraction.SetPlayerInRange(true);
             }
         }
         else
