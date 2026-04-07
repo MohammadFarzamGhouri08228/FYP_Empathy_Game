@@ -8,6 +8,10 @@ public class CheckpointInteraction : MonoBehaviour
     public GameObject choicesContainer; 
     public TextMeshPro[] dialogueOptions; 
 
+    [Header("Text to Speech")]
+    public ElevenLabsTTS ttsSystem;
+    public bool readOptionsAloud = true;
+
     [Header("Styling")]
     public Color normalColor = Color.white;
     public Color highlightColor = Color.yellow; 
@@ -19,6 +23,12 @@ public class CheckpointInteraction : MonoBehaviour
 
     void Start()
     {
+        // Automatically find the TTS system if it's not assigned
+        if (ttsSystem == null)
+        {
+            ttsSystem = FindObjectOfType<ElevenLabsTTS>();
+        }
+
         ResetInteraction();
     }
 
@@ -118,35 +128,46 @@ public class CheckpointInteraction : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        // If Checkpoint.cs is attached, let it manage the range to sync with dialogue!
+        if (GetComponent<Checkpoint>() != null) return; 
+
         if (collision.CompareTag("Player"))
         {
-            isPlayerInRange = true;
-            
-            // Only show the bubble if they haven't started interacting yet
-            if (!isShowingChoices && !hasMadeChoice) 
-            {
-                interactionBubble.SetActive(true);
-            }
+            SetPlayerInRange(true);
         }
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
+        if (GetComponent<Checkpoint>() != null) return; 
+
         if (collision.CompareTag("Player"))
         {
-            ResetInteraction();
+            SetPlayerInRange(false);
         }
     }
     
     // NEW: Expose range setting for distance-based detection from Checkpoint.cs
     public void SetPlayerInRange(bool inRange)
     {
+        if (isPlayerInRange == inRange) return; // Prevent spamming when called in Update()
+
         isPlayerInRange = inRange;
         if (inRange)
         {
             if (!isShowingChoices && !hasMadeChoice) 
             {
                 interactionBubble.SetActive(true);
+
+                // Read the interaction bubble text if TTS is available
+                if (readOptionsAloud && ttsSystem != null)
+                {
+                    TextMeshPro bubbleText = interactionBubble.GetComponentInChildren<TextMeshPro>();
+                    if (bubbleText != null && !string.IsNullOrWhiteSpace(bubbleText.text))
+                    {
+                        ttsSystem.Speak(bubbleText.text);
+                    }
+                }
             }
         }
         else
