@@ -4,6 +4,7 @@ public class BallPickup : MonoBehaviour
 {
     [Header("Interaction Settings")]
     [SerializeField] private KeyCode interactKey = KeyCode.E;
+    [SerializeField] private KeyCode dropKey = KeyCode.D;
     [SerializeField] private float interactRange = 2.5f;
     [Tooltip("Optional child object (text / sprite) shown when the player can interact.")]
     [SerializeField] private GameObject interactPrompt;
@@ -20,6 +21,11 @@ public class BallPickup : MonoBehaviour
     private Transform playerTransform;
     private bool isCollected = false;
 
+    // References to components so we can hide/show the ball instead of destroying it
+    private Renderer[] allRenderers;
+    private Collider2D[] allColliders;
+    private Rigidbody2D rb;
+
     void Start()
     {
         GameObject player = GameObject.FindWithTag("Player");
@@ -32,12 +38,28 @@ public class BallPickup : MonoBehaviour
         {
             interactPrompt.SetActive(false);
         }
+
+        // Cache components
+        allRenderers = GetComponentsInChildren<Renderer>();
+        allColliders = GetComponentsInChildren<Collider2D>();
+        rb = GetComponent<Rigidbody2D>();
     }
 
     void Update()
     {
-        if (isCollected || playerTransform == null) return;
+        if (playerTransform == null) return;
 
+        // If the player is carrying the ball, wait for drop input
+        if (isCollected)
+        {
+            if (Input.GetKeyDown(dropKey))
+            {
+                DropBall();
+            }
+            return;
+        }
+
+        // Otherwise, check if player is close enough to pick it up
         float dist = Vector2.Distance(transform.position, playerTransform.position);
         bool inRange = dist <= interactRange;
 
@@ -63,7 +85,16 @@ public class BallPickup : MonoBehaviour
             interactPrompt.SetActive(false);
         }
 
-        // Create a new GameObject to hold the sprite above the player's head
+        // 1. Hide the ball and disable its physics
+        foreach (var r in allRenderers) r.enabled = false;
+        foreach (var c in allColliders) c.enabled = false;
+        if (rb != null) rb.simulated = false;
+
+        // 2. Parent it to the player so it follows them around invisibly
+        transform.SetParent(player.transform);
+        transform.localPosition = Vector3.zero; // Center it on the player
+
+        // 3. Create a new GameObject to hold the sprite above the player's head
         if (ballIndicatorSprite != null)
         {
             ballIndicatorInstance = new GameObject("BallIndicator");
@@ -75,8 +106,34 @@ public class BallPickup : MonoBehaviour
             sr.sprite = ballIndicatorSprite;
             sr.sortingOrder = 10; // Make sure it renders in front of other things
         }
+    }
 
-        Destroy(gameObject);
+    private void DropBall()
+    {
+        if (!isCollected) return;
+        isCollected = false;
+        hasBall = false;
+
+        // 1. Remove the indicator above the player's head
+        if (ballIndicatorInstance != null)
+        {
+            Destroy(ballIndicatorInstance);
+            ballIndicatorInstance = null;
+        }
+
+        // 2. Unparent the ball and place it slightly above the player's position
+        transform.SetParent(null);
+        transform.position = playerTransform.position + new Vector3(0, 0.5f, 0);
+
+        // 3. Re-enable graphics and physics
+        foreach (var r in allRenderers) r.enabled = true;
+        foreach (var c in allColliders) c.enabled = true;
+        if (rb != null) 
+        {
+            rb.simulated = true;
+            rb.velocity = Vector2.zero; // Reset any leftover momentum
+            rb.angularVelocity = 0f;
+        }
     }
 
     /// <summary>Call on scene restart / game over to clear ball state.</summary>
