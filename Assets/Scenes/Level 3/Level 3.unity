@@ -1156,6 +1156,7 @@ GameObject:
   - component: {fileID: 513839768}
   - component: {fileID: 513839767}
   - component: {fileID: 513839769}
+  - component: {fileID: 513839770}
   m_Layer: 0
   m_Name: ball_blue_large_0
   m_TagString: Untagged
@@ -1313,6 +1314,23 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.32
+--- !u!114 &513839770
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 513839764}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca96c1da57949b6459f3c21cddd1e1e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallPickup
+  interactKey: 101
+  interactRange: 2.5
+  interactPrompt: {fileID: 0}
+  ballIndicatorSprite: {fileID: 1176045343915814442, guid: 2fefa348e55c27f46bd87dae92944a5b, type: 3}
+  indicatorOffset: {x: 0, y: 1.5, z: 0}
 --- !u!1 &550899434
 GameObject:
   m_ObjectHideFlags: 0
@@ -3844,7 +3862,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1403474890}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c60c5bde408b3b941a7fe78de63667d4, type: 3}
   m_Name: 
@@ -3859,7 +3877,7 @@ AudioSource:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1403474890}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
@@ -5323,6 +5341,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::pause
   pauseMenu: {fileID: 1126783888}
+--- !u!1 &2046862818 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3146575880206223721, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
+  m_PrefabInstance: {fileID: 2054974949}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2046862828
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2046862818}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca96c1da57949b6459f3c21cddd1e1e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallPickup
+  interactKey: 101
+  interactRange: 2.5
+  interactPrompt: {fileID: 0}
+  ballIndicatorSprite: {fileID: 1176045343915814442, guid: 2fefa348e55c27f46bd87dae92944a5b, type: 3}
+  indicatorOffset: {x: 0, y: 1.5, z: 0}
 --- !u!1001 &2054974949
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5387,7 +5427,10 @@ PrefabInstance:
     - {fileID: 6060849808478609752, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3146575880206223721, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2046862828}
   m_SourcePrefab: {fileID: 100100000, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
