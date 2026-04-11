@@ -136,6 +136,22 @@ public class BallPickup : MonoBehaviour
         }
     }
 
+    /// <summary>Call this method when the ball is inserted into a bag.</summary>
+    public void ConsumeBall()
+    {
+        isCollected = false;
+        hasBall = false;
+
+        if (ballIndicatorInstance != null)
+        {
+            Destroy(ballIndicatorInstance);
+            ballIndicatorInstance = null;
+        }
+
+        // Destroy the actual ball object completely
+        Destroy(gameObject);
+    }
+
     /// <summary>Call on scene restart / game over to clear ball state.</summary>
     public static void ResetBall()
     {
