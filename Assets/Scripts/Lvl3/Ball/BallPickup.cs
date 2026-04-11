@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class BallPickup : MonoBehaviour
 {
@@ -17,6 +18,9 @@ public class BallPickup : MonoBehaviour
 
     public static bool hasBall = false;
     public static GameObject ballIndicatorInstance;
+
+    // Used to prevent picking up multiple balls in the exact same frame
+    private static int lastPickupFrame = -1;
 
     private Transform playerTransform;
     private bool isCollected = false;
@@ -65,18 +69,35 @@ public class BallPickup : MonoBehaviour
 
         if (interactPrompt != null)
         {
+            // Only show the prompt if we are in range and not already carrying a ball
+            // (or if we are, we can still show it to let them know they can interact, but it will shake instead)
             interactPrompt.SetActive(inRange);
         }
 
         if (inRange && Input.GetKeyDown(interactKey))
         {
-            CollectBall(playerTransform.gameObject);
+            if (hasBall)
+            {
+                // Trigger screen shake if we try to pick up another ball while holding one!
+                // But ensure we don't shake on the exact same frame we just picked one up (if 2 balls are next to each other)
+                if (lastPickupFrame != Time.frameCount)
+                {
+                    StartCoroutine(ScreenShake());
+                }
+            }
+            else
+            {
+                CollectBall(playerTransform.gameObject);
+            }
         }
     }
 
     private void CollectBall(GameObject player)
     {
-        if (isCollected) return;
+        // Double check to absolutely ensure we don't pick up two balls at once
+        if (isCollected || hasBall) return;
+        
+        lastPickupFrame = Time.frameCount; // Record the frame so other balls know we picked one up right now
         isCollected = true;
         hasBall = true;
 
@@ -161,6 +182,30 @@ public class BallPickup : MonoBehaviour
             Destroy(ballIndicatorInstance);
             ballIndicatorInstance = null;
         }
+    }
+
+    // A simple screen shake effect
+    private IEnumerator ScreenShake()
+    {
+        Camera mainCam = Camera.main;
+        if (mainCam == null) yield break;
+
+        Vector3 originalPos = mainCam.transform.localPosition;
+        float elapsed = 0f;
+        float duration = 0.2f;   // How long the shake lasts
+        float magnitude = 0.15f; // How intense the shake is
+
+        while (elapsed < duration)
+        {
+            float x = Random.Range(-1f, 1f) * magnitude;
+            float y = Random.Range(-1f, 1f) * magnitude;
+
+            mainCam.transform.localPosition = originalPos + new Vector3(x, y, 0);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        mainCam.transform.localPosition = originalPos;
     }
 
     void OnDrawGizmosSelected()
