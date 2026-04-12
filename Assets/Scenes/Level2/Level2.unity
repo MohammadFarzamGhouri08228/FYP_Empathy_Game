@@ -2352,6 +2352,10 @@ PrefabInstance:
       value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: nextSceneName
+      value: lvl2endcutscene
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
       propertyPath: inactiveColor.b
       value: 0.11347453
       objectReference: {fileID: 0}
@@ -2362,6 +2366,10 @@ PrefabInstance:
     - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
       propertyPath: inactiveColor.r
       value: 0.9622642
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: isFinalCheckpoint
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
       propertyPath: allowMultipleActivations
@@ -11488,12 +11496,12 @@ MonoBehaviour:
   minFailProbability: 0.05
   slopeLayer:
     serializedVersion: 2
-    m_Bits: 8
+    m_Bits: 0
   slopeCheckRadius: 0.2
   slopeCheckOffset: {x: 0, y: -0.5}
   obstacleLayer:
     serializedVersion: 2
-    m_Bits: 512
+    m_Bits: 0
 --- !u!114 &1572805633
 MonoBehaviour:
   m_ObjectHideFlags: 0

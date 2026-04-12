@@ -152,7 +152,7 @@ public class BallPickup : MonoBehaviour
         if (rb != null) 
         {
             rb.simulated = true;
-            rb.velocity = Vector2.zero; // Reset any leftover momentum
+            rb.linearVelocity = Vector2.zero; // Reset any leftover momentum
             rb.angularVelocity = 0f;
         }
     }
