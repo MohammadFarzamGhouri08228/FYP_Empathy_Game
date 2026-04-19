@@ -669,6 +669,8 @@ MonoBehaviour:
   currentBallsHeld: 0
   moveSpeed: 3
   blueBag: {fileID: 152379618}
+  indicatorStartOffset: {x: 0, y: 7, z: 0}
+  indicatorSpacing: {x: 5, y: 0, z: 0}
 --- !u!212 &53757006
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1488,7 +1490,7 @@ CircleCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
