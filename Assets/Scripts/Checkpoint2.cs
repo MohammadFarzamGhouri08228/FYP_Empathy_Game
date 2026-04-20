@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using TMPro;
 
 public class Checkpoint2 : MonoBehaviour
 {
@@ -38,11 +40,52 @@ public class Checkpoint2 : MonoBehaviour
     private CheckpointManager checkpointManager;
     private GameObject player; // Cache player reference
 
+    // ========================================================================
+    // DIALOGUE SYSTEM — Same infrastructure as Checkpoint.cs (Level 1)
+    // Fill in dialogue text via Unity Inspector for each checkpoint.
+    // ========================================================================
+    
+    [Header("Dialogue UI")]
+    [Tooltip("The dialogue panel GameObject (drag from Canvas). Leave null if this checkpoint has no dialogue.")]
+    public GameObject dialogPanel;
+    public TMP_Text dialogText;
+    [TextArea(2, 5)]
+    public string[] dialogue;
+    private int index;
+
+    public GameObject portraitImage;
+    public GameObject nameTitle;
+
+    public GameObject contButton;
+    public float wordSpeed = 0.03f;
+    
+    [Header("Text to Speech")]
+    public ElevenLabsTTS ttsSystem;
+    public bool readDialogueAloud = true;
+
+    // Dialogue tracking state
+    private bool dialogueCompleted = false;
+    private bool isTyping = false;
+    private bool isDialogueActive = false;
+    private bool hasDialogOpened = false;
+
+    // Velocity-based listening metric
+    private float dialogueStillFrames = 0f;
+    private float dialogueTotalFrames = 0f;
+    private Rigidbody2D playerRb;
+    private const float STILL_VELOCITY_THRESHOLD = 0.15f;
+
     private CheckpointInteraction choiceInteraction;
 
     void Start()
     {
         choiceInteraction = GetComponent<CheckpointInteraction>();
+
+        // Automatically find the TTS system if it's not assigned
+        if (ttsSystem == null)
+        {
+            ttsSystem = FindFirstObjectByType<ElevenLabsTTS>();
+        }
 
         // Find CheckpointManager
         checkpointManager = CheckpointManager.Instance;
@@ -60,6 +103,12 @@ public class Checkpoint2 : MonoBehaviour
         // Find player
         FindPlayer();
         
+        // Cache player Rigidbody2D for velocity tracking
+        if (player != null)
+        {
+            playerRb = player.GetComponent<Rigidbody2D>();
+        }
+
         // Get visual component if not assigned
         if (checkpointVisual == null)
         {
@@ -92,8 +141,24 @@ public class Checkpoint2 : MonoBehaviour
         
         // Initialize visual state
         UpdateVisualState();
+
+        if (dialogPanel != null)
+        {
+            dialogPanel.SetActive(false);
+        }
+
+        // Warn if dialogue panel is assigned but no dialogue text
+        if (dialogPanel != null && (dialogue == null || dialogue.Length == 0))
+        {
+            Debug.LogWarning($"Checkpoint2 {checkpointID}: dialogPanel is assigned but dialogue array is empty! Fill in dialogue text via Inspector.");
+        }
         
-        Debug.Log($"Checkpoint2 {checkpointID}: Initialized at position ({transform.position.x:F2}, {transform.position.y:F2}, {transform.position.z:F2}). Detection: {(useDistanceDetection ? "Distance-based" : "Collider-based")}");
+        if (contButton == null && dialogPanel != null)
+        {
+            Debug.LogWarning($"Checkpoint2 {checkpointID}: 'contButton' not assigned!");
+        }
+        
+        Debug.Log($"Checkpoint2 {checkpointID}: Initialized at position ({transform.position.x:F2}, {transform.position.y:F2}, {transform.position.z:F2}). Detection: {(useDistanceDetection ? "Distance-based" : "Collider-based")}. Dialogue: {(dialogue != null && dialogue.Length > 0 ? $"{dialogue.Length} lines" : "none")}");
     }
     
     void Update()
@@ -103,13 +168,214 @@ public class Checkpoint2 : MonoBehaviour
         {
             CheckPlayerDistance();
         }
+
+        // Only process dialogue input if THIS checkpoint owns the active dialogue
+        if (isDialogueActive && dialogPanel != null && dialogPanel.activeInHierarchy)
+        {
+            // Velocity tracking for listening metric (during NPC lines)
+            if (isTyping && index < dialogue.Length && !IsPlayerDialogue(dialogue[index]))
+            {
+                dialogueTotalFrames++;
+                if (playerRb != null && playerRb.linearVelocity.magnitude < STILL_VELOCITY_THRESHOLD)
+                {
+                    dialogueStillFrames++;
+                }
+                else if (playerRb == null)
+                {
+                    dialogueStillFrames++; // No rigidbody — assume still
+                }
+            }
+
+            // Allow advancing text with E key
+            if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+            {
+                if (index < dialogue.Length && !IsPlayerDialogue(dialogue[index]))
+                {
+                    if (dialogText.maxVisibleCharacters < dialogText.textInfo.characterCount)
+                    {
+                        dialogText.maxVisibleCharacters = dialogText.textInfo.characterCount;
+                    }
+                    else
+                    {
+                        NextLine();
+                    }
+                }
+            }
+        }
     }
+
+    // ========================================================================
+    // DIALOGUE METHODS (same pattern as Checkpoint.cs)
+    // ========================================================================
+
+    public void zeroText()
+    {
+        if (dialogText != null) dialogText.text = "";
+        index = 0;
+        if (dialogText != null) dialogText.maxVisibleCharacters = 0;
+        if (dialogPanel != null) dialogPanel.SetActive(false);
+        isDialogueActive = false;
+        
+        if (readDialogueAloud && ttsSystem != null)
+        {
+            ttsSystem.StopSpeaking();
+        }
+    }
+
+    IEnumerator Typing()
+    {
+        isTyping = true;
+        
+        if (contButton != null) contButton.SetActive(false);
+        
+        bool showUI = ShouldShowUI(index);
+        if (portraitImage != null && nameTitle != null)
+        {
+            portraitImage.SetActive(showUI);
+            nameTitle.SetActive(showUI);
+        }
+
+        // Play TTS for this line
+        if (readDialogueAloud && ttsSystem != null && !string.IsNullOrWhiteSpace(dialogue[index]))
+        {
+            string spokenText = dialogue[index];
+            if (spokenText.StartsWith("Musa:"))
+            {
+                spokenText = spokenText.Substring(5).Trim();
+            }
+            ttsSystem.Speak(spokenText);
+        }
+
+        dialogText.text = dialogue[index];
+        dialogText.maxVisibleCharacters = 0;
+        dialogText.ForceMeshUpdate();
+        
+        yield return null;
+
+        int totalVisibleCharacters = dialogText.textInfo.characterCount;
+        int counter = 0;
+
+        while (counter <= totalVisibleCharacters)
+        {
+            dialogText.maxVisibleCharacters = counter;
+            counter++;
+            yield return new WaitForSeconds(wordSpeed);
+        }
+        
+        isTyping = false;
+        
+        if (IsPlayerDialogue(dialogue[index]))
+        {
+            yield return new WaitForSeconds(1.2f);
+            NextLine();
+        }
+        else
+        {
+            if (contButton != null) contButton.SetActive(true);
+        }
+    }
+
+    public void NextLine()
+    {
+        if (isTyping) return;
+        
+        if (contButton != null) contButton.SetActive(false);
+
+        if (!playerIsClose)
+        {
+            zeroText();
+            return;
+        }
+
+        if (index < dialogue.Length - 1)
+        {
+            index++;
+            StartCoroutine(Typing());
+        }
+        else
+        {
+            // Dialogue finished — record listening metric
+            if (!dialogueCompleted)
+            {
+                dialogueCompleted = true;
+                
+                float listenRatio = (dialogueTotalFrames > 0)
+                    ? dialogueStillFrames / dialogueTotalFrames
+                    : 1.0f;
+                
+                Debug.Log($"Checkpoint2 {checkpointID}: Dialogue Finished. Listen ratio: {listenRatio:F2}");
+                if (AdaptiveBackend.Instance != null)
+                {
+                    AdaptiveBackend.Instance.ReceiveData($"Checkpoint_{checkpointID}", "DialogueInteraction", listenRatio);
+                }
+                if (checkpointManager != null)
+                {
+                    checkpointManager.RecordDialogueInteraction(checkpointID, listenRatio);
+                }
+            }
+            zeroText();
+        }
+    }
+
+    private void HandlePlayerExit()
+    {
+        playerIsClose = false;
+        
+        // Record partial listening if dialogue was active but not completed
+        if (dialogPanel != null && (dialogPanel.activeInHierarchy || isDialogueActive) && !dialogueCompleted)
+        {
+            float partialRatio = (dialogueTotalFrames > 0)
+                ? (dialogueStillFrames / dialogueTotalFrames) * 0.5f
+                : 0.0f;
+            
+            Debug.Log($"Checkpoint2 {checkpointID}: Player left early. Partial listen ratio: {partialRatio:F2}");
+            if (AdaptiveBackend.Instance != null)
+            {
+                AdaptiveBackend.Instance.ReceiveData($"Checkpoint_{checkpointID}", "DialogueInteraction", partialRatio);
+            }
+            if (checkpointManager != null)
+            {
+                checkpointManager.RecordDialogueInteraction(checkpointID, partialRatio);
+            }
+
+            hasDialogOpened = false;
+            dialogueStillFrames = 0f;
+            dialogueTotalFrames = 0f;
+        }
+
+        // Always close dialogue when player exits
+        if (dialogPanel != null && (dialogPanel.activeInHierarchy || isDialogueActive))
+        {
+            StopAllCoroutines();
+            zeroText();
+        }
+    }
+
+    private bool ShouldShowUI(int dialogueIndex)
+    {
+        if (dialogue == null || dialogueIndex < 0 || dialogueIndex >= dialogue.Length) return false;
+        return !IsPlayerDialogue(dialogue[dialogueIndex]);
+    }
+
+    private bool IsPlayerDialogue(string line)
+    {
+        if (string.IsNullOrEmpty(line)) return false;
+        return line.TrimStart().StartsWith("Musa:");
+    }
+
+    // ========================================================================
+    // DETECTION & ACTIVATION
+    // ========================================================================
 
     private void OnTriggerExit2D(Collider2D other)
     {
         if (other.CompareTag("Player"))
         {
-            playerIsClose = false;
+            if (choiceInteraction != null)
+            {
+                choiceInteraction.SetPlayerInRange(false);
+            }
+            HandlePlayerExit();
         }
     }
 
@@ -147,20 +413,53 @@ public class Checkpoint2 : MonoBehaviour
         
         float distance = Vector3.Distance(transform.position, player.transform.position);
         
-        // Update close status
         if (distance <= detectionRadius)
         {
             playerIsClose = true;
             
-            // Only log and activate if not already done
             if (!hasBeenActivated)
             {
                 Debug.Log($"Checkpoint2 {checkpointID}: Player detected within range! Distance: {distance:F2}");
                 ActivateCheckpoint();
             }
 
-            // Start Choice Bubble UI if it exists!
-            if (choiceInteraction != null)
+            // Check if we have dialogue to show
+            bool hasDialogueToPlay = dialogPanel != null && dialogue != null && dialogue.Length > 0;
+
+            // Auto-open dialogue if not active, NOT opened before, and not currently shown
+            if (hasDialogueToPlay && !dialogPanel.activeInHierarchy && !hasDialogOpened)
+            {
+                hasDialogOpened = true;
+                dialogPanel.SetActive(true);
+                isDialogueActive = true;
+                dialogueCompleted = false;
+                dialogueStillFrames = 0f;
+                dialogueTotalFrames = 0f;
+                
+                // Assign button listener for THIS checkpoint instance
+                if (contButton != null)
+                {
+                    Button btn = contButton.GetComponent<Button>();
+                    if (btn != null)
+                    {
+                        btn.onClick.RemoveAllListeners();
+                        btn.onClick.AddListener(NextLine);
+                    }
+                }
+
+                // Show first line with typing effect
+                index = 0;
+                Debug.Log($"Checkpoint2 {checkpointID}: Starting dialogue typing for: '{dialogue[index]}'");
+                StartCoroutine(Typing());
+            }
+            else if (!hasDialogueToPlay && !hasDialogOpened)
+            {
+                hasDialogOpened = true;
+                dialogueCompleted = true;
+            }
+
+            // Show Choice Bubble ONLY after dialogue has completed (or if there was no dialogue)
+            if (choiceInteraction != null && dialogueCompleted)
             {
                 choiceInteraction.SetPlayerInRange(true);
             }
@@ -168,14 +467,14 @@ public class Checkpoint2 : MonoBehaviour
         else
         {
             // Player moved away
-            if (playerIsClose) // State change: Close -> Far
+            if (playerIsClose)
             {
                 if (choiceInteraction != null)
                 {
                     choiceInteraction.SetPlayerInRange(false);
                 }
 
-                playerIsClose = false;
+                HandlePlayerExit();
             }
         }
     }
@@ -187,12 +486,12 @@ public class Checkpoint2 : MonoBehaviour
     {
         if (!isActive || useDistanceDetection) return;
         
-        // Check if the colliding object is the player
         if (IsPlayer(other.gameObject))
         {
             Debug.Log($"Checkpoint2 {checkpointID}: Player entered trigger zone! Player position: ({other.transform.position.x:F2}, {other.transform.position.y:F2}, {other.transform.position.z:F2})");
             ActivateCheckpoint();
             playerIsClose = true;
+            zeroText();
         }
     }
     
@@ -214,7 +513,7 @@ public class Checkpoint2 : MonoBehaviour
         if (hasBeenActivated && !allowMultipleActivations)
         {
             Debug.Log($"Checkpoint2 {checkpointID}: Already activated, skipping (allowMultipleActivations = false)");
-            return; // Already activated, don't activate again
+            return;
         }
         
         if (checkpointManager == null)
@@ -223,13 +522,11 @@ public class Checkpoint2 : MonoBehaviour
             return;
         }
         
-        // Find player if not cached
         if (player == null)
         {
             FindPlayer();
         }
         
-        // Register checkpoint position (use player's position when they pass through)
         Vector3 checkpointPosition;
         if (player != null)
         {
@@ -241,7 +538,6 @@ public class Checkpoint2 : MonoBehaviour
         }
         else
         {
-            // Fallback to checkpoint's own position
             checkpointPosition = transform.position;
             Debug.LogWarning($"Checkpoint2 {checkpointID}: Player not found, using checkpoint's own position.");
             Debug.Log($"=== CHECKPOINT ENCOUNTERED ===");
@@ -249,11 +545,9 @@ public class Checkpoint2 : MonoBehaviour
             Debug.Log($"Checkpoint2 Position (fallback): ({checkpointPosition.x:F2}, {checkpointPosition.y:F2}, {checkpointPosition.z:F2})");
         }
         
-        // Register with CheckpointManager
         checkpointManager.RegisterCheckpoint(checkpointPosition);
         hasBeenActivated = true;
         
-        // Notify manager of our ID for robust end-level evaluation
         checkpointManager.NotifyCheckpointReached(checkpointID);
 
         // IMMEDIATE TELEPORT IF FINAL CHECKPOINT
@@ -261,15 +555,14 @@ public class Checkpoint2 : MonoBehaviour
         {
             Debug.Log($"<color=green>Final Checkpoint2 {checkpointID} Reached! Teleporting to {nextSceneName}...</color>");
             
-            // Unpause time just in case it was frozen elsewhere
             Time.timeScale = 1f;
             UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
-            return; // Exit out of the rest of the activation logic so no empty dialogues pop up!
+            return;
         }
         
-        // Trigger specific checkpoint event based on checkpoint ID for dialogue system
+        // Trigger checkpoint event for dialogue system
         GameEventType checkpointEvent = GetCheckpointEventType(checkpointID);
-        if (checkpointEvent != GameEventType.BombEncountered) // Using BombEncountered as "invalid" since we don't have a "None"
+        if (checkpointEvent != GameEventType.BombEncountered)
         {
             GameEventManager.TriggerEvent(checkpointEvent, gameObject);
             Debug.Log($"Checkpoint2 {checkpointID}: Triggered {checkpointEvent} event for dialogue system.");
@@ -279,19 +572,13 @@ public class Checkpoint2 : MonoBehaviour
             Debug.LogWarning($"Checkpoint2 {checkpointID}: No matching event type found! Please add Checkpoint{checkpointID}Reached to GameEventType enum.");
         }
         
-        // Update visual
         UpdateVisualState();
-        
-        // Play sound
         PlayCheckpointSound();
         
         Debug.Log($"Checkpoint2 {checkpointID}: Successfully activated and registered!");
         Debug.Log($"=================================");
     }
     
-    /// <summary>
-    /// Updates the visual appearance of the checkpoint.
-    /// </summary>
     private void UpdateVisualState()
     {
         if (checkpointVisual == null) return;
@@ -314,9 +601,6 @@ public class Checkpoint2 : MonoBehaviour
         }
     }
     
-    /// <summary>
-    /// Plays the checkpoint activation sound.
-    /// </summary>
     private void PlayCheckpointSound()
     {
         if (audioSource != null && checkpointSound != null)
@@ -325,17 +609,11 @@ public class Checkpoint2 : MonoBehaviour
         }
     }
     
-    /// <summary>
-    /// Manually activate this checkpoint (useful for testing or special cases).
-    /// </summary>
     public void Activate()
     {
         ActivateCheckpoint();
     }
     
-    /// <summary>
-    /// Enable or disable this checkpoint.
-    /// </summary>
     public void SetActive(bool active)
     {
         isActive = active;
@@ -346,9 +624,6 @@ public class Checkpoint2 : MonoBehaviour
         }
     }
     
-    /// <summary>
-    /// Gets the corresponding GameEventType for this checkpoint based on its ID.
-    /// </summary>
     private GameEventType GetCheckpointEventType(int id)
     {
         switch (id)
@@ -361,7 +636,7 @@ public class Checkpoint2 : MonoBehaviour
             case 5: return GameEventType.Checkpoint5Reached;
             default:
                 Debug.LogWarning($"Checkpoint ID {id} does not have a corresponding GameEventType. Add Checkpoint{id}Reached to the enum.");
-                return GameEventType.BombEncountered; // Return a default (not ideal, but prevents errors)
+                return GameEventType.BombEncountered;
         }
     }
 }

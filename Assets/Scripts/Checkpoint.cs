@@ -62,6 +62,13 @@ public class Checkpoint : MonoBehaviour
     private bool isDialogueActive = false; // True only for the checkpoint currently running dialogue
     // END CHANGES
     
+    // Velocity-based listening metric (Metric 1)
+    // Tracks how still the player is during NPC dialogue
+    private float dialogueStillFrames = 0f;   // Frames where player velocity ~= 0
+    private float dialogueTotalFrames = 0f;    // Total frames of NPC dialogue
+    private Rigidbody2D playerRb;              // Cached for velocity checks
+    private const float STILL_VELOCITY_THRESHOLD = 0.15f; // Below this magnitude = "still"
+    
     private CheckpointInteraction choiceInteraction; // Declared to fix CS0103
 
     void Start()
@@ -90,6 +97,12 @@ public class Checkpoint : MonoBehaviour
         
         // Find player
         FindPlayer();
+        
+        // Cache player Rigidbody2D for velocity tracking
+        if (player != null)
+        {
+            playerRb = player.GetComponent<Rigidbody2D>();
+        }
         
         // Get visual component if not assigned
         if (checkpointVisual == null)
@@ -158,6 +171,21 @@ public class Checkpoint : MonoBehaviour
         // Only process dialogue input/button logic if THIS checkpoint owns the active dialogue
         if (isDialogueActive && dialogPanel.activeInHierarchy)
         {
+            // ── Velocity tracking for listening metric (only during NPC lines) ──
+            if (isTyping && index < dialogue.Length && !IsPlayerDialogue(dialogue[index]))
+            {
+                dialogueTotalFrames++;
+                if (playerRb != null && playerRb.linearVelocity.magnitude < STILL_VELOCITY_THRESHOLD)
+                {
+                    dialogueStillFrames++;
+                }
+                else if (playerRb == null)
+                {
+                    // No rigidbody — assume still (can't measure)
+                    dialogueStillFrames++;
+                }
+            }
+            
             // Allow advancing text with E key
             if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
             {
@@ -274,19 +302,25 @@ public class Checkpoint : MonoBehaviour
         }
         else
         {
-            // START CHANGES: Record completion
+            // START CHANGES: Record completion with velocity-based listen ratio
             if (!dialogueCompleted)
             {
                 dialogueCompleted = true;
-                Debug.Log($"Checkpoint {checkpointID}: Dialogue Finished. Recording 'Listening'.");
+                
+                // Calculate listening ratio from velocity tracking
+                float listenRatio = (dialogueTotalFrames > 0)
+                    ? dialogueStillFrames / dialogueTotalFrames
+                    : 1.0f; // If no frames tracked (very short dialogue), give full credit
+                
+                Debug.Log($"Checkpoint {checkpointID}: Dialogue Finished. Listen ratio: {listenRatio:F2} (still frames: {dialogueStillFrames}, total: {dialogueTotalFrames})");
                 if (AdaptiveBackend.Instance != null)
                 {
-                     AdaptiveBackend.Instance.ReceiveData($"Checkpoint_{checkpointID}", "DialogueInteraction", "Listening");
+                     AdaptiveBackend.Instance.ReceiveData($"Checkpoint_{checkpointID}", "DialogueInteraction", listenRatio);
                 }
-                // Report to CheckpointManager for listening metric
+                // Report continuous ratio to CheckpointManager for empathy meter
                 if (checkpointManager != null)
                 {
-                     checkpointManager.RecordDialogueInteraction(checkpointID, true);
+                     checkpointManager.RecordDialogueInteraction(checkpointID, listenRatio);
                 }
             }
             // END CHANGES
@@ -317,23 +351,31 @@ public class Checkpoint : MonoBehaviour
     {
         playerIsClose = false;
         
-        // If dialogue was opened and NOT completed, record "Not Listening"
+        // If dialogue was opened and NOT completed, record partial listening with velocity ratio
         // Check both: panel is active OR dialogue was opened (covers player monologue case)
         if ((dialogPanel.activeInHierarchy || isDialogueActive) && !dialogueCompleted)
         {
-             Debug.Log($"Checkpoint {checkpointID}: Player left early. Recording 'Not Listening'.");
+             // Calculate partial listen ratio from whatever frames we tracked
+             float partialRatio = (dialogueTotalFrames > 0)
+                 ? (dialogueStillFrames / dialogueTotalFrames) * 0.5f // Cap at 50% since they didn't finish
+                 : 0.0f;
+             
+             Debug.Log($"Checkpoint {checkpointID}: Player left early. Partial listen ratio: {partialRatio:F2}");
              if (AdaptiveBackend.Instance != null)
              {
-                 AdaptiveBackend.Instance.ReceiveData($"Checkpoint_{checkpointID}", "DialogueInteraction", "Not Listening");
+                 AdaptiveBackend.Instance.ReceiveData($"Checkpoint_{checkpointID}", "DialogueInteraction", partialRatio);
              }
-             // Report to CheckpointManager for listening metric
+             // Report partial ratio to CheckpointManager
              if (checkpointManager != null)
              {
-                 checkpointManager.RecordDialogueInteraction(checkpointID, false);
+                 checkpointManager.RecordDialogueInteraction(checkpointID, partialRatio);
              }
 
              // Allow the player to retry the dialogue if they come back!
              hasDialogOpened = false;
+             // Reset velocity tracking for retry
+             dialogueStillFrames = 0f;
+             dialogueTotalFrames = 0f;
         }
 
         // Always close dialogue when player exits
@@ -411,6 +453,9 @@ public class Checkpoint : MonoBehaviour
                 dialogPanel.SetActive(true);
                 isDialogueActive = true; // THIS checkpoint now owns the dialogue UI
                 dialogueCompleted = false; // Reset completion tracking
+                // Reset velocity tracking for fresh measurement
+                dialogueStillFrames = 0f;
+                dialogueTotalFrames = 0f;
                 
                 // Assign button listener for THIS checkpoint instance
                 if (contButton != null)

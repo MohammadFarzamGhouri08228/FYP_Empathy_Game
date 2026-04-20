@@ -8,6 +8,13 @@ public class CheckpointInteraction : MonoBehaviour
     public GameObject choicesContainer; 
     public TextMeshPro[] dialogueOptions; 
 
+    [Header("Choice Tracking")]
+    [Tooltip("Which checkpoint this interaction belongs to (should match Checkpoint.checkpointID)")]
+    [SerializeField] private int checkpointID = 0;
+    
+    [Tooltip("Empathy category for each dialogue option. Must match dialogueOptions array length.")]
+    [SerializeField] private ChoiceCategory[] optionCategories;
+
     [Header("Text to Speech")]
     public ElevenLabsTTS ttsSystem;
     public bool readOptionsAloud = true;
@@ -18,7 +25,7 @@ public class CheckpointInteraction : MonoBehaviour
 
     private bool isPlayerInRange = false;
     private bool isShowingChoices = false; 
-    private bool hasMadeChoice = false; // NEW: Tracks if we locked in an answer
+    private bool hasMadeChoice = false; // Tracks if we locked in an answer
     private int selectedIndex = 0; 
 
     void Start()
@@ -26,7 +33,32 @@ public class CheckpointInteraction : MonoBehaviour
         // Automatically find the TTS system if it's not assigned
         if (ttsSystem == null)
         {
-            ttsSystem = FindObjectOfType<ElevenLabsTTS>();
+            ttsSystem = FindFirstObjectByType<ElevenLabsTTS>();
+        }
+
+        // Auto-sync checkpointID from Checkpoint component if present
+        Checkpoint cp = GetComponent<Checkpoint>();
+        if (cp != null)
+        {
+            checkpointID = cp.CheckpointID;
+        }
+        else
+        {
+            Checkpoint2 cp2 = GetComponent<Checkpoint2>();
+            if (cp2 != null)
+            {
+                checkpointID = cp2.CheckpointID;
+            }
+        }
+
+        // Initialize optionCategories array if not set in Inspector
+        if (optionCategories == null || optionCategories.Length != dialogueOptions.Length)
+        {
+            if (dialogueOptions != null && dialogueOptions.Length > 0)
+            {
+                Debug.LogWarning($"CheckpointInteraction (CP {checkpointID}): optionCategories length doesn't match dialogueOptions. Initializing all as Neutral.");
+                optionCategories = new ChoiceCategory[dialogueOptions.Length];
+            }
         }
 
         ResetInteraction();
@@ -121,7 +153,27 @@ public class CheckpointInteraction : MonoBehaviour
             }
         }
 
-        Debug.Log("Player confirmed Option: " + (selectedIndex + 1));
+        // Determine the category of the selected choice
+        ChoiceCategory selectedCategory = ChoiceCategory.Neutral;
+        if (optionCategories != null && selectedIndex < optionCategories.Length)
+        {
+            selectedCategory = optionCategories[selectedIndex];
+        }
+
+        Debug.Log($"CheckpointInteraction (CP {checkpointID}): Player confirmed Option {selectedIndex + 1} — Category: {selectedCategory}");
+        
+        // Report choice to CheckpointManager for metric tracking
+        CheckpointManager manager = CheckpointManager.Instance;
+        if (manager != null)
+        {
+            manager.RecordChoiceInteraction(checkpointID, selectedCategory);
+        }
+
+        // Report to AdaptiveBackend
+        if (AdaptiveBackend.Instance != null)
+        {
+            AdaptiveBackend.Instance.ReceiveData($"Checkpoint_{checkpointID}", "ChoiceInteraction", selectedCategory.ToString());
+        }
         
         // At this point, the chosen text stays on screen until the player walks away
     }
@@ -130,6 +182,7 @@ public class CheckpointInteraction : MonoBehaviour
     {
         // If Checkpoint.cs is attached, let it manage the range to sync with dialogue!
         if (GetComponent<Checkpoint>() != null) return; 
+        if (GetComponent<Checkpoint2>() != null) return; // Also defer to Checkpoint2
 
         if (collision.CompareTag("Player"))
         {
@@ -140,6 +193,7 @@ public class CheckpointInteraction : MonoBehaviour
     private void OnTriggerExit2D(Collider2D collision)
     {
         if (GetComponent<Checkpoint>() != null) return; 
+        if (GetComponent<Checkpoint2>() != null) return;
 
         if (collision.CompareTag("Player"))
         {
@@ -147,7 +201,7 @@ public class CheckpointInteraction : MonoBehaviour
         }
     }
     
-    // NEW: Expose range setting for distance-based detection from Checkpoint.cs
+    // Expose range setting for distance-based detection from Checkpoint.cs / Checkpoint2.cs
     public void SetPlayerInRange(bool inRange)
     {
         if (isPlayerInRange == inRange) return; // Prevent spamming when called in Update()
@@ -172,6 +226,23 @@ public class CheckpointInteraction : MonoBehaviour
         }
         else
         {
+            // Player walked away without making a choice — track as lowest empathy
+            if (isShowingChoices && !hasMadeChoice)
+            {
+                Debug.Log($"CheckpointInteraction (CP {checkpointID}): Player walked away without choosing. Recording as NoChoice.");
+                
+                CheckpointManager manager = CheckpointManager.Instance;
+                if (manager != null)
+                {
+                    manager.RecordChoiceInteraction(checkpointID, ChoiceCategory.Neutral); // Walked away = neutral/no engagement
+                }
+
+                if (AdaptiveBackend.Instance != null)
+                {
+                    AdaptiveBackend.Instance.ReceiveData($"Checkpoint_{checkpointID}", "ChoiceInteraction", "NoChoice_WalkedAway");
+                }
+            }
+
             ResetInteraction();
         }
     }

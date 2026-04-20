@@ -20,6 +20,10 @@ public class CheckpointManager : MonoBehaviour
     [SerializeField] private int totalCheckpointsInLevel = 5; // Total number of checkpoints in the level
     [SerializeField] private string nextSceneName = "Level2"; // Scene to load after the last checkpoint
     
+    [Header("Empathy Meter")]
+    [Tooltip("Drag the EmpathyMeter UI component here. If null, meter won't update but everything else works.")]
+    [SerializeField] private EmpathyMeter empathyMeter;
+
     private HealthSystem playerHealthSystem;
     private HeartManager playerHeartManager; // Support for HeartManager as well
     private int previousHealth; // Track previous health to detect 2-life loss
@@ -29,13 +33,15 @@ public class CheckpointManager : MonoBehaviour
     private StopwatchTimer gameTimer; // Reference to timer
     private bool lastCheckpointEvaluated = false; // Prevent multiple evaluations
     
-    // Dialogue interaction tracking: maps checkpointID -> true (listened) / false (not listened)
-    private Dictionary<int, bool> dialogueResults = new Dictionary<int, bool>();
+    // Dialogue interaction tracking: maps checkpointID -> listening ratio (0.0 to 1.0)
+    private Dictionary<int, float> dialogueResults = new Dictionary<int, float>();
+    
+    // Choice interaction tracking: maps checkpointID -> ChoiceCategory
+    private Dictionary<int, ChoiceCategory> choiceResults = new Dictionary<int, ChoiceCategory>();
     
     // Singleton pattern for easy access
     private static CheckpointManager instance;
     public static CheckpointManager Instance => instance;
-
 
 
 
@@ -123,7 +129,18 @@ public class CheckpointManager : MonoBehaviour
         // Find StopwatchTimer
         gameTimer = FindFirstObjectByType<StopwatchTimer>();
         if (gameTimer == null) Debug.LogWarning("CheckpointManager: StopwatchTimer not found! Timestamps will be 0.");
-        
+
+        // Auto-find EmpathyMeter if not assigned — or create one automatically
+        if (empathyMeter == null)
+        {
+            empathyMeter = FindFirstObjectByType<EmpathyMeter>();
+        }
+        if (empathyMeter == null)
+        {
+            Debug.Log("<color=cyan>[CheckpointManager]</color> No EmpathyMeter found in scene — auto-creating one...");
+            GameObject meterObj = new GameObject("EmpathyMeter_AutoCreated");
+            empathyMeter = meterObj.AddComponent<EmpathyMeter>();
+        }
        
     }
     
@@ -355,6 +372,156 @@ public class CheckpointManager : MonoBehaviour
         Debug.Log($"CheckpointManager: Default spawn position set to {position}");
     }
     
+    // ========================================================================
+    // METRIC TRACKING — Dialogue (Metric 1: Listening)
+    // ========================================================================
+
+    /// <summary>
+    /// Records dialogue interaction result for a checkpoint.
+    /// Called by Checkpoint script when dialogue is completed or player leaves early.
+    /// 
+    /// The listenRatio is a continuous value from 0.0 to 1.0:
+    ///   1.0 = player was perfectly still during entire dialogue
+    ///   0.0 = player was moving the entire time / walked away immediately
+    /// 
+    /// Only the first result per checkpoint is recorded (prevents duplicates).
+    /// </summary>
+    public void RecordDialogueInteraction(int checkpointID, float listenRatio)
+    {
+        if (!dialogueResults.ContainsKey(checkpointID))
+        {
+            dialogueResults[checkpointID] = Mathf.Clamp01(listenRatio);
+            string status = listenRatio >= 0.5f ? "Listened" : "Not Listened";
+            Debug.Log($"<color=yellow>[Dialogue Metric]</color> Checkpoint {checkpointID}: {status} (ratio: {listenRatio:F2})");
+            
+            // Update empathy meter
+            RecalculateAndPushMetrics();
+        }
+        else
+        {
+            Debug.Log($"<color=yellow>[Dialogue Metric]</color> Checkpoint {checkpointID}: Already recorded, skipping.");
+        }
+    }
+
+    /// <summary>
+    /// Backwards-compatible overload: converts bool to float ratio.
+    /// true = 1.0 (listened), false = 0.0 (didn't listen)
+    /// </summary>
+    public void RecordDialogueInteraction(int checkpointID, bool listened)
+    {
+        RecordDialogueInteraction(checkpointID, listened ? 1.0f : 0.0f);
+    }
+
+    // ========================================================================
+    // METRIC TRACKING — Choices (Metric 2: Clarification, Metric 3: Reinforcement)
+    // ========================================================================
+
+    /// <summary>
+    /// Records a choice interaction result for a checkpoint.
+    /// Called by CheckpointInteraction when the player makes (or doesn't make) a choice.
+    /// Only the first result per checkpoint is recorded.
+    /// </summary>
+    public void RecordChoiceInteraction(int checkpointID, ChoiceCategory category)
+    {
+        if (!choiceResults.ContainsKey(checkpointID))
+        {
+            choiceResults[checkpointID] = category;
+            Debug.Log($"<color=yellow>[Choice Metric]</color> Checkpoint {checkpointID}: {category}");
+
+            // Update empathy meter
+            RecalculateAndPushMetrics();
+        }
+        else
+        {
+            Debug.Log($"<color=yellow>[Choice Metric]</color> Checkpoint {checkpointID}: Already recorded, skipping.");
+        }
+    }
+
+    // ========================================================================
+    // METRIC CALCULATION — Push to Empathy Meter
+    // ========================================================================
+
+    /// <summary>
+    /// Recalculates all three metric scores from tracked data and pushes them to the EmpathyMeter.
+    /// Called after each new interaction record.
+    /// </summary>
+    private void RecalculateAndPushMetrics()
+    {
+        // ─── Metric 1: Listening Rate ───
+        float listeningRate = 0.5f; // Default neutral
+        if (dialogueResults.Count > 0)
+        {
+            float totalListenRatio = 0f;
+            foreach (var kvp in dialogueResults)
+            {
+                totalListenRatio += kvp.Value;
+            }
+            listeningRate = totalListenRatio / dialogueResults.Count;
+        }
+
+        // ─── Metric 2: Visual Clarification Score ───
+        // HighEmpathy choices increase score, LowEmpathy choices decrease it
+        float clarificationScore = 0.5f; // Default neutral
+        int clarificationRelevantCount = 0;
+        int highEmpathyCount = 0;
+        foreach (var kvp in choiceResults)
+        {
+            if (kvp.Value == ChoiceCategory.HighEmpathy || kvp.Value == ChoiceCategory.LowEmpathy)
+            {
+                clarificationRelevantCount++;
+                if (kvp.Value == ChoiceCategory.HighEmpathy)
+                {
+                    highEmpathyCount++;
+                }
+            }
+        }
+        if (clarificationRelevantCount > 0)
+        {
+            clarificationScore = (float)highEmpathyCount / clarificationRelevantCount;
+        }
+
+        // ─── Metric 3: Positive Reinforcement Score ───
+        // PositiveReinforcement increases score, NegativeReinforcement decreases it
+        float reinforcementScore = 0.5f; // Default neutral
+        int reinforcementRelevantCount = 0;
+        int positiveCount = 0;
+        foreach (var kvp in choiceResults)
+        {
+            if (kvp.Value == ChoiceCategory.PositiveReinforcement || kvp.Value == ChoiceCategory.NegativeReinforcement)
+            {
+                reinforcementRelevantCount++;
+                if (kvp.Value == ChoiceCategory.PositiveReinforcement)
+                {
+                    positiveCount++;
+                }
+            }
+        }
+        if (reinforcementRelevantCount > 0)
+        {
+            reinforcementScore = (float)positiveCount / reinforcementRelevantCount;
+        }
+
+        // ─── Push to Meter ───
+        if (empathyMeter != null)
+        {
+            empathyMeter.UpdateListeningScore(listeningRate);
+            empathyMeter.UpdateClarificationScore(clarificationScore);
+            empathyMeter.UpdateReinforcementScore(reinforcementScore);
+        }
+
+        // Report to AdaptiveBackend
+        if (AdaptiveBackend.Instance != null)
+        {
+            AdaptiveBackend.Instance.ReceiveData("EmpathyMetrics", "ListeningRate", listeningRate);
+            AdaptiveBackend.Instance.ReceiveData("EmpathyMetrics", "ClarificationScore", clarificationScore);
+            AdaptiveBackend.Instance.ReceiveData("EmpathyMetrics", "ReinforcementScore", reinforcementScore);
+        }
+    }
+
+    // ========================================================================
+    // EVALUATION — End of Level
+    // ========================================================================
+
     /// <summary>
     /// Evaluates player performance at the last checkpoint using AI backend.
     /// If dissimilarity > 50%, gives confident answer. Otherwise not confident.
@@ -364,8 +531,8 @@ public class CheckpointManager : MonoBehaviour
     {
         Debug.Log($"<color=cyan>=== EVALUATING PLAYER PERFORMANCE ===</color>");
         
-        // Print dialogue listening metric
-        PrintDialogueMetric();
+        // Print all empathy metrics
+        PrintAllMetrics();
         
         // Get backend instance and trigger evaluation
         AdaptiveBackend backend = AdaptiveBackend.Instance;
@@ -407,59 +574,88 @@ public class CheckpointManager : MonoBehaviour
     }
     
     /// <summary>
-    /// Records dialogue interaction result for a checkpoint.
-    /// Called by Checkpoint script when dialogue is completed or player leaves early.
-    /// Only the first result per checkpoint is recorded (prevents duplicates).
+    /// Prints ALL empathy metrics to the console: listening, clarification, reinforcement, and composite.
     /// </summary>
-    public void RecordDialogueInteraction(int checkpointID, bool listened)
-    {
-        if (!dialogueResults.ContainsKey(checkpointID))
-        {
-            dialogueResults[checkpointID] = listened;
-            Debug.Log($"<color=yellow>[Dialogue Metric]</color> Checkpoint {checkpointID}: {(listened ? "Listened" : "Not Listened")}");
-        }
-        else
-        {
-            Debug.Log($"<color=yellow>[Dialogue Metric]</color> Checkpoint {checkpointID}: Already recorded, skipping.");
-        }
-    }
-    
-    /// <summary>
-    /// Prints the complete dialogue listening metric to the console.
-    /// Shows per-checkpoint results and overall listening rate.
-    /// </summary>
-    private void PrintDialogueMetric()
+    private void PrintAllMetrics()
     {
         Debug.Log($"<color=magenta>╔═══════════════════════════════════════════════╗</color>");
-        Debug.Log($"<color=magenta>║       DIALOGUE LISTENING METRIC               ║</color>");
+        Debug.Log($"<color=magenta>║       EMPATHY METRICS — LEVEL SUMMARY        ║</color>");
         Debug.Log($"<color=magenta>╠═══════════════════════════════════════════════╣</color>");
         
+        // ── Metric 1: Listening ──
+        Debug.Log($"<color=magenta>║</color>  <color=white>─── METRIC 1: LISTENING ───</color>");
+        float totalListenRatio = 0f;
         int listenedCount = 0;
-        int totalTracked = dialogueResults.Count;
+        int totalDialogue = dialogueResults.Count;
         
-        // Print per-checkpoint status
         for (int i = 0; i < totalCheckpointsInLevel; i++)
         {
             if (dialogueResults.ContainsKey(i))
             {
-                bool listened = dialogueResults[i];
-                if (listened) listenedCount++;
-                string status = listened ? "<color=green>LISTENED</color>" : "<color=red>NOT LISTENED</color>";
-                Debug.Log($"<color=magenta>║</color>  Checkpoint {i}: {status}");
+                float ratio = dialogueResults[i];
+                totalListenRatio += ratio;
+                if (ratio >= 0.5f) listenedCount++;
+                string status = ratio >= 0.5f ? "<color=green>LISTENED</color>" : "<color=red>NOT LISTENED</color>";
+                Debug.Log($"<color=magenta>║</color>  Checkpoint {i}: {status} (ratio: {ratio:F2})");
             }
             else
             {
-                Debug.Log($"<color=magenta>║</color>  Checkpoint {i}: <color=grey>NO DATA (not reached or no dialogue)</color>");
+                Debug.Log($"<color=magenta>║</color>  Checkpoint {i}: <color=grey>NO DATA</color>");
             }
         }
+        float listeningRate = (totalDialogue > 0) ? totalListenRatio / totalDialogue : 0f;
+        Debug.Log($"<color=magenta>║</color>  <color=white>LISTENING RATE: {listeningRate:P0}</color>");
         
-        // Calculate listening rate
-        float listeningRate = (totalTracked > 0) ? ((float)listenedCount / totalTracked) * 100f : 0f;
+        // ── Metric 2: Visual Clarification ──
+        Debug.Log($"<color=magenta>║</color>");
+        Debug.Log($"<color=magenta>║</color>  <color=white>─── METRIC 2: VISUAL CLARIFICATION ───</color>");
+        int highEmpathy = 0, lowEmpathy = 0;
+        foreach (var kvp in choiceResults)
+        {
+            if (kvp.Value == ChoiceCategory.HighEmpathy) highEmpathy++;
+            else if (kvp.Value == ChoiceCategory.LowEmpathy) lowEmpathy++;
+        }
+        int totalClarification = highEmpathy + lowEmpathy;
+        float clarificationRate = totalClarification > 0 ? (float)highEmpathy / totalClarification : 0f;
+        Debug.Log($"<color=magenta>║</color>  High Empathy choices: {highEmpathy}");
+        Debug.Log($"<color=magenta>║</color>  Low Empathy choices: {lowEmpathy}");
+        Debug.Log($"<color=magenta>║</color>  <color=white>CLARIFICATION RATE: {clarificationRate:P0}</color>");
         
+        // ── Metric 3: Positive Reinforcement ──
+        Debug.Log($"<color=magenta>║</color>");
+        Debug.Log($"<color=magenta>║</color>  <color=white>─── METRIC 3: POSITIVE REINFORCEMENT ───</color>");
+        int positive = 0, negative = 0;
+        foreach (var kvp in choiceResults)
+        {
+            if (kvp.Value == ChoiceCategory.PositiveReinforcement) positive++;
+            else if (kvp.Value == ChoiceCategory.NegativeReinforcement) negative++;
+        }
+        int totalReinforcement = positive + negative;
+        float reinforcementRate = totalReinforcement > 0 ? (float)positive / totalReinforcement : 0f;
+        Debug.Log($"<color=magenta>║</color>  Positive choices: {positive}");
+        Debug.Log($"<color=magenta>║</color>  Negative choices: {negative}");
+        Debug.Log($"<color=magenta>║</color>  <color=white>REINFORCEMENT RATE: {reinforcementRate:P0}</color>");
+        
+        // ── Composite ──
         Debug.Log($"<color=magenta>╠═══════════════════════════════════════════════╣</color>");
-        Debug.Log($"<color=magenta>║</color>  Checkpoints Listened: {listenedCount} / {totalTracked}");
-        Debug.Log($"<color=magenta>║</color>  <color=white>LISTENING RATE: {listeningRate:F1}%</color>");
+        if (empathyMeter != null)
+        {
+            Debug.Log($"<color=magenta>║</color>  <color=white>COMPOSITE EMPATHY SCORE: {empathyMeter.CompositeScore:P0}</color>");
+            Debug.Log($"<color=magenta>║</color>  <color=white>TIER: {empathyMeter.GetQualitativeTier()}</color>");
+        }
+        else
+        {
+            float composite = listeningRate * 0.4f + clarificationRate * 0.3f + reinforcementRate * 0.3f;
+            Debug.Log($"<color=magenta>║</color>  <color=white>COMPOSITE EMPATHY SCORE: {composite:P0}</color>");
+        }
         Debug.Log($"<color=magenta>╚═══════════════════════════════════════════════╝</color>");
+
+        // ── All choice results ──
+        Debug.Log($"<color=magenta>║</color>  <color=white>ALL CHOICES:</color>");
+        foreach (var kvp in choiceResults)
+        {
+            Debug.Log($"<color=magenta>║</color>    Checkpoint {kvp.Key}: {kvp.Value}");
+        }
     }
 
     /// <summary>
