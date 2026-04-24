@@ -1,271 +1,95 @@
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
+using MagicPigGames; // From the InfinityPBR ProgressBar asset
 
 /// <summary>
-/// Displays the composite empathy score as a visual meter on screen.
-/// Driven programmatically by CheckpointManager — NOT by arrow keys.
-/// 
-/// AUTO-CREATES its own UI if no references are assigned in the Inspector.
-/// Just add this component to any GameObject (or let CheckpointManager auto-create it)
-/// and the meter will appear on screen automatically.
-/// 
-/// The meter combines three sub-scores:
-///   1. Listening Rate      — Did the player stop moving to listen to NPC dialogue?
-///   2. Clarification Score  — Did the player choose visual/concrete (DS-friendly) response options?
-///   3. Reinforcement Score  — Did the player validate the NPC's feelings after errors?
+/// Displays the running empathy tally using the Horizontal Progress Bar asset.
+/// Acts incrementally: positive empathy actions increase the bar,
+/// negative empathy actions decrease the bar.
 /// </summary>
 public class EmpathyMeter : MonoBehaviour
 {
-    [Header("UI References (auto-created if left empty)")]
-    [Tooltip("The fill bar Image (Image Type = Filled, Fill Method = Horizontal)")]
-    [SerializeField] private Image fillImage;
+    [Header("Meter Asset References")]
+    [Tooltip("If you placed the Horizontal Progress Bar in the scene, assign it here.")]
+    [SerializeField] private HorizontalProgressBar sceneProgressBar;
 
-    [Tooltip("Background/border Image for the meter frame")]
-    [SerializeField] private Image borderImage;
+    [Tooltip("If the scene bar is empty, the meter will auto-spawn this prefab.")]
+    [SerializeField] private HorizontalProgressBar progressBarPrefab;
 
-    [Tooltip("Label showing the current score percentage")]
-    [SerializeField] private TMP_Text scoreLabel;
+    [Header("Empathy Tally")]
+    [SerializeField][Range(0f, 1f)] private float initialEmpathy = 0.5f;
 
-    [Tooltip("Label showing a qualitative description")]
-    [SerializeField] private TMP_Text qualitativeLabel;
+    [Header("Screen Placement (If Auto-spawned)")]
+    [SerializeField] private Vector2 screenOffset = new Vector2(50f, -60f); // Top-center, shifted slightly right
+    [SerializeField] private float barScale = 0.5f;
 
-    [Tooltip("Label for the meter title")]
-    [SerializeField] private TMP_Text titleLabel;
-
-    [Header("Appearance")]
-    [Tooltip("Fill color gradient from low empathy (left) to high empathy (right)")]
-    [SerializeField] private Gradient fillGradient;
-
-    [Tooltip("How fast the meter bar animates to its target")]
-    [SerializeField] private float smoothSpeed = 2f;
-
-    [Header("Meter Size & Position")]
-    [SerializeField] private float meterWidth = 220f;
-    [SerializeField] private float meterHeight = 28f;
-    [Tooltip("Offset from top-right corner (negative X = left, negative Y = down)")]
-    [SerializeField] private Vector2 screenOffset = new Vector2(-30f, -60f);
-
-    [Header("Metric Weights (should sum to 1.0)")]
-    [SerializeField][Range(0f, 1f)] private float listeningWeight = 0.4f;
-    [SerializeField][Range(0f, 1f)] private float clarificationWeight = 0.3f;
-    [SerializeField][Range(0f, 1f)] private float reinforcementWeight = 0.3f;
-
-    [Header("Initial Values")]
-    [SerializeField][Range(0f, 1f)] private float initialFill = 0.5f;
-
-    // Current sub-scores (0.0 to 1.0 range)
-    private float listeningScore;
-    private float clarificationScore;
-    private float reinforcementScore;
-
-    // Internal display state
-    private float targetFill;
-    private float displayedFill;
-    private bool hasReceivedAnyScore = false;
+    // The single incremental tally
+    private float currentEmpathy;
+    private HorizontalProgressBar activeBar;
+    private bool uiIsSetup = false;
 
     // Qualitative tier thresholds
     private static readonly string[] tiers = { "Disconnected", "Developing", "Attentive", "Empathetic", "Deeply Connected" };
 
-    // Auto-created canvas reference
-    private Canvas meterCanvas;
-
-    /// <summary>
-    /// The current composite empathy score (0.0 to 1.0).
-    /// </summary>
-    public float CompositeScore
-    {
-        get
-        {
-            if (!hasReceivedAnyScore) return initialFill;
-            return Mathf.Clamp01(
-                listeningWeight * listeningScore +
-                clarificationWeight * clarificationScore +
-                reinforcementWeight * reinforcementScore
-            );
-        }
-    }
-
-    void Awake()
-    {
-        SetupGradient();
-    }
+    public float CurrentEmpathy => currentEmpathy;
 
     void Start()
     {
-        // Auto-create UI if fill image isn't assigned
-        if (fillImage == null)
-        {
-            CreateMeterUI();
-        }
-
-        // Initialize display
-        listeningScore = initialFill;
-        clarificationScore = initialFill;
-        reinforcementScore = initialFill;
-        displayedFill = initialFill;
-        targetFill = initialFill;
-
-        UpdateVisuals(true);
-        Debug.Log("<color=cyan>[EmpathyMeter]</color> Initialized. Meter is visible on screen.");
+        // Load the global score if it exists, otherwise use initial
+        currentEmpathy = PlayerPrefs.GetFloat("GlobalEmpathyScore", initialEmpathy);
+        
+        SetupMeterUI();
+        UpdateMeterVisual();
     }
 
-    void Update()
+    private void SetupMeterUI()
     {
-        targetFill = CompositeScore;
-
-        // Smooth lerp towards target
-        if (!Mathf.Approximately(displayedFill, targetFill))
+        // 1. If assigned in scene, just use it
+        if (sceneProgressBar != null)
         {
-            displayedFill = Mathf.Lerp(displayedFill, targetFill, Time.deltaTime * smoothSpeed);
+            activeBar = sceneProgressBar;
+            uiIsSetup = true;
+            return;
+        }
 
-            if (Mathf.Abs(displayedFill - targetFill) < 0.001f)
+        // 2. Otherwise, spawn the prefab into a new Canvas
+        if (progressBarPrefab != null)
+        {
+            Debug.Log("<color=cyan>[EmpathyMeter]</color> Spawning Horizontal Progress Bar prefab...");
+            
+            // Create a Screen-Space Overlay canvas to hold it
+            GameObject canvasObj = new GameObject("EmpathyMeter_Canvas");
+            canvasObj.transform.SetParent(transform);
+            Canvas meterCanvas = canvasObj.AddComponent<Canvas>();
+            meterCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            meterCanvas.sortingOrder = 100;
+            
+            UnityEngine.UI.CanvasScaler scaler = canvasObj.AddComponent<UnityEngine.UI.CanvasScaler>();
+            scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920, 1080);
+            scaler.matchWidthOrHeight = 0.5f;
+
+            // Spawn the prefab
+            activeBar = Instantiate(progressBarPrefab, canvasObj.transform);
+            
+            // Bypass stale Unity Inspector values by forcing it here
+            Vector2 actualOffset = new Vector2(180f, -60f); // Shifted right
+
+            // Ensure the RectTransform is positioned properly
+            RectTransform rt = activeBar.GetComponent<RectTransform>();
+            if (rt != null)
             {
-                displayedFill = targetFill;
+                rt.anchorMin = new Vector2(0.5f, 1f);
+                rt.anchorMax = new Vector2(0.5f, 1f);
+                rt.pivot = new Vector2(0.5f, 1f);
+                rt.anchoredPosition = actualOffset;
+                rt.localScale = new Vector3(barScale, barScale, 1f);
             }
 
-            UpdateVisuals(false);
+            uiIsSetup = true;
         }
-    }
-
-    // ========================================================================
-    // AUTO-CREATE UI — No Unity Editor setup needed!
-    // ========================================================================
-
-    private void CreateMeterUI()
-    {
-        Debug.Log("<color=cyan>[EmpathyMeter]</color> No UI references assigned — auto-creating meter UI...");
-
-        // ── Create dedicated Canvas (Screen Space Overlay, renders on top of everything) ──
-        GameObject canvasObj = new GameObject("EmpathyMeter_Canvas");
-        canvasObj.transform.SetParent(transform);
-        meterCanvas = canvasObj.AddComponent<Canvas>();
-        meterCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        meterCanvas.sortingOrder = 100; // Render above everything
-
-        CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920, 1080);
-        scaler.matchWidthOrHeight = 0.5f;
-
-        canvasObj.AddComponent<GraphicRaycaster>();
-
-        // ── Container panel (anchored to top-right) ──
-        GameObject container = CreateUIObject("MeterContainer", canvasObj.transform);
-        RectTransform containerRect = container.GetComponent<RectTransform>();
-        containerRect.anchorMin = new Vector2(1, 1); // Top-right
-        containerRect.anchorMax = new Vector2(1, 1);
-        containerRect.pivot = new Vector2(1, 1);
-        containerRect.anchoredPosition = screenOffset;
-        containerRect.sizeDelta = new Vector2(meterWidth, meterHeight + 40f); // Extra height for labels
-
-        // ── Title label ("Empathy") ──
-        GameObject titleObj = CreateUIObject("TitleLabel", container.transform);
-        titleLabel = titleObj.AddComponent<TextMeshProUGUI>();
-        titleLabel.text = "Empathy";
-        titleLabel.fontSize = 14f;
-        titleLabel.fontStyle = FontStyles.Bold;
-        titleLabel.color = new Color(0.9f, 0.9f, 0.95f, 0.9f);
-        titleLabel.alignment = TextAlignmentOptions.Left;
-        RectTransform titleRect = titleObj.GetComponent<RectTransform>();
-        titleRect.anchorMin = new Vector2(0, 1);
-        titleRect.anchorMax = new Vector2(0.7f, 1);
-        titleRect.pivot = new Vector2(0, 1);
-        titleRect.anchoredPosition = new Vector2(0, 0);
-        titleRect.sizeDelta = new Vector2(0, 18f);
-
-        // ── Score label (percentage, top-right of bar) ──
-        GameObject scoreLabelObj = CreateUIObject("ScoreLabel", container.transform);
-        scoreLabel = scoreLabelObj.AddComponent<TextMeshProUGUI>();
-        scoreLabel.text = "50%";
-        scoreLabel.fontSize = 13f;
-        scoreLabel.color = new Color(0.85f, 0.85f, 0.9f, 0.85f);
-        scoreLabel.alignment = TextAlignmentOptions.Right;
-        RectTransform scoreRect = scoreLabelObj.GetComponent<RectTransform>();
-        scoreRect.anchorMin = new Vector2(0.7f, 1);
-        scoreRect.anchorMax = new Vector2(1, 1);
-        scoreRect.pivot = new Vector2(1, 1);
-        scoreRect.anchoredPosition = new Vector2(0, 0);
-        scoreRect.sizeDelta = new Vector2(0, 18f);
-
-        // ── Background (dark rounded bar) ──
-        GameObject bgObj = CreateUIObject("MeterBackground", container.transform);
-        borderImage = bgObj.AddComponent<Image>();
-        borderImage.color = new Color(0.12f, 0.12f, 0.16f, 0.85f);
-        RectTransform bgRect = bgObj.GetComponent<RectTransform>();
-        bgRect.anchorMin = new Vector2(0, 0);
-        bgRect.anchorMax = new Vector2(1, 1);
-        bgRect.pivot = new Vector2(0.5f, 0);
-        bgRect.anchoredPosition = new Vector2(0, 0);
-        bgRect.sizeDelta = new Vector2(0, -20f); // Leave room for labels above
-        // Add slight outline effect
-        Outline bgOutline = bgObj.AddComponent<Outline>();
-        bgOutline.effectColor = new Color(0.3f, 0.3f, 0.4f, 0.5f);
-        bgOutline.effectDistance = new Vector2(1, 1);
-
-        // ── Fill bar ──
-        GameObject fillObj = CreateUIObject("MeterFill", bgObj.transform);
-        fillImage = fillObj.AddComponent<Image>();
-        fillImage.type = Image.Type.Filled;
-        fillImage.fillMethod = Image.FillMethod.Horizontal;
-        fillImage.fillOrigin = (int)Image.OriginHorizontal.Left;
-        fillImage.fillAmount = initialFill;
-        fillImage.color = Color.green; // Will be overridden by gradient
-        RectTransform fillRect = fillObj.GetComponent<RectTransform>();
-        fillRect.anchorMin = new Vector2(0, 0);
-        fillRect.anchorMax = new Vector2(1, 1);
-        fillRect.offsetMin = new Vector2(3, 3); // Inner padding
-        fillRect.offsetMax = new Vector2(-3, -3);
-
-        // ── Tier label (below the bar) ──
-        GameObject tierObj = CreateUIObject("TierLabel", container.transform);
-        qualitativeLabel = tierObj.AddComponent<TextMeshProUGUI>();
-        qualitativeLabel.text = "Attentive";
-        qualitativeLabel.fontSize = 11f;
-        qualitativeLabel.fontStyle = FontStyles.Italic;
-        qualitativeLabel.color = new Color(0.7f, 0.75f, 0.8f, 0.7f);
-        qualitativeLabel.alignment = TextAlignmentOptions.Center;
-        RectTransform tierRect = tierObj.GetComponent<RectTransform>();
-        tierRect.anchorMin = new Vector2(0, 0);
-        tierRect.anchorMax = new Vector2(1, 0);
-        tierRect.pivot = new Vector2(0.5f, 1);
-        tierRect.anchoredPosition = new Vector2(0, -2f);
-        tierRect.sizeDelta = new Vector2(0, 16f);
-
-        Debug.Log("<color=cyan>[EmpathyMeter]</color> UI auto-created successfully.");
-    }
-
-    private GameObject CreateUIObject(string name, Transform parent)
-    {
-        GameObject obj = new GameObject(name, typeof(RectTransform));
-        obj.transform.SetParent(parent, false);
-        return obj;
-    }
-
-    // ========================================================================
-    // GRADIENT SETUP
-    // ========================================================================
-
-    private void SetupGradient()
-    {
-        if (fillGradient == null || fillGradient.colorKeys.Length <= 2)
+        else
         {
-            fillGradient = new Gradient();
-            GradientColorKey[] colorKeys = new GradientColorKey[]
-            {
-                new GradientColorKey(new Color(0.85f, 0.2f, 0.2f),  0f),     // Red at 0%
-                new GradientColorKey(new Color(0.90f, 0.55f, 0.15f), 0.25f), // Orange at 25%
-                new GradientColorKey(new Color(0.95f, 0.80f, 0.15f), 0.45f), // Yellow at 45%
-                new GradientColorKey(new Color(0.45f, 0.85f, 0.35f), 0.65f), // Green at 65%
-                new GradientColorKey(new Color(0.25f, 0.70f, 0.95f), 0.85f), // Blue at 85%
-                new GradientColorKey(new Color(0.65f, 0.45f, 0.95f), 1f)     // Purple at 100% (exceptional)
-            };
-            GradientAlphaKey[] alphaKeys = new GradientAlphaKey[]
-            {
-                new GradientAlphaKey(1f, 0f),
-                new GradientAlphaKey(1f, 1f)
-            };
-            fillGradient.SetKeys(colorKeys, alphaKeys);
+            Debug.LogWarning("<color=red>[EmpathyMeter]</color> No scene progress bar and no prefab assigned! Meter will not display.");
         }
     }
 
@@ -274,73 +98,48 @@ public class EmpathyMeter : MonoBehaviour
     // ========================================================================
 
     /// <summary>
-    /// Updates the listening sub-score (Metric 1).
-    /// Value should be 0.0 (never listened) to 1.0 (always listened perfectly).
+    /// Increases the empathy tally by a set amount (simulating pushing "e").
     /// </summary>
-    public void UpdateListeningScore(float score)
+    public void AddEmpathy(float amount)
     {
-        hasReceivedAnyScore = true;
-        listeningScore = Mathf.Clamp01(score);
-        Debug.Log($"<color=cyan>[EmpathyMeter]</color> Listening: {listeningScore:P0} | Composite: {CompositeScore:P0}");
+        currentEmpathy = Mathf.Clamp01(currentEmpathy + amount);
+        PlayerPrefs.SetFloat("GlobalEmpathyScore", currentEmpathy); // Save globally
+        PlayerPrefs.Save();
+        
+        Debug.Log($"<color=cyan>[EmpathyMeter]</color> Empathy INCREASED by {amount:F2}. New: {currentEmpathy:P0}");
+        UpdateMeterVisual();
     }
 
     /// <summary>
-    /// Updates the visual clarification sub-score (Metric 2).
-    /// Value should be 0.0 (always abstract/harsh) to 1.0 (always visual/empathetic).
+    /// Reduces the empathy tally by a set amount (simulating pushing "q").
     /// </summary>
-    public void UpdateClarificationScore(float score)
+    public void ReduceEmpathy(float amount)
     {
-        hasReceivedAnyScore = true;
-        clarificationScore = Mathf.Clamp01(score);
-        Debug.Log($"<color=cyan>[EmpathyMeter]</color> Clarification: {clarificationScore:P0} | Composite: {CompositeScore:P0}");
+        currentEmpathy = Mathf.Clamp01(currentEmpathy - amount);
+        PlayerPrefs.SetFloat("GlobalEmpathyScore", currentEmpathy); // Save globally
+        PlayerPrefs.Save();
+        
+        Debug.Log($"<color=cyan>[EmpathyMeter]</color> Empathy DECREASED by {amount:F2}. New: {currentEmpathy:P0}");
+        UpdateMeterVisual();
     }
 
     /// <summary>
-    /// Updates the positive reinforcement sub-score (Metric 3).
-    /// Value should be 0.0 (always blaming) to 1.0 (always validating).
-    /// </summary>
-    public void UpdateReinforcementScore(float score)
-    {
-        hasReceivedAnyScore = true;
-        reinforcementScore = Mathf.Clamp01(score);
-        Debug.Log($"<color=cyan>[EmpathyMeter]</color> Reinforcement: {reinforcementScore:P0} | Composite: {CompositeScore:P0}");
-    }
-
-    /// <summary>
-    /// Gets the qualitative tier name based on composite score.
+    /// Gets the qualitative tier name based on the current running tally.
     /// </summary>
     public string GetQualitativeTier()
     {
-        float score = CompositeScore;
-        if (score < 0.2f) return tiers[0];       // Disconnected
-        if (score < 0.4f) return tiers[1];        // Developing
-        if (score < 0.6f) return tiers[2];        // Attentive
-        if (score < 0.8f) return tiers[3];        // Empathetic
-        return tiers[4];                           // Deeply Connected
+        if (currentEmpathy < 0.2f) return tiers[0];       // Disconnected
+        if (currentEmpathy < 0.4f) return tiers[1];       // Developing
+        if (currentEmpathy < 0.6f) return tiers[2];       // Attentive
+        if (currentEmpathy < 0.8f) return tiers[3];       // Empathetic
+        return tiers[4];                                  // Deeply Connected
     }
 
-    // ========================================================================
-    // INTERNAL — Visuals
-    // ========================================================================
-
-    private void UpdateVisuals(bool immediate)
+    private void UpdateMeterVisual()
     {
-        float fill = immediate ? CompositeScore : displayedFill;
-
-        if (fillImage != null)
-        {
-            fillImage.fillAmount = fill;
-            fillImage.color = fillGradient.Evaluate(fill);
-        }
-
-        if (scoreLabel != null)
-        {
-            scoreLabel.text = $"{Mathf.RoundToInt(fill * 100)}%";
-        }
-
-        if (qualitativeLabel != null)
-        {
-            qualitativeLabel.text = GetQualitativeTier();
-        }
+        if (!uiIsSetup || activeBar == null) return;
+        
+        // Use the asset's SetProgress method to trigger its internal visual transitions
+        activeBar.SetProgress(currentEmpathy);
     }
 }
