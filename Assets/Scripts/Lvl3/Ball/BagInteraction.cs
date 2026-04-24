@@ -4,7 +4,7 @@ using System.Collections;
 public class BagInteraction : MonoBehaviour
 {
     [Header("Interaction Settings")]
-    [SerializeField] private KeyCode interactKey = KeyCode.E;
+    [SerializeField] private KeyCode interactKey = KeyCode.I;
     [SerializeField] private float interactRange = 2.5f;
     [Tooltip("Optional child object (text / sprite) shown when the player can deposit the ball.")]
     [SerializeField] private GameObject interactPrompt;

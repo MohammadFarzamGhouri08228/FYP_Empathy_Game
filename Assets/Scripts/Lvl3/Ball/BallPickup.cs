@@ -21,6 +21,7 @@ public class BallPickup : MonoBehaviour
 
     // Used to prevent picking up multiple balls in the exact same frame
     private static int lastPickupFrame = -1;
+    private static bool isShaking = false;
 
     private Transform playerTransform;
     private bool isCollected = false;
@@ -177,6 +178,7 @@ public class BallPickup : MonoBehaviour
     public static void ResetBall()
     {
         hasBall = false;
+        isShaking = false;
         if (ballIndicatorInstance != null)
         {
             Destroy(ballIndicatorInstance);
@@ -187,8 +189,15 @@ public class BallPickup : MonoBehaviour
     // A simple screen shake effect
     private IEnumerator ScreenShake()
     {
+        if (isShaking) yield break;
+        isShaking = true;
+
         Camera mainCam = Camera.main;
-        if (mainCam == null) yield break;
+        if (mainCam == null) 
+        {
+            isShaking = false;
+            yield break;
+        }
 
         Vector3 originalPos = mainCam.transform.localPosition;
         float elapsed = 0f;
@@ -197,15 +206,22 @@ public class BallPickup : MonoBehaviour
 
         while (elapsed < duration)
         {
-            float x = Random.Range(-1f, 1f) * magnitude;
-            float y = Random.Range(-1f, 1f) * magnitude;
+            if (mainCam != null)
+            {
+                float x = Random.Range(-1f, 1f) * magnitude;
+                float y = Random.Range(-1f, 1f) * magnitude;
 
-            mainCam.transform.localPosition = originalPos + new Vector3(x, y, 0);
+                mainCam.transform.localPosition = originalPos + new Vector3(x, y, 0);
+            }
             elapsed += Time.deltaTime;
             yield return null;
         }
 
-        mainCam.transform.localPosition = originalPos;
+        if (mainCam != null)
+        {
+            mainCam.transform.localPosition = originalPos;
+        }
+        isShaking = false;
     }
 
     void OnDrawGizmosSelected()
