@@ -5480,6 +5480,7 @@ MonoBehaviour:
   defaultSpawnPosition: {x: 0, y: 0, z: 0}
   totalCheckpointsInLevel: 5
   nextSceneName: Level2
+  empathyMeter: {fileID: 0}
 --- !u!4 &1363865994
 Transform:
   m_ObjectHideFlags: 0
@@ -6670,10 +6671,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3ce30059e731c646845a0fba4740372, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BagInteraction
-  interactKey: 101
-  interactRange: 2.5
+  interactKey: 105
+  interactRange: 1.5
   interactPrompt: {fileID: 0}
-  flyDuration: 0.5
+  flyDuration: 1
   vibrateDuration: 0.3
   vibrateMagnitude: 0.05
   bagOpeningOffset: {x: 0, y: 0.5, z: 0}
@@ -7010,6 +7011,8 @@ MonoBehaviour:
   - {fileID: 321232771}
   - {fileID: 105193420}
   - {fileID: 1649651858}
+  checkpointID: 0
+  optionCategories: 
   ttsSystem: {fileID: 0}
   readOptionsAloud: 1
   normalColor: {r: 1, g: 1, b: 1, a: 1}
