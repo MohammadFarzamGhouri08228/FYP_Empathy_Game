@@ -12253,8 +12253,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NPCSpriteAnimator
   idleSprite: {fileID: -401479890214951856, guid: 67ad4f634c40a764b9104a33bcd3bfb6, type: 3}
-  walkSprite1: {fileID: 8202833139169023654, guid: 97974c14b578690488409f989e52b629, type: 3}
-  walkSprite2: {fileID: 4303826730755128093, guid: 5a9163e2a76e4bb41b412c1ccf354902, type: 3}
+  walkSprite1: {fileID: -3938545476696949806, guid: afe3f83ae4dde5046b8a1f8d5fbe8838, type: 3}
+  walkSprite2: {fileID: -4476854758332004113, guid: 25ba32767e784f840a0e444597d0c360, type: 3}
   walkCycleSpeed: 0.2
   climbSprite1: {fileID: 8286349962277291442, guid: 2865c665ba8cda34199d72fbbb71deb5, type: 3}
   climbSprite2: {fileID: -5870312433423937532, guid: 1b3fef8c53cd92443894053d66869016, type: 3}
@@ -15499,6 +15499,30 @@ PrefabInstance:
       propertyPath: m_Name
       value: player
       objectReference: {fileID: 0}
+    - target: {fileID: 3794909558571387475, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
+      propertyPath: idleSprite
+      value: 
+      objectReference: {fileID: 2546302727912234693, guid: 21fde331f05091a40a07f1c81e5ac90d, type: 3}
+    - target: {fileID: 3794909558571387475, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
+      propertyPath: walkSprite1
+      value: 
+      objectReference: {fileID: 3569534419715726002, guid: 7356de7da50da9a4388716db32d9d479, type: 3}
+    - target: {fileID: 3794909558571387475, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
+      propertyPath: walkSprite2
+      value: 
+      objectReference: {fileID: -4768337307061003219, guid: a6078c96072578349b441af15053f8df, type: 3}
+    - target: {fileID: 7135088154628111478, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.32
+      objectReference: {fileID: 0}
+    - target: {fileID: 7135088154628111478, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.32
+      objectReference: {fileID: 0}
+    - target: {fileID: 7135088154628111478, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.32
+      objectReference: {fileID: 0}
     - target: {fileID: 7135088154628111478, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
       propertyPath: m_LocalPosition.x
       value: -9.51
@@ -15539,6 +15563,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7922480512697813147, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 2546302727912234693, guid: 21fde331f05091a40a07f1c81e5ac90d, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
