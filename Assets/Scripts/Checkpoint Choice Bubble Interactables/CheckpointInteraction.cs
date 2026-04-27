@@ -161,6 +161,12 @@ public class CheckpointInteraction : MonoBehaviour
         }
 
         Debug.Log($"CheckpointInteraction (CP {checkpointID}): Player confirmed Option {selectedIndex + 1} — Category: {selectedCategory}");
+
+        // Save to PlayerPrefs (Saving as Option 1, Option 2, or Option 3)
+        int optionNumber = selectedIndex + 1;
+        PlayerPrefs.SetInt($"Checkpoint_{checkpointID}_SelectedOptionNumber", optionNumber);
+        PlayerPrefs.SetString($"Checkpoint_{checkpointID}_SelectedCategory", selectedCategory.ToString());
+        PlayerPrefs.Save();
         
         // Report choice to CheckpointManager for metric tracking
         CheckpointManager manager = CheckpointManager.Instance;
@@ -231,6 +237,11 @@ public class CheckpointInteraction : MonoBehaviour
             {
                 Debug.Log($"CheckpointInteraction (CP {checkpointID}): Player walked away without choosing. Recording as NoChoice.");
                 
+                // Save to PlayerPrefs
+                PlayerPrefs.SetInt($"Checkpoint_{checkpointID}_SelectedOptionNumber", 0); // 0 indicates no option was chosen
+                PlayerPrefs.SetString($"Checkpoint_{checkpointID}_SelectedCategory", "NoChoice");
+                PlayerPrefs.Save();
+
                 CheckpointManager manager = CheckpointManager.Instance;
                 if (manager != null)
                 {
