@@ -46,5 +46,8 @@ TagManager:
   - name: UI_Ignore_Light
     uniqueID: 4248797783
     locked: 0
+  - name: Dialouges
+    uniqueID: 1617072761
+    locked: 0
   m_RenderingLayers:
   - Default
