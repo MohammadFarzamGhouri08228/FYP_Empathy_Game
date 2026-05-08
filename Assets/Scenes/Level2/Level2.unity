@@ -2668,7 +2668,7 @@ MonoBehaviour:
   smoothTime: 0.15
   offset: {x: 0, y: 0, z: -10}
   zoomLevel: 5
-  useBounds: 1
+  useBounds: 0
   backgroundRenderer: {fileID: 0}
   minBounds: {x: -250, y: -5.12}
   maxBounds: {x: 250, y: 5.12}
@@ -12252,7 +12252,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1c69f446d6bf4f4f8425b0c875cdccb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NPCSpriteAnimator
-  idleSprite: {fileID: -401479890214951856, guid: 67ad4f634c40a764b9104a33bcd3bfb6, type: 3}
+  idleSprite: {fileID: -1558492128562542722, guid: 1be3b95cc939dbb459c22c15137d2441, type: 3}
   walkSprite1: {fileID: -3938545476696949806, guid: afe3f83ae4dde5046b8a1f8d5fbe8838, type: 3}
   walkSprite2: {fileID: -4476854758332004113, guid: 25ba32767e784f840a0e444597d0c360, type: 3}
   walkCycleSpeed: 0.2
@@ -12366,17 +12366,17 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: -0.050521493, y: 0.01684022}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.65, y: 0.88}
+    oldSize: {x: 2.33, y: 5.58}
     newSize: {x: 0.65, y: 0.88}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.65, y: 0.88}
+  m_Size: {x: 2.0982742, y: 5.4942775}
   m_EdgeRadius: 0
 --- !u!212 &1572805636
 SpriteRenderer:
@@ -12425,7 +12425,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -401479890214951856, guid: 67ad4f634c40a764b9104a33bcd3bfb6, type: 3}
+  m_Sprite: {fileID: -1558492128562542722, guid: 1be3b95cc939dbb459c22c15137d2441, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -12445,9 +12445,9 @@ Transform:
   m_GameObject: {fileID: 1572805630}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -8.64, y: 5, z: -5.46191}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalPosition: {x: -8.74, y: 4.9, z: -5.46191}
+  m_LocalScale: {x: 0.29, y: 0.29, z: 0.29}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -15491,6 +15491,30 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1474441678232308961, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
+      propertyPath: m_Size.x
+      value: 1.8661648
+      objectReference: {fileID: 0}
+    - target: {fileID: 1474441678232308961, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
+      propertyPath: m_Size.y
+      value: 4.7531366
+      objectReference: {fileID: 0}
+    - target: {fileID: 1474441678232308961, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
+      propertyPath: m_Offset.x
+      value: -0.00519675
+      objectReference: {fileID: 0}
+    - target: {fileID: 1474441678232308961, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
+      propertyPath: m_Offset.y
+      value: -0.017542839
+      objectReference: {fileID: 0}
+    - target: {fileID: 1474441678232308961, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
+      propertyPath: m_SpriteTilingProperty.oldSize.x
+      value: 1.91
+      objectReference: {fileID: 0}
+    - target: {fileID: 1474441678232308961, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
+      propertyPath: m_SpriteTilingProperty.oldSize.y
+      value: 4.85
+      objectReference: {fileID: 0}
     - target: {fileID: 3114735118629606948, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
       propertyPath: playerCamera
       value: 
