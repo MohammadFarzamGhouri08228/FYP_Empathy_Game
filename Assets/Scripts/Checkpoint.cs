@@ -49,6 +49,10 @@ public class Checkpoint : MonoBehaviour
     public GameObject portraitImage;
     public GameObject nameTitle;
 
+    [Header("Dialogue UI - Player")]
+    public GameObject playerPortraitImage;
+    public GameObject playerNameTitle;
+
     public GameObject contButton;
     public float wordSpeed = 0.02f;
     
@@ -228,28 +232,29 @@ public class Checkpoint : MonoBehaviour
         // Always hide continue button at start of each new line
         if (contButton != null) contButton.SetActive(false);
         
-        // Determine if UI should be shown based on current index
-        bool showUI = ShouldShowUI(index);
+        bool isPlayerLine = IsPlayerDialogue(dialogue[index]);
 
-        if (portraitImage != null && nameTitle != null)
+        if (portraitImage != null) portraitImage.SetActive(!isPlayerLine);
+        if (nameTitle != null) nameTitle.SetActive(!isPlayerLine);
+
+        if (playerPortraitImage != null) playerPortraitImage.SetActive(isPlayerLine);
+        if (playerNameTitle != null) playerNameTitle.SetActive(isPlayerLine);
+
+        string displayAndSpokenText = dialogue[index];
+
+        // Strip out "Musa: " from the text for both TTS and UI Display
+        if (isPlayerLine && displayAndSpokenText.StartsWith("Musa:"))
         {
-             portraitImage.SetActive(showUI);
-             nameTitle.SetActive(showUI);
+            displayAndSpokenText = displayAndSpokenText.Substring(5).Trim();
         }
 
         // Play TTS for this line
-        if (readDialogueAloud && ttsSystem != null && !string.IsNullOrWhiteSpace(dialogue[index]))
+        if (readDialogueAloud && ttsSystem != null && !string.IsNullOrWhiteSpace(displayAndSpokenText))
         {
-            // Strip out "Musa: " from the spoken text so it doesn't say her name every time
-            string spokenText = dialogue[index];
-            if (spokenText.StartsWith("Musa:"))
-            {
-                spokenText = spokenText.Substring(5).Trim();
-            }
-            ttsSystem.Speak(spokenText);
+            ttsSystem.Speak(displayAndSpokenText);
         }
 
-        dialogText.text = dialogue[index];
+        dialogText.text = displayAndSpokenText;
         dialogText.maxVisibleCharacters = 0;
         dialogText.ForceMeshUpdate(); // Ensure textInfo is updated
         
@@ -691,6 +696,7 @@ public class Checkpoint : MonoBehaviour
 
     /// <summary>
     /// Determines if the portrait and name title should be shown for the given dialogue index.
+    /// (Legacy function, no longer actively used to toggle UI, handled directly in Typing)
     /// </summary>
     private bool ShouldShowUI(int dialogueIndex)
     {
@@ -698,13 +704,10 @@ public class Checkpoint : MonoBehaviour
 
         string line = dialogue[dialogueIndex];
         
-        // START CHANGES: Updated UI Visibility Logic
-        // If it's the player's dialogue ("Musa: ..."), we HIDE usage of the UI panel (portrait/name)
         if (IsPlayerDialogue(line))
         {
             return false;
         }
-        // END CHANGES
 
         return true;
     }

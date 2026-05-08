@@ -56,6 +56,10 @@ public class Checkpoint2 : MonoBehaviour
     public GameObject portraitImage;
     public GameObject nameTitle;
 
+    [Header("Dialogue UI - Player")]
+    public GameObject playerPortraitImage;
+    public GameObject playerNameTitle;
+
     public GameObject contButton;
     public float wordSpeed = 0.03f;
     
@@ -228,25 +232,29 @@ public class Checkpoint2 : MonoBehaviour
         
         if (contButton != null) contButton.SetActive(false);
         
-        bool showUI = ShouldShowUI(index);
-        if (portraitImage != null && nameTitle != null)
+        bool isPlayerLine = IsPlayerDialogue(dialogue[index]);
+
+        if (portraitImage != null) portraitImage.SetActive(!isPlayerLine);
+        if (nameTitle != null) nameTitle.SetActive(!isPlayerLine);
+
+        if (playerPortraitImage != null) playerPortraitImage.SetActive(isPlayerLine);
+        if (playerNameTitle != null) playerNameTitle.SetActive(isPlayerLine);
+
+        string displayAndSpokenText = dialogue[index];
+
+        // Strip out "Musa: " from the text for both TTS and UI Display
+        if (isPlayerLine && displayAndSpokenText.StartsWith("Musa:"))
         {
-            portraitImage.SetActive(showUI);
-            nameTitle.SetActive(showUI);
+            displayAndSpokenText = displayAndSpokenText.Substring(5).Trim();
         }
 
         // Play TTS for this line
-        if (readDialogueAloud && ttsSystem != null && !string.IsNullOrWhiteSpace(dialogue[index]))
+        if (readDialogueAloud && ttsSystem != null && !string.IsNullOrWhiteSpace(displayAndSpokenText))
         {
-            string spokenText = dialogue[index];
-            if (spokenText.StartsWith("Musa:"))
-            {
-                spokenText = spokenText.Substring(5).Trim();
-            }
-            ttsSystem.Speak(spokenText);
+            ttsSystem.Speak(displayAndSpokenText);
         }
 
-        dialogText.text = dialogue[index];
+        dialogText.text = displayAndSpokenText;
         dialogText.maxVisibleCharacters = 0;
         dialogText.ForceMeshUpdate();
         
