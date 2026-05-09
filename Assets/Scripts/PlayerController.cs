@@ -77,6 +77,14 @@ public class PlayerController : MonoBehaviour
             spriteRenderer.sortingOrder = playerSortingOrder;
             Debug.Log($"PlayerController: Sorting order set to {playerSortingOrder}");
         }
+        
+        // If ground layer is set to nothing, ground detection will always fail
+        // This causes the character to constantly be in a "Jumping" state and stops the walk animation from playing!
+        if (groundLayer.value == 0)
+        {
+            Debug.LogWarning("PlayerController: Ground Layer is set to 'Nothing'! This will break animations and jumping. Automatically falling back to 'Default' layer.");
+            groundLayer = LayerMask.GetMask("Default");
+        }
     }
     
     void Update()
@@ -100,16 +108,7 @@ public class PlayerController : MonoBehaviour
             {
                 moveInput = 1f;
             }
-            // Up movement
-            if (Keyboard.current.upArrowKey.isPressed || Keyboard.current.wKey.isPressed)
-            {
-                moveInput = 1f;
-            }
-            // Down movement
-            if (Keyboard.current.downArrowKey.isPressed || Keyboard.current.sKey.isPressed)
-            {
-                moveInput = -1f;
-            }
+
 
             
             // Jump input - Space key or Up Arrow
@@ -170,8 +169,8 @@ public class PlayerController : MonoBehaviour
             }
         }
         
-        // Update walking state
-        isWalking = Mathf.Abs(moveInput) > 0.1f && isGrounded;
+        // Update walking state regardless of whether we are grounded or jumping
+        isWalking = Mathf.Abs(moveInput) > 0.1f;
         isJumping = !isGrounded;
         
         // Check if jumping horizontally (has horizontal movement or velocity while in air)
@@ -192,21 +191,7 @@ public class PlayerController : MonoBehaviour
     
     void UpdateSprite()
     {
-        if (isJumping)
-        {
-            // Check if jumping horizontally (left or right)
-            if (isJumpingHorizontally && hangSprite != null)
-            {
-                // Show hang sprite when jumping left or right
-                spriteRenderer.sprite = hangSprite;
-            }
-            else if (jumpSprite != null)
-            {
-                // Show regular jump sprite when jumping straight up
-                spriteRenderer.sprite = jumpSprite;
-            }
-        }
-        else if (isWalking)
+        if (isWalking)
         {
             // Reset delay timer when walking starts
             idleDelayTimer = 0.15f; 
@@ -227,6 +212,20 @@ public class PlayerController : MonoBehaviour
             else if (walkSprite2 != null)
             {
                 spriteRenderer.sprite = walkSprite2;
+            }
+        }
+        else if (isJumping)
+        {
+            // Check if jumping horizontally (left or right)
+            if (isJumpingHorizontally && hangSprite != null)
+            {
+                // Show hang sprite when jumping left or right
+                spriteRenderer.sprite = hangSprite;
+            }
+            else if (jumpSprite != null)
+            {
+                // Show regular jump sprite when jumping straight up
+                spriteRenderer.sprite = jumpSprite;
             }
         }
         else
