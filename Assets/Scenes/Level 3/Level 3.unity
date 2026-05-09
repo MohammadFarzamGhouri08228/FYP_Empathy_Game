@@ -171,7 +171,6 @@ MonoBehaviour:
   dropKey: 100
   interactRange: 2.5
   interactPrompt: {fileID: 0}
-  ballIndicatorSprite: {fileID: 1176045343915814442, guid: 2fefa348e55c27f46bd87dae92944a5b, type: 3}
   indicatorOffset: {x: 0, y: 1.5, z: 0}
 --- !u!58 &3895014
 CircleCollider2D:
@@ -496,7 +495,6 @@ MonoBehaviour:
   dropKey: 100
   interactRange: 2.5
   interactPrompt: {fileID: 0}
-  ballIndicatorSprite: {fileID: 1176045343915814442, guid: 2fefa348e55c27f46bd87dae92944a5b, type: 3}
   indicatorOffset: {x: 0, y: 1.5, z: 0}
 --- !u!58 &9615593
 CircleCollider2D:
@@ -1214,7 +1212,6 @@ MonoBehaviour:
   dropKey: 100
   interactRange: 2.5
   interactPrompt: {fileID: 0}
-  ballIndicatorSprite: {fileID: 1176045343915814442, guid: 2fefa348e55c27f46bd87dae92944a5b, type: 3}
   indicatorOffset: {x: 0, y: 1.5, z: 0}
 --- !u!58 &110700787
 CircleCollider2D:
@@ -2266,7 +2263,6 @@ MonoBehaviour:
   dropKey: 100
   interactRange: 2.5
   interactPrompt: {fileID: 0}
-  ballIndicatorSprite: {fileID: 1176045343915814442, guid: 2fefa348e55c27f46bd87dae92944a5b, type: 3}
   indicatorOffset: {x: 0, y: 1.5, z: 0}
 --- !u!1 &550899434
 GameObject:
@@ -2456,7 +2452,6 @@ MonoBehaviour:
   dropKey: 100
   interactRange: 2.5
   interactPrompt: {fileID: 0}
-  ballIndicatorSprite: {fileID: 1176045343915814442, guid: 2fefa348e55c27f46bd87dae92944a5b, type: 3}
   indicatorOffset: {x: 0, y: 1.5, z: 0}
 --- !u!58 &569313175
 CircleCollider2D:
@@ -4039,7 +4034,6 @@ MonoBehaviour:
   dropKey: 100
   interactRange: 2.5
   interactPrompt: {fileID: 0}
-  ballIndicatorSprite: {fileID: 1176045343915814442, guid: 2fefa348e55c27f46bd87dae92944a5b, type: 3}
   indicatorOffset: {x: 0, y: 1.5, z: 0}
 --- !u!58 &943232685
 CircleCollider2D:
@@ -4825,7 +4819,6 @@ MonoBehaviour:
   dropKey: 100
   interactRange: 2.5
   interactPrompt: {fileID: 0}
-  ballIndicatorSprite: {fileID: 1176045343915814442, guid: 2fefa348e55c27f46bd87dae92944a5b, type: 3}
   indicatorOffset: {x: 0, y: 1.5, z: 0}
 --- !u!58 &1271042121
 CircleCollider2D:
@@ -5029,7 +5022,6 @@ MonoBehaviour:
   dropKey: 100
   interactRange: 2.5
   interactPrompt: {fileID: 0}
-  ballIndicatorSprite: {fileID: 1176045343915814442, guid: 2fefa348e55c27f46bd87dae92944a5b, type: 3}
   indicatorOffset: {x: 0, y: 1.5, z: 0}
 --- !u!58 &1282530466
 CircleCollider2D:
@@ -5394,7 +5386,6 @@ MonoBehaviour:
   dropKey: 100
   interactRange: 2.5
   interactPrompt: {fileID: 0}
-  ballIndicatorSprite: {fileID: 1176045343915814442, guid: 2fefa348e55c27f46bd87dae92944a5b, type: 3}
   indicatorOffset: {x: 0, y: 1.5, z: 0}
 --- !u!58 &1337240075
 CircleCollider2D:
@@ -6514,7 +6505,6 @@ MonoBehaviour:
   dropKey: 100
   interactRange: 2.5
   interactPrompt: {fileID: 0}
-  ballIndicatorSprite: {fileID: 1176045343915814442, guid: 2fefa348e55c27f46bd87dae92944a5b, type: 3}
   indicatorOffset: {x: 0, y: 1.5, z: 0}
 --- !u!58 &1496390362
 CircleCollider2D:
@@ -6863,7 +6853,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1569787320
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7470,7 +7460,6 @@ MonoBehaviour:
   dropKey: 100
   interactRange: 2.5
   interactPrompt: {fileID: 0}
-  ballIndicatorSprite: {fileID: 1176045343915814442, guid: 2fefa348e55c27f46bd87dae92944a5b, type: 3}
   indicatorOffset: {x: 0, y: 1.5, z: 0}
 --- !u!58 &1716752129
 CircleCollider2D:
@@ -7659,7 +7648,6 @@ MonoBehaviour:
   dropKey: 100
   interactRange: 2.5
   interactPrompt: {fileID: 0}
-  ballIndicatorSprite: {fileID: 1176045343915814442, guid: 2fefa348e55c27f46bd87dae92944a5b, type: 3}
   indicatorOffset: {x: 0, y: 1.5, z: 0}
 --- !u!58 &1777958059
 CircleCollider2D:
@@ -7848,7 +7836,6 @@ MonoBehaviour:
   dropKey: 100
   interactRange: 2.5
   interactPrompt: {fileID: 0}
-  ballIndicatorSprite: {fileID: 1176045343915814442, guid: 2fefa348e55c27f46bd87dae92944a5b, type: 3}
   indicatorOffset: {x: 0, y: 1.5, z: 0}
 --- !u!58 &1794485081
 CircleCollider2D:
@@ -8412,7 +8399,6 @@ MonoBehaviour:
   dropKey: 100
   interactRange: 2.5
   interactPrompt: {fileID: 0}
-  ballIndicatorSprite: {fileID: 1176045343915814442, guid: 2fefa348e55c27f46bd87dae92944a5b, type: 3}
   indicatorOffset: {x: 0, y: 1.5, z: 0}
 --- !u!58 &1859402713
 CircleCollider2D:
@@ -8586,7 +8572,6 @@ MonoBehaviour:
   dropKey: 100
   interactRange: 2.5
   interactPrompt: {fileID: 0}
-  ballIndicatorSprite: {fileID: 1176045343915814442, guid: 2fefa348e55c27f46bd87dae92944a5b, type: 3}
   indicatorOffset: {x: 0, y: 1.5, z: 0}
 --- !u!58 &1915519230
 CircleCollider2D:
@@ -9240,7 +9225,6 @@ MonoBehaviour:
   dropKey: 100
   interactRange: 2.5
   interactPrompt: {fileID: 0}
-  ballIndicatorSprite: {fileID: 1176045343915814442, guid: 2fefa348e55c27f46bd87dae92944a5b, type: 3}
   indicatorOffset: {x: 0, y: 1.5, z: 0}
 --- !u!1001 &2054974949
 PrefabInstance:

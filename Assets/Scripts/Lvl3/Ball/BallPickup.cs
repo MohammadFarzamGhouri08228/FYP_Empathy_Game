@@ -11,13 +11,12 @@ public class BallPickup : MonoBehaviour
     [SerializeField] private GameObject interactPrompt;
 
     [Header("Ball Indicator")]
-    [Tooltip("Drag the Sprite/Image here that you want to show above the player's head when carrying the ball.")]
-    [SerializeField] private Sprite ballIndicatorSprite;
     [Tooltip("Offset from the player's pivot where the indicator floats.")]
     [SerializeField] private Vector3 indicatorOffset = new Vector3(0f, 1.5f, 0f);
 
     public static bool hasBall = false;
     public static GameObject ballIndicatorInstance;
+    public static BallPickup currentlyHeldBall;
 
     // Used to prevent picking up multiple balls in the exact same frame
     private static int lastPickupFrame = -1;
@@ -101,6 +100,7 @@ public class BallPickup : MonoBehaviour
         lastPickupFrame = Time.frameCount; // Record the frame so other balls know we picked one up right now
         isCollected = true;
         hasBall = true;
+        currentlyHeldBall = this;
 
         if (interactPrompt != null)
         {
@@ -117,17 +117,18 @@ public class BallPickup : MonoBehaviour
         transform.localPosition = Vector3.zero; // Center it on the player
 
         // 3. Create a new GameObject to hold the sprite above the player's head
-        if (ballIndicatorSprite != null)
+        ballIndicatorInstance = new GameObject("BallIndicator");
+        ballIndicatorInstance.transform.SetParent(player.transform);
+        ballIndicatorInstance.transform.localPosition = indicatorOffset;
+        
+        // Add a SpriteRenderer and assign the same image as the ball itself
+        SpriteRenderer sr = ballIndicatorInstance.AddComponent<SpriteRenderer>();
+        SpriteRenderer myRenderer = GetComponentInChildren<SpriteRenderer>();
+        if (myRenderer != null)
         {
-            ballIndicatorInstance = new GameObject("BallIndicator");
-            ballIndicatorInstance.transform.SetParent(player.transform);
-            ballIndicatorInstance.transform.localPosition = indicatorOffset;
-            
-            // Add a SpriteRenderer and assign the image
-            SpriteRenderer sr = ballIndicatorInstance.AddComponent<SpriteRenderer>();
-            sr.sprite = ballIndicatorSprite;
-            sr.sortingOrder = 10; // Make sure it renders in front of other things
+            sr.sprite = myRenderer.sprite;
         }
+        sr.sortingOrder = 10; // Make sure it renders in front of other things
     }
 
     private void DropBall()
@@ -135,6 +136,7 @@ public class BallPickup : MonoBehaviour
         if (!isCollected) return;
         isCollected = false;
         hasBall = false;
+        if (currentlyHeldBall == this) currentlyHeldBall = null;
 
         // 1. Remove the indicator above the player's head
         if (ballIndicatorInstance != null)
@@ -163,6 +165,7 @@ public class BallPickup : MonoBehaviour
     {
         isCollected = false;
         hasBall = false;
+        if (currentlyHeldBall == this) currentlyHeldBall = null;
 
         if (ballIndicatorInstance != null)
         {
@@ -178,6 +181,7 @@ public class BallPickup : MonoBehaviour
     public static void ResetBall()
     {
         hasBall = false;
+        currentlyHeldBall = null;
         isShaking = false;
         if (ballIndicatorInstance != null)
         {
