@@ -67,7 +67,6 @@ public class PlayerMotor : MonoBehaviour
     private Rigidbody2D rb;
     private SpriteRenderer spriteRenderer;
     private PlayerClimb playerClimb;
-    private BoxCollider2D boxCol;
 
     // Coyote time & jump buffer
     private float coyoteCounter;
@@ -87,19 +86,11 @@ public class PlayerMotor : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         playerClimb = GetComponent<PlayerClimb>();
-        boxCol = GetComponent<BoxCollider2D>();
 
         rb.freezeRotation = true;
 
         if (spriteRenderer != null)
             spriteRenderer.sortingOrder = playerSortingOrder;
-
-        // If 'Nothing' is selected for groundLayer, fallback to 'Default' layer
-        if (groundLayer.value == 0)
-        {
-            Debug.LogWarning("[PlayerMotor] 'Ground Layer' is set to 'Nothing' in Inspector! Defaulting to 'Default' layer.");
-            groundLayer = LayerMask.GetMask("Default");
-        }
     }
 
     void Update()
@@ -168,33 +159,19 @@ public class PlayerMotor : MonoBehaviour
 
     private void UpdateGroundCheck()
     {
-        Collider2D[] hits;
-
-        if (boxCol != null)
-        {
-            // Dynamic, perfectly sized Box Check at the feet of the player.
-            // Width is 90% of the player to allow sliding off edges slightly.
-            Vector2 boxSize = new Vector2(boxCol.bounds.size.x * 0.9f, 0.3f);
-            Vector2 boxCenter = new Vector2(boxCol.bounds.center.x, boxCol.bounds.min.y - 0.15f);
-
-            // We check ALL layers (~0) just in case you put different ground parts
-            // on different layers (like Default, Ground, Water, etc.).
-            hits = Physics2D.OverlapBoxAll(boxCenter, boxSize, 0f, ~0);
-        }
-        else
-        {
-            hits = Physics2D.OverlapCircleAll(
-                (Vector2)transform.position + groundCheckOffset,
-                groundCheckRadius,
-                groundLayer
-            );
-        }
+        // Check all colliders in the circle, then filter out ourselves and triggers.
+        // This prevents the player's own collider from counting as "ground".
+        Collider2D[] hits = Physics2D.OverlapCircleAll(
+            (Vector2)transform.position + groundCheckOffset,
+            groundCheckRadius,
+            groundLayer
+        );
 
         IsGrounded = false;
         foreach (Collider2D hit in hits)
         {
             // Ignore our own colliders and any trigger colliders (like ladders)
-            if (hit.gameObject != gameObject && !hit.isTrigger && !hit.transform.IsChildOf(transform))
+            if (hit.gameObject != gameObject && !hit.isTrigger)
             {
                 IsGrounded = true;
                 break;
@@ -229,18 +206,13 @@ public class PlayerMotor : MonoBehaviour
         bool jumpPressed = false;
 
         if (Keyboard.current != null)
-        {
             jumpPressed = Keyboard.current.spaceKey.wasPressedThisFrame;
-            if (jumpPressed)
-                Debug.Log("[PlayerMotor] Spacebar PRESSED this frame!");
-        }
 
         // Mobile button jump
         if (buttonJumpRequested)
         {
             jumpPressed = true;
             buttonJumpRequested = false;
-            Debug.Log("[PlayerMotor] Jump requested via Mobile Button!");
         }
 
         // Jump buffering
@@ -252,15 +224,10 @@ public class PlayerMotor : MonoBehaviour
         // Execute jump when conditions are met (only on Default / ground layer)
         if (jumpBufferCounter > 0f && coyoteCounter > 0f && !jumpConsumed)
         {
-            Debug.Log("[PlayerMotor] Jumping! Jump force applied.");
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
             jumpBufferCounter = 0f;
             coyoteCounter = 0f;
             jumpConsumed = true;
-        }
-        else if (jumpPressed && (coyoteCounter <= 0f))
-        {
-            Debug.Log("[PlayerMotor] Jump failed - Player is not grounded (Coyote Counter: " + coyoteCounter + "). Check Ground Layer or Ground Check Offset!");
         }
     }
 
@@ -318,17 +285,6 @@ public class PlayerMotor : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = IsGrounded ? Color.green : Color.red;
-        
-        BoxCollider2D col = GetComponent<BoxCollider2D>();
-        if (col != null)
-        {
-            Vector2 boxSize = new Vector2(col.bounds.size.x * 0.9f, 0.3f);
-            Vector2 boxCenter = new Vector2(col.bounds.center.x, col.bounds.min.y - 0.15f);
-            Gizmos.DrawWireCube(boxCenter, boxSize);
-        }
-        else
-        {
-            Gizmos.DrawWireSphere((Vector2)transform.position + groundCheckOffset, groundCheckRadius);
-        }
+        Gizmos.DrawWireSphere((Vector2)transform.position + groundCheckOffset, groundCheckRadius);
     }
 }

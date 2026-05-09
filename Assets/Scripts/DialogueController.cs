@@ -103,9 +103,21 @@ public class DialogueController : MonoBehaviour
             {
                 if (currentDialogue != null && index < currentDialogue.Length && !IsPlayerDialogue(currentDialogue[index].text))
                 {
-                    if (dialogText.maxVisibleCharacters < dialogText.textInfo.characterCount)
+                    if (isTyping && dialogText.maxVisibleCharacters < dialogText.textInfo.characterCount)
                     {
+                        // Skip typing
+                        StopAllCoroutines();
                         dialogText.maxVisibleCharacters = dialogText.textInfo.characterCount;
+                        isTyping = false;
+
+                        if (currentDialogue[index].isQuestion && currentDialogue[index].options != null && currentDialogue[index].options.Length > 0)
+                        {
+                            ShowOptions(currentDialogue[index].options);
+                        }
+                        else if (contButton != null)
+                        {
+                            contButton.SetActive(true);
+                        }
                     }
                     else if (optionsPanel == null || !optionsPanel.activeInHierarchy)
                     {
@@ -303,31 +315,48 @@ public class DialogueController : MonoBehaviour
 
     private void ShowOptions(DialogueOption[] options)
     {
-        if (optionsPanel != null) optionsPanel.SetActive(true);
+        Debug.Log($"[DialogueController] ShowOptions called with {options?.Length ?? 0} options.");
+        
+        if (optionsPanel == null)
+        {
+            Debug.LogError("[DialogueController] Cannot show options: OptionsPanel is NULL!");
+            return;
+        }
+        if (choiceButtonPrefab == null)
+        {
+            Debug.LogError("[DialogueController] Cannot show options: choiceButtonPrefab is NULL! Please assign it in the Inspector.");
+            return;
+        }
+
+        optionsPanel.SetActive(true);
         
         // Clear existing buttons
-        if (optionsPanel != null)
+        foreach (Transform child in optionsPanel.transform)
         {
-            foreach (Transform child in optionsPanel.transform)
-            {
-                Destroy(child.gameObject);
-            }
+            Destroy(child.gameObject);
         }
 
         string optionsAloudText = "";
 
-        if (options != null && choiceButtonPrefab != null && optionsPanel != null)
+        if (options != null && options.Length > 0)
         {
             for (int i = 0; i < options.Length; i++)
             {
                 GameObject btnObj = Instantiate(choiceButtonPrefab, optionsPanel.transform);
                 btnObj.SetActive(true);
+                
+                // Force scale to 1 in case the prefab imports weirdly
+                btnObj.transform.localScale = Vector3.one;
 
                 TMP_Text btnText = btnObj.GetComponentInChildren<TMP_Text>();
                 if (btnText != null)
                 {
                     btnText.text = options[i].optionText;
                     optionsAloudText += $"Option {i + 1}: {options[i].optionText}. ";
+                }
+                else
+                {
+                    Debug.LogWarning($"[DialogueController] Button Prefab is missing a TMP_Text component in its children!");
                 }
                 
                 Button btn = btnObj.GetComponent<Button>();
@@ -338,7 +367,12 @@ public class DialogueController : MonoBehaviour
                     btn.onClick.RemoveAllListeners();
                     btn.onClick.AddListener(() => SelectOption(choiceIndex, chosenOption));
                 }
+                else
+                {
+                    Debug.LogWarning($"[DialogueController] Button Prefab is missing a Button component!");
+                }
             }
+            Debug.Log($"[DialogueController] Successfully instantiated {options.Length} option buttons.");
         }
 
         // Read options aloud for accessibility and empathy immersion
