@@ -41,43 +41,16 @@ public class Checkpoint2 : MonoBehaviour
     private GameObject player; // Cache player reference
 
     // ========================================================================
-    // DIALOGUE SYSTEM — Same infrastructure as Checkpoint.cs (Level 1)
-    // Fill in dialogue text via Unity Inspector for each checkpoint.
+    // DIALOGUE SYSTEM — Now utilizes DialogueController
+    // Fill in dialogue text and options via Unity Inspector.
     // ========================================================================
     
-    [Header("Dialogue UI")]
-    [Tooltip("The dialogue panel GameObject (drag from Canvas). Leave null if this checkpoint has no dialogue.")]
-    public GameObject dialogPanel;
-    public TMP_Text dialogText;
-    [TextArea(2, 5)]
-    public string[] dialogue;
-    private int index;
-
-    public GameObject portraitImage;
-    public GameObject nameTitle;
-
-    [Header("Dialogue UI - Player")]
-    public GameObject playerPortraitImage;
-    public GameObject playerNameTitle;
-
-    public GameObject contButton;
-    public float wordSpeed = 0.03f;
-    
-    [Header("Text to Speech")]
-    public ElevenLabsTTS ttsSystem;
-    public bool readDialogueAloud = true;
+    [Header("Dialogue Content")]
+    public DialogueLine[] dialogue;
 
     // Dialogue tracking state
     private bool dialogueCompleted = false;
-    private bool isTyping = false;
-    private bool isDialogueActive = false;
     private bool hasDialogOpened = false;
-
-    // Velocity-based listening metric
-    private float dialogueStillFrames = 0f;
-    private float dialogueTotalFrames = 0f;
-    private Rigidbody2D playerRb;
-    private const float STILL_VELOCITY_THRESHOLD = 0.15f;
 
     private CheckpointInteraction choiceInteraction;
 
@@ -85,11 +58,7 @@ public class Checkpoint2 : MonoBehaviour
     {
         choiceInteraction = GetComponent<CheckpointInteraction>();
 
-        // Automatically find the TTS system if it's not assigned
-        if (ttsSystem == null)
-        {
-            ttsSystem = FindFirstObjectByType<ElevenLabsTTS>();
-        }
+
 
         // Find CheckpointManager
         checkpointManager = CheckpointManager.Instance;
@@ -106,12 +75,6 @@ public class Checkpoint2 : MonoBehaviour
         
         // Find player
         FindPlayer();
-        
-        // Cache player Rigidbody2D for velocity tracking
-        if (player != null)
-        {
-            playerRb = player.GetComponent<Rigidbody2D>();
-        }
 
         // Get visual component if not assigned
         if (checkpointVisual == null)
@@ -143,26 +106,7 @@ public class Checkpoint2 : MonoBehaviour
             }
         }
         
-        // Initialize visual state
-        UpdateVisualState();
-
-        if (dialogPanel != null)
-        {
-            dialogPanel.SetActive(false);
-        }
-
-        // Warn if dialogue panel is assigned but no dialogue text
-        if (dialogPanel != null && (dialogue == null || dialogue.Length == 0))
-        {
-            Debug.LogWarning($"Checkpoint2 {checkpointID}: dialogPanel is assigned but dialogue array is empty! Fill in dialogue text via Inspector.");
-        }
-        
-        if (contButton == null && dialogPanel != null)
-        {
-            Debug.LogWarning($"Checkpoint2 {checkpointID}: 'contButton' not assigned!");
-        }
-        
-        Debug.Log($"Checkpoint2 {checkpointID}: Initialized at position ({transform.position.x:F2}, {transform.position.y:F2}, {transform.position.z:F2}). Detection: {(useDistanceDetection ? "Distance-based" : "Collider-based")}. Dialogue: {(dialogue != null && dialogue.Length > 0 ? $"{dialogue.Length} lines" : "none")}");
+        Debug.Log($"Checkpoint2 {checkpointID}: Initialized at position ({transform.position.x:F2}, {transform.position.y:F2}, {transform.position.z:F2}). Detection: {(useDistanceDetection ? "Distance-based" : "Collider-based")}");
     }
     
     void Update()
@@ -172,156 +116,47 @@ public class Checkpoint2 : MonoBehaviour
         {
             CheckPlayerDistance();
         }
+    }
 
-        // Only process dialogue input if THIS checkpoint owns the active dialogue
-        if (isDialogueActive && dialogPanel != null && dialogPanel.activeInHierarchy)
+    private void HandleDialogueComplete()
+    {
+        if (!dialogueCompleted)
         {
-            // Velocity tracking for listening metric (during NPC lines)
-            if (isTyping && index < dialogue.Length && !IsPlayerDialogue(dialogue[index]))
-            {
-                dialogueTotalFrames++;
-                if (playerRb != null && playerRb.linearVelocity.magnitude < STILL_VELOCITY_THRESHOLD)
-                {
-                    dialogueStillFrames++;
-                }
-                else if (playerRb == null)
-                {
-                    dialogueStillFrames++; // No rigidbody — assume still
-                }
-            }
+            dialogueCompleted = true;
+            float totalFrames = DialogueController.Instance != null ? DialogueController.Instance.dialogueTotalFrames : 0;
+            float stillFrames = DialogueController.Instance != null ? DialogueController.Instance.dialogueStillFrames : 0;
 
-            // Allow advancing text with E key
-            if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+            float listenRatio = (totalFrames > 0) ? stillFrames / totalFrames : 1.0f;
+            
+            Debug.Log($"Checkpoint2 {checkpointID}: Dialogue Finished. Listen ratio: {listenRatio:F2}");
+            if (AdaptiveBackend.Instance != null)
             {
-                if (index < dialogue.Length && !IsPlayerDialogue(dialogue[index]))
-                {
-                    if (dialogText.maxVisibleCharacters < dialogText.textInfo.characterCount)
-                    {
-                        dialogText.maxVisibleCharacters = dialogText.textInfo.characterCount;
-                    }
-                    else
-                    {
-                        NextLine();
-                    }
-                }
+                AdaptiveBackend.Instance.ReceiveData($"Checkpoint_{checkpointID}", "DialogueInteraction", listenRatio);
+            }
+            if (checkpointManager != null)
+            {
+                checkpointManager.RecordDialogueInteraction(checkpointID, listenRatio);
             }
         }
     }
 
-    // ========================================================================
-    // DIALOGUE METHODS (same pattern as Checkpoint.cs)
-    // ========================================================================
-
-    public void zeroText()
+    private void HandleOptionSelection(int choiceIndex, ChoiceCategory selectedCategory)
     {
-        if (dialogText != null) dialogText.text = "";
-        index = 0;
-        if (dialogText != null) dialogText.maxVisibleCharacters = 0;
-        if (dialogPanel != null) dialogPanel.SetActive(false);
-        isDialogueActive = false;
-        
-        if (readDialogueAloud && ttsSystem != null)
+        Debug.Log($"Checkpoint2 {checkpointID}: Option {choiceIndex + 1} chosen - Category: {selectedCategory}");
+
+        int optionNumber = choiceIndex + 1;
+        PlayerPrefs.SetInt($"Checkpoint_{checkpointID}_SelectedOptionNumber", optionNumber);
+        PlayerPrefs.SetString($"Checkpoint_{checkpointID}_SelectedCategory", selectedCategory.ToString());
+        PlayerPrefs.Save();
+
+        if (checkpointManager != null)
         {
-            ttsSystem.StopSpeaking();
-        }
-    }
-
-    IEnumerator Typing()
-    {
-        isTyping = true;
-        
-        if (contButton != null) contButton.SetActive(false);
-        
-        bool isPlayerLine = IsPlayerDialogue(dialogue[index]);
-
-        if (portraitImage != null) portraitImage.SetActive(!isPlayerLine);
-        if (nameTitle != null) nameTitle.SetActive(!isPlayerLine);
-
-        if (playerPortraitImage != null) playerPortraitImage.SetActive(isPlayerLine);
-        if (playerNameTitle != null) playerNameTitle.SetActive(isPlayerLine);
-
-        string displayAndSpokenText = dialogue[index];
-
-        // Strip out "Musa: " from the text for both TTS and UI Display
-        if (isPlayerLine && displayAndSpokenText.StartsWith("Musa:"))
-        {
-            displayAndSpokenText = displayAndSpokenText.Substring(5).Trim();
+            checkpointManager.RecordChoiceInteraction(checkpointID, selectedCategory);
         }
 
-        // Play TTS for this line
-        if (readDialogueAloud && ttsSystem != null && !string.IsNullOrWhiteSpace(displayAndSpokenText))
+        if (AdaptiveBackend.Instance != null)
         {
-            ttsSystem.Speak(displayAndSpokenText);
-        }
-
-        dialogText.text = displayAndSpokenText;
-        dialogText.maxVisibleCharacters = 0;
-        dialogText.ForceMeshUpdate();
-        
-        yield return null;
-
-        int totalVisibleCharacters = dialogText.textInfo.characterCount;
-        int counter = 0;
-
-        while (counter <= totalVisibleCharacters)
-        {
-            dialogText.maxVisibleCharacters = counter;
-            counter++;
-            yield return new WaitForSeconds(wordSpeed);
-        }
-        
-        isTyping = false;
-        
-        if (IsPlayerDialogue(dialogue[index]))
-        {
-            yield return new WaitForSeconds(1.2f);
-            NextLine();
-        }
-        else
-        {
-            if (contButton != null) contButton.SetActive(true);
-        }
-    }
-
-    public void NextLine()
-    {
-        if (isTyping) return;
-        
-        if (contButton != null) contButton.SetActive(false);
-
-        if (!playerIsClose)
-        {
-            zeroText();
-            return;
-        }
-
-        if (index < dialogue.Length - 1)
-        {
-            index++;
-            StartCoroutine(Typing());
-        }
-        else
-        {
-            // Dialogue finished — record listening metric
-            if (!dialogueCompleted)
-            {
-                dialogueCompleted = true;
-                
-                float listenRatio = (dialogueTotalFrames > 0)
-                    ? dialogueStillFrames / dialogueTotalFrames
-                    : 1.0f;
-                
-                Debug.Log($"Checkpoint2 {checkpointID}: Dialogue Finished. Listen ratio: {listenRatio:F2}");
-                if (AdaptiveBackend.Instance != null)
-                {
-                    AdaptiveBackend.Instance.ReceiveData($"Checkpoint_{checkpointID}", "DialogueInteraction", listenRatio);
-                }
-                if (checkpointManager != null)
-                {
-                    checkpointManager.RecordDialogueInteraction(checkpointID, listenRatio);
-                }
-            }
-            zeroText();
+            AdaptiveBackend.Instance.ReceiveData($"Checkpoint_{checkpointID}", "ChoiceInteraction", selectedCategory.ToString());
         }
     }
 
@@ -329,12 +164,12 @@ public class Checkpoint2 : MonoBehaviour
     {
         playerIsClose = false;
         
-        // Record partial listening if dialogue was active but not completed
-        if (dialogPanel != null && (dialogPanel.activeInHierarchy || isDialogueActive) && !dialogueCompleted)
+        if (hasDialogOpened && !dialogueCompleted && DialogueController.Instance != null)
         {
-            float partialRatio = (dialogueTotalFrames > 0)
-                ? (dialogueStillFrames / dialogueTotalFrames) * 0.5f
-                : 0.0f;
+            float totalFrames = DialogueController.Instance.dialogueTotalFrames;
+            float stillFrames = DialogueController.Instance.dialogueStillFrames;
+
+            float partialRatio = (totalFrames > 0) ? (stillFrames / totalFrames) * 0.5f : 0.0f;
             
             Debug.Log($"Checkpoint2 {checkpointID}: Player left early. Partial listen ratio: {partialRatio:F2}");
             if (AdaptiveBackend.Instance != null)
@@ -347,28 +182,12 @@ public class Checkpoint2 : MonoBehaviour
             }
 
             hasDialogOpened = false;
-            dialogueStillFrames = 0f;
-            dialogueTotalFrames = 0f;
         }
 
-        // Always close dialogue when player exits
-        if (dialogPanel != null && (dialogPanel.activeInHierarchy || isDialogueActive))
+        if (DialogueController.Instance != null)
         {
-            StopAllCoroutines();
-            zeroText();
+            DialogueController.Instance.CloseDialogue();
         }
-    }
-
-    private bool ShouldShowUI(int dialogueIndex)
-    {
-        if (dialogue == null || dialogueIndex < 0 || dialogueIndex >= dialogue.Length) return false;
-        return !IsPlayerDialogue(dialogue[dialogueIndex]);
-    }
-
-    private bool IsPlayerDialogue(string line)
-    {
-        if (string.IsNullOrEmpty(line)) return false;
-        return line.TrimStart().StartsWith("Musa:");
     }
 
     // ========================================================================
@@ -432,33 +251,23 @@ public class Checkpoint2 : MonoBehaviour
             }
 
             // Check if we have dialogue to show
-            bool hasDialogueToPlay = dialogPanel != null && dialogue != null && dialogue.Length > 0;
+            bool hasDialogueToPlay = dialogue != null && dialogue.Length > 0;
 
-            // Auto-open dialogue if not active, NOT opened before, and not currently shown
-            if (hasDialogueToPlay && !dialogPanel.activeInHierarchy && !hasDialogOpened)
+            // Auto-open dialogue if not active, NOT opened before
+            if (hasDialogueToPlay && !hasDialogOpened)
             {
                 hasDialogOpened = true;
-                dialogPanel.SetActive(true);
-                isDialogueActive = true;
                 dialogueCompleted = false;
-                dialogueStillFrames = 0f;
-                dialogueTotalFrames = 0f;
                 
-                // Assign button listener for THIS checkpoint instance
-                if (contButton != null)
+                Debug.Log($"Checkpoint2 {checkpointID}: Starting dialogue via DialogueController");
+                if (DialogueController.Instance != null)
                 {
-                    Button btn = contButton.GetComponent<Button>();
-                    if (btn != null)
-                    {
-                        btn.onClick.RemoveAllListeners();
-                        btn.onClick.AddListener(NextLine);
-                    }
+                    DialogueController.Instance.StartDialogue(
+                        dialogue, 
+                        HandleOptionSelection, 
+                        HandleDialogueComplete
+                    );
                 }
-
-                // Show first line with typing effect
-                index = 0;
-                Debug.Log($"Checkpoint2 {checkpointID}: Starting dialogue typing for: '{dialogue[index]}'");
-                StartCoroutine(Typing());
             }
             else if (!hasDialogueToPlay && !hasDialogOpened)
             {
@@ -499,7 +308,7 @@ public class Checkpoint2 : MonoBehaviour
             Debug.Log($"Checkpoint2 {checkpointID}: Player entered trigger zone! Player position: ({other.transform.position.x:F2}, {other.transform.position.y:F2}, {other.transform.position.z:F2})");
             ActivateCheckpoint();
             playerIsClose = true;
-            zeroText();
+            if (DialogueController.Instance != null) DialogueController.Instance.CloseDialogue();
         }
     }
     
