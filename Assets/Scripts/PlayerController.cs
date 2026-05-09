@@ -30,6 +30,7 @@ public class PlayerController : MonoBehaviour
     private float currentButtonMoveDirection = 0f; // Stores the last direction from a button click
     private bool isMovingWithButton = false; // Tracks if player is currently moving due to button click
     private float walkAnimationTimer = 0f;
+    private float idleDelayTimer = 0f; // Small delay before switching to idle
     public bool isWalking = false;
     public bool isJumping = false;
     public bool IsOnSlope { get; set; }
@@ -207,6 +208,9 @@ public class PlayerController : MonoBehaviour
         }
         else if (isWalking)
         {
+            // Reset delay timer when walking starts
+            idleDelayTimer = 0.15f; 
+
             // Animate walking
             walkAnimationTimer += Time.deltaTime;
             float walkCycleSpeed = 0.2f; // Adjust for faster/slower animation
@@ -227,12 +231,21 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            // Show idle sprite
-            if (idleSprite != null)
+            // Wait briefly before showing idle sprite
+            if (idleDelayTimer > 0f)
             {
-                spriteRenderer.sprite = idleSprite;
+                idleDelayTimer -= Time.deltaTime;
+                // Keep the current walk sprite visible, so do nothing here
             }
-            walkAnimationTimer = 0f;
+            else
+            {
+                // Show idle sprite
+                if (idleSprite != null)
+                {
+                    spriteRenderer.sprite = idleSprite;
+                }
+                walkAnimationTimer = 0f;
+            }
         }
     }
     
