@@ -54,6 +54,12 @@ public class DialogueController : MonoBehaviour
     [Tooltip("The TMP_Text components on each option button. Must match optionButtons array order.")]
     public TMP_Text[] optionButtonTexts;
 
+    [Header("Option Button Colors")]
+    public Color optionNormalColor = new Color(0.2f, 0.2f, 0.2f, 0.9f);
+    public Color optionHighlightColor = new Color(0.35f, 0.55f, 0.85f, 1f);
+    public Color optionPressedColor = new Color(0.2f, 0.4f, 0.7f, 1f);
+    public Color optionSelectedColor = new Color(0.35f, 0.55f, 0.85f, 1f);
+
     [Header("Settings")]
     public float wordSpeed = 0.03f;
     public ElevenLabsTTS ttsSystem;
@@ -380,6 +386,15 @@ public class DialogueController : MonoBehaviour
                     int choiceIndex = i;
                     DialogueOption chosenOption = options[i];
                     btn.onClick.AddListener(() => SelectOption(choiceIndex, chosenOption));
+
+                    // Apply highlight colors so the button visually responds to hover/press
+                    ColorBlock colors = btn.colors;
+                    colors.normalColor = optionNormalColor;
+                    colors.highlightedColor = optionHighlightColor;
+                    colors.pressedColor = optionPressedColor;
+                    colors.selectedColor = optionSelectedColor;
+                    colors.fadeDuration = 0.1f;
+                    btn.colors = colors;
                 }
             }
             else

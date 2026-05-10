@@ -21,6 +21,11 @@ public class Lvl2movement : MonoBehaviour
     [SerializeField] public float climbCooldown = 0f;
     [SerializeField] public LayerMask groundLayer;
 
+    [Header("Jump Settings")]
+    [SerializeField] private float jumpForce = 10f;
+    [SerializeField] private Vector2 groundCheckOffset = new Vector2(0, -0.5f);
+    [SerializeField] private float groundCheckRadius = 0.2f;
+
     [Header("Rendering Settings")]
     [SerializeField] private int playerSortingOrder = 15; // Higher than spikes (which use max 10)
     
@@ -29,6 +34,8 @@ public class Lvl2movement : MonoBehaviour
     private Vector2 moveInput;
     public bool isClimbing = false;
     private float climbAnimationTimer = 0f;
+    private bool isGrounded = false;
+    private bool jumpRequested = false;
 
     // Slope handling (set by SlopeHandler)
     [HideInInspector] public bool IsOnSlope = false;
@@ -108,7 +115,16 @@ public class Lvl2movement : MonoBehaviour
             {
                 moveInput.y = -1f;
             }
+
+            // Jump (Space key) — only when grounded and not climbing
+            if (!isClimbing && Keyboard.current.spaceKey.wasPressedThisFrame && isGrounded)
+            {
+                jumpRequested = true;
+            }
         }
+
+        // Ground check
+        isGrounded = Physics2D.OverlapCircle((Vector2)transform.position + groundCheckOffset, groundCheckRadius, groundLayer);
 
         UpdateAnimation();
     }
@@ -174,16 +190,29 @@ public class Lvl2movement : MonoBehaviour
         
         if (isClimbing)
         {
-            // Apply movement without gravity
+            // Climbing: full control over both axes, no gravity
             rb.gravityScale = 0;
             rb.linearVelocity = moveInput * moveSpeed;
         }
         else
         {
             rb.gravityScale = 1;
-            // Apply movement normalized for top-down or platformer movement
-            Vector2 movement = moveInput.normalized * moveSpeed;
-            rb.linearVelocity = movement;
+            // Only set horizontal velocity — preserve vertical so gravity and jumping work
+            rb.linearVelocity = new Vector2(moveInput.x * moveSpeed, rb.linearVelocity.y);
+
+            // Apply jump
+            if (jumpRequested)
+            {
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+                jumpRequested = false;
+            }
         }
+    }
+
+    // Visualize ground check in the Editor
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = isGrounded ? Color.green : Color.red;
+        Gizmos.DrawWireSphere((Vector2)transform.position + groundCheckOffset, groundCheckRadius);
     }
 }
