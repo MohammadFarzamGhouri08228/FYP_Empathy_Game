@@ -67,11 +67,16 @@ public class NPCSpriteAnimator : MonoBehaviour
         if (motor != null && motor.IsWalking)
         {
             isWalking = true;
+            
             // Flip sprite based on walk direction (Level 2)
-            if (motor.WalkDirection.x > 0.1f)
-                spriteRenderer.flipX = false;
-            else if (motor.WalkDirection.x < -0.1f)
-                spriteRenderer.flipX = true;
+            // Skip this if NPCSorter is attached, because NPCSorter uses transform.localScale and they will double-flip!
+            if (GetComponent<NPCSorter>() == null)
+            {
+                if (motor.WalkDirection.x > 0.1f)
+                    spriteRenderer.flipX = false;
+                else if (motor.WalkDirection.x < -0.1f)
+                    spriteRenderer.flipX = true;
+            }
         }
         else
         {
