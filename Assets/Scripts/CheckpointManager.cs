@@ -130,16 +130,16 @@ public class CheckpointManager : MonoBehaviour
         gameTimer = FindFirstObjectByType<StopwatchTimer>();
         if (gameTimer == null) Debug.LogWarning("CheckpointManager: StopwatchTimer not found! Timestamps will be 0.");
 
-        // Auto-find EmpathyMeter if not assigned — or create one automatically
+        // Auto-find EmpathyMeter if not assigned
         if (empathyMeter == null)
         {
             empathyMeter = FindFirstObjectByType<EmpathyMeter>();
         }
         if (empathyMeter == null)
         {
-            Debug.Log("<color=cyan>[CheckpointManager]</color> No EmpathyMeter found in scene — auto-creating one...");
-            GameObject meterObj = new GameObject("EmpathyMeter_AutoCreated");
-            empathyMeter = meterObj.AddComponent<EmpathyMeter>();
+            Debug.LogWarning("<color=cyan>[CheckpointManager]</color> No EmpathyMeter found in scene. " +
+                "Empathy tracking will still work internally, but the visual meter won't display. " +
+                "Add an EmpathyMeter component to a GameObject and wire its Scene Progress Bar.");
         }
        
     }

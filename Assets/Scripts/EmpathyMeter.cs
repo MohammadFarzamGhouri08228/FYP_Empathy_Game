@@ -9,18 +9,11 @@ using MagicPigGames; // From the InfinityPBR ProgressBar asset
 public class EmpathyMeter : MonoBehaviour
 {
     [Header("Meter Asset References")]
-    [Tooltip("If you placed the Horizontal Progress Bar in the scene, assign it here.")]
+    [Tooltip("Drag the Horizontal Progress Bar that is already placed in the Canvas here.")]
     [SerializeField] private HorizontalProgressBar sceneProgressBar;
-
-    [Tooltip("If the scene bar is empty, the meter will auto-spawn this prefab.")]
-    [SerializeField] private HorizontalProgressBar progressBarPrefab;
 
     [Header("Empathy Tally")]
     [SerializeField][Range(0f, 1f)] private float initialEmpathy = 0.5f;
-
-    [Header("Screen Placement (If Auto-spawned)")]
-    [SerializeField] private Vector2 screenOffset = new Vector2(50f, -60f); // Top-center, shifted slightly right
-    [SerializeField] private float barScale = 0.5f;
 
     // The single incremental tally
     private float currentEmpathy;
@@ -43,54 +36,16 @@ public class EmpathyMeter : MonoBehaviour
 
     private void SetupMeterUI()
     {
-        // 1. If assigned in scene, just use it
         if (sceneProgressBar != null)
         {
             activeBar = sceneProgressBar;
             uiIsSetup = true;
+            Debug.Log("<color=cyan>[EmpathyMeter]</color> Using scene-placed progress bar.");
             return;
         }
 
-        // 2. Otherwise, spawn the prefab into a new Canvas
-        if (progressBarPrefab != null)
-        {
-            Debug.Log("<color=cyan>[EmpathyMeter]</color> Spawning Horizontal Progress Bar prefab...");
-            
-            // Create a Screen-Space Overlay canvas to hold it
-            GameObject canvasObj = new GameObject("EmpathyMeter_Canvas");
-            canvasObj.transform.SetParent(transform);
-            Canvas meterCanvas = canvasObj.AddComponent<Canvas>();
-            meterCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            meterCanvas.sortingOrder = 100;
-            
-            UnityEngine.UI.CanvasScaler scaler = canvasObj.AddComponent<UnityEngine.UI.CanvasScaler>();
-            scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080);
-            scaler.matchWidthOrHeight = 0.5f;
-
-            // Spawn the prefab
-            activeBar = Instantiate(progressBarPrefab, canvasObj.transform);
-            
-            // Bypass stale Unity Inspector values by forcing it here
-            Vector2 actualOffset = new Vector2(180f, -60f); // Shifted right
-
-            // Ensure the RectTransform is positioned properly
-            RectTransform rt = activeBar.GetComponent<RectTransform>();
-            if (rt != null)
-            {
-                rt.anchorMin = new Vector2(0.5f, 1f);
-                rt.anchorMax = new Vector2(0.5f, 1f);
-                rt.pivot = new Vector2(0.5f, 1f);
-                rt.anchoredPosition = actualOffset;
-                rt.localScale = new Vector3(barScale, barScale, 1f);
-            }
-
-            uiIsSetup = true;
-        }
-        else
-        {
-            Debug.LogWarning("<color=red>[EmpathyMeter]</color> No scene progress bar and no prefab assigned! Meter will not display.");
-        }
+        Debug.LogError("<color=red>[EmpathyMeter]</color> Scene Progress Bar is not assigned! " +
+            "Drag your Horizontal Progress Bar from the Canvas into the 'Scene Progress Bar' field in the Inspector.");
     }
 
     // ========================================================================
