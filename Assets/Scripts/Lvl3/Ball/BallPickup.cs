@@ -32,6 +32,14 @@ public class BallPickup : MonoBehaviour
 
     void Start()
     {
+        // FATAL FLAW FIX: If the user attached this script to the Player GameObject by mistake!
+        if (gameObject.CompareTag("Player") || gameObject.name.ToLower().Contains("player"))
+        {
+            Debug.LogWarning("BallPickup script was found on the Player! Destroying it to prevent input race conditions.");
+            Destroy(this);
+            return;
+        }
+
         GameObject player = GameObject.FindWithTag("Player");
         if (player != null)
         {
@@ -85,7 +93,6 @@ public class BallPickup : MonoBehaviour
             if (hasBall)
             {
                 // Trigger screen shake if we try to pick up another ball while holding one!
-                // But ensure we don't shake on the exact same frame we just picked one up (if 2 balls are next to each other)
                 if (lastPickupFrame != Time.frameCount)
                 {
                     StartCoroutine(ScreenShake());
@@ -96,6 +103,12 @@ public class BallPickup : MonoBehaviour
                 CollectBall(playerTransform.gameObject);
             }
         }
+        
+        // === DEBUG: Report every frame the key is held near this ball ===
+        if (Input.GetKeyDown(interactKey))
+        {
+            Debug.Log($"[BallPickup] Key '{interactKey}' pressed | Ball: '{gameObject.name}' | Tag: '{gameObject.tag}' | inRange: {inRange} (dist={dist:F2}) | hasBall: {hasBall} | isCollected: {isCollected}");
+        }
     }
 
     private void CollectBall(GameObject player)
@@ -103,6 +116,7 @@ public class BallPickup : MonoBehaviour
         // Double check to absolutely ensure we don't pick up two balls at once
         if (isCollected || hasBall) return;
         
+        Debug.Log($"[BallPickup] COLLECTING ball '{gameObject.name}' | Tag: '{gameObject.tag}'");
         lastPickupFrame = Time.frameCount; // Record the frame so other balls know we picked one up right now
         isCollected = true;
         hasBall = true;

@@ -246,6 +246,26 @@ public class NPCSorter : MonoBehaviour
 
         yield return new WaitForSeconds(0.35f);
         isDepositingAnimation = false;
+        
+        CheckLevelComplete();
+    }
+
+    private void CheckLevelComplete()
+    {
+        bool areBallsRemaining = false;
+
+        if (FindObjectsOfType<BallPickup>().Length > 0)
+            areBallsRemaining = true;
+
+        if (IsHoldingBalls() || IsDepositing())
+            areBallsRemaining = true;
+
+        if (!areBallsRemaining)
+        {
+            Debug.Log("LEVEL COMPLETE! All balls sorted - Triggering Scene Loader!");
+            SceneLoader loader = FindObjectOfType<SceneLoader>();
+            if (loader != null) loader.LoadScene();
+        }
     }
 
     private IEnumerator AnimateIndicatorIntoBag(GameObject indicator, Transform destination)
@@ -294,4 +314,7 @@ public class NPCSorter : MonoBehaviour
         foreach (var b in inventory) if (b.bagTag == bagTag) return true;
         return false;
     }
+
+    public bool IsHoldingBalls() => inventory.Count > 0;
+    public bool IsDepositing() => isDepositingAnimation;
 }

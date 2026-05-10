@@ -666,8 +666,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NPCSorter
   maxCapacity: 3
-  currentBallsHeld: 0
   moveSpeed: 3
+  canSort: 1
   targetBallTag: Blue Ball
   targetBagTag: Blue Bag
   targetBag: {fileID: 0}
@@ -4350,7 +4350,7 @@ Transform:
   m_GameObject: {fileID: 919785932}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.51, y: -1.63, z: 0}
+  m_LocalPosition: {x: -15.12, y: -1.87, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5876,7 +5876,7 @@ GameObject:
   - component: {fileID: 1337240074}
   m_Layer: 0
   m_Name: red 1
-  m_TagString: Untagged
+  m_TagString: Red Ball
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -7352,7 +7352,7 @@ Transform:
   m_GameObject: {fileID: 1560000891}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.44, y: -4.09, z: 0}
+  m_LocalPosition: {x: -4.94, y: -4.09, z: 0}
   m_LocalScale: {x: 0.34, y: 0.34, z: 0.34}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -7955,7 +7955,7 @@ GameObject:
   - component: {fileID: 1716752128}
   m_Layer: 0
   m_Name: red 3
-  m_TagString: Untagged
+  m_TagString: Red Ball
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -8121,7 +8121,7 @@ Transform:
   m_GameObject: {fileID: 1716752127}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 3.97, y: -4.55, z: 0}
+  m_LocalPosition: {x: 4.42, y: -4.52, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -8143,7 +8143,7 @@ GameObject:
   - component: {fileID: 1777958058}
   m_Layer: 0
   m_Name: red 4
-  m_TagString: Untagged
+  m_TagString: Red Ball
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -8516,8 +8516,8 @@ GameObject:
   - component: {fileID: 1829407588}
   - component: {fileID: 1829407587}
   m_Layer: 0
-  m_Name: blue bag 2_0 (1)
-  m_TagString: Untagged
+  m_Name: Red Bag
+  m_TagString: Red Bag
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -8571,7 +8571,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BagInteraction
   interactKey: 105
-  interactRange: 1.5
+  interactRange: 2.5
   interactPrompt: {fileID: 0}
   flyDuration: 1
   vibrateDuration: 0.3
@@ -8644,7 +8644,7 @@ Transform:
   m_GameObject: {fileID: 1829407586}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.66, y: -4.08, z: 0}
+  m_LocalPosition: {x: 4.53, y: -4.17, z: 0}
   m_LocalScale: {x: 0.56, y: 0.56, z: 0.56}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -9252,7 +9252,7 @@ GameObject:
   - component: {fileID: 1915519229}
   m_Layer: 0
   m_Name: red 2
-  m_TagString: Untagged
+  m_TagString: Red Ball
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -9922,11 +9922,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca96c1da57949b6459f3c21cddd1e1e2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallPickup
-  interactKey: 101
+  interactKey: 0
   dropKey: 100
   interactRange: 2.5
   interactPrompt: {fileID: 0}
   indicatorOffset: {x: 5, y: 10, z: 0}
+--- !u!114 &2046862838
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2046862818}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: abb3f1eb335094d4f9c1125f1af52c37, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneLoader
+  sceneName: FinalPlaygroundCS
 --- !u!1001 &2054974949
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10067,6 +10080,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3146575880206223721, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2046862828}
+    - targetCorrespondingSourceObject: {fileID: 3146575880206223721, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2046862838}
   m_SourcePrefab: {fileID: 100100000, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
 --- !u!1 &2103399964
 GameObject:

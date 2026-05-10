@@ -5,7 +5,7 @@ public class BagInteraction : MonoBehaviour
 {
     [Header("Interaction Settings")]
     [SerializeField] private KeyCode interactKey = KeyCode.I;
-    [SerializeField] private float interactRange = 2.5f;
+    [SerializeField] private float interactRange = 3.0f;
     [Tooltip("Optional child object (text / sprite) shown when the player can deposit the ball.")]
     [SerializeField] private GameObject interactPrompt;
 
@@ -50,21 +50,22 @@ public class BagInteraction : MonoBehaviour
         bool isColorMatch = false;
         if (heldBall != null)
         {
-            // Default to GameObject names
-            string bagRefName = gameObject.name.ToLower();
-            string ballRefName = heldBall.gameObject.name.ToLower();
+            string bagTag = gameObject.tag;
+            string ballTag = heldBall.gameObject.tag;
+
+            if (bagTag == "Red Bag" && ballTag == "Red Ball") isColorMatch = true;
+            else if (bagTag == "Blue Bag" && ballTag == "Blue Ball") isColorMatch = true;
+            else if (bagTag == "Yellow Bag" && ballTag == "Yellow Ball") isColorMatch = true;
             
-            // Prefer Sprite names if available (since visual sprite is what the player actually sees!)
-            SpriteRenderer bagSR = GetComponentInChildren<SpriteRenderer>();
-            if (bagSR != null && bagSR.sprite != null) bagRefName = bagSR.sprite.name.ToLower();
-            
-            SpriteRenderer ballSR = heldBall.GetComponentInChildren<SpriteRenderer>();
-            if (ballSR != null && ballSR.sprite != null) ballRefName = ballSR.sprite.name.ToLower();
-            
-            if (bagRefName.Contains("red") && ballRefName.Contains("red")) isColorMatch = true;
-            else if (bagRefName.Contains("blue") && ballRefName.Contains("blue")) isColorMatch = true;
-            else if (bagRefName.Contains("yellow") && ballRefName.Contains("yellow")) isColorMatch = true;
-            else if (!bagRefName.Contains("red") && !bagRefName.Contains("blue") && !bagRefName.Contains("yellow")) isColorMatch = true; 
+            // Fallback: If tags aren't set up perfectly, try simple string name matching like before
+            if (!isColorMatch)
+            {
+                string bagName = gameObject.name.ToLower();
+                string ballName = heldBall.gameObject.name.ToLower();
+                if (bagName.Contains("red") && ballName.Contains("red")) isColorMatch = true;
+                else if (bagName.Contains("blue") && ballName.Contains("blue")) isColorMatch = true;
+                else if (bagName.Contains("yellow") && ballName.Contains("yellow")) isColorMatch = true;
+            }
         }
 
         // Only show prompt if the player is in range AND actually carrying a ball of matching color
@@ -73,18 +74,36 @@ public class BagInteraction : MonoBehaviour
             interactPrompt.SetActive(inRange && isColorMatch);
         }
 
-        // Press interact key to deposit the ball into the bag
-        if (inRange && Input.GetKeyDown(interactKey))
+        // Press interact key to try depositing
+        if (Input.GetKeyDown(interactKey))
         {
-            if (isColorMatch)
+            // === FULL STATE DUMP for debugging ===
+            Debug.Log($"[BagInteraction] Key '{interactKey}' pressed near '{gameObject.name}'" +
+                      $" | Bag Tag: '{gameObject.tag}'" +
+                      $" | Held Ball: '{(heldBall != null ? heldBall.gameObject.name : "NONE")}' Tag: '{(heldBall != null ? heldBall.gameObject.tag : "N/A")}'" +
+                      $" | inRange: {inRange} (dist={dist:F2}, maxRange={interactRange})" +
+                      $" | isColorMatch: {isColorMatch}");
+
+            if (heldBall == null)
             {
-                InsertBall(heldBall);
+                Debug.LogWarning("[BagInteraction] No ball held - nothing to deposit.");
+                return;
             }
-            else
+
+            if (!inRange)
+            {
+                Debug.LogWarning($"[BagInteraction] TOO FAR from bag! Distance: {dist:F2}, Required: {interactRange}");
+            }
+            else if (!isColorMatch)
             {
                 // Vibrate to indicate wrong bag
                 StartCoroutine(VibrateAnimation());
-                Debug.Log($"Cannot put {heldBall.gameObject.name} into {gameObject.name} - Colors do not match!");
+                Debug.LogWarning($"[BagInteraction] COLOR MISMATCH! Bag Tag='{gameObject.tag}' Name='{gameObject.name}' vs Ball Tag='{heldBall.gameObject.tag}' Name='{heldBall.gameObject.name}'");
+            }
+            else
+            {
+                Debug.Log($"[BagInteraction] SUCCESS - Inserting '{heldBall.gameObject.name}' into '{gameObject.name}'");
+                InsertBall(heldBall);
             }
         }
     }
@@ -161,6 +180,36 @@ public class BagInteraction : MonoBehaviour
 
         // Add any score/logic here later!
         Debug.Log("Ball successfully inserted into the bag!");
+        
+        CheckLevelComplete();
+    }
+
+    private void CheckLevelComplete()
+    {
+        bool areBallsRemaining = false;
+
+        // Check if there are any physical balls left on the floor or held by player
+        if (FindObjectsOfType<BallPickup>().Length > 0)
+            areBallsRemaining = true;
+
+        // Check if NPC is still holding balls or in the middle of depositing
+        NPCSorter npc = FindObjectOfType<NPCSorter>();
+        if (npc != null && (npc.IsHoldingBalls() || npc.IsDepositing()))
+            areBallsRemaining = true;
+
+        if (!areBallsRemaining)
+        {
+            Debug.Log("LEVEL COMPLETE! All balls sorted - Triggering Scene Loader!");
+            SceneLoader loader = FindObjectOfType<SceneLoader>();
+            if (loader != null)
+            {
+                loader.LoadScene();
+            }
+            else
+            {
+                Debug.LogWarning("Level finished, but no SceneLoader was found in the scene to load the next level!");
+            }
+        }
     }
 
     private IEnumerator VibrateAnimation()
