@@ -56,6 +56,12 @@ public class BallPickup : MonoBehaviour
         // If the player is carrying the ball, wait for drop input
         if (isCollected)
         {
+            // Dynamically update the indicator offset so it changes immediately if tweaked in the Inspector
+            if (ballIndicatorInstance != null)
+            {
+                ballIndicatorInstance.transform.localPosition = indicatorOffset;
+            }
+
             if (Input.GetKeyDown(dropKey))
             {
                 DropBall();

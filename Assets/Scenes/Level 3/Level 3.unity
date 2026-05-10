@@ -1259,7 +1259,7 @@ MonoBehaviour:
   dropKey: 100
   interactRange: 2.5
   interactPrompt: {fileID: 0}
-  indicatorOffset: {x: 0, y: 1.5, z: 0}
+  indicatorOffset: {x: 0, y: 5, z: 0}
 --- !u!58 &110700787
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -2314,7 +2314,7 @@ MonoBehaviour:
   dropKey: 100
   interactRange: 2.5
   interactPrompt: {fileID: 0}
-  indicatorOffset: {x: 0, y: 1.5, z: 0}
+  indicatorOffset: {x: 0, y: 5, z: 0}
 --- !u!1 &550899434
 GameObject:
   m_ObjectHideFlags: 0
@@ -9273,7 +9273,7 @@ MonoBehaviour:
   dropKey: 100
   interactRange: 2.5
   interactPrompt: {fileID: 0}
-  indicatorOffset: {x: 0, y: 1.5, z: 0}
+  indicatorOffset: {x: 0, y: 5, z: 0}
 --- !u!58 &1915519230
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -9917,7 +9917,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2046862818}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ca96c1da57949b6459f3c21cddd1e1e2, type: 3}
   m_Name: 
@@ -9926,7 +9926,7 @@ MonoBehaviour:
   dropKey: 100
   interactRange: 2.5
   interactPrompt: {fileID: 0}
-  indicatorOffset: {x: 0, y: 1.5, z: 0}
+  indicatorOffset: {x: 5, y: 10, z: 0}
 --- !u!1001 &2054974949
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9978,7 +9978,7 @@ PrefabInstance:
     - target: {fileID: 3794909558571387475, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
       propertyPath: jumpSprite
       value: 
-      objectReference: {fileID: -3907737023286246741, guid: a63501e29bfdb4a4fab8319f08493fdf, type: 3}
+      objectReference: {fileID: 6610619925442274904, guid: ec7df2ca7eec54e499f099b238dd19fb, type: 3}
     - target: {fileID: 3794909558571387475, guid: 66744c0a6f5d72f44ae6649978bf1ae2, type: 3}
       propertyPath: walkSprite1
       value: 
