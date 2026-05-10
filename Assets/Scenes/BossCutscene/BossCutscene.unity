@@ -1893,7 +1893,7 @@ MonoBehaviour:
   nextSceneName: Level 3
   autoStartTimer: 1
   delayBeforeTransition: 0
-  timelineDirector: {fileID: 0}
+  timelineDirector: {fileID: 1165827922}
 --- !u!4 &2094626823
 Transform:
   m_ObjectHideFlags: 0

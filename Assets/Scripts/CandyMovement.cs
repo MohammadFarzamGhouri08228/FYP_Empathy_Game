@@ -45,6 +45,16 @@ public class CandyMovement : MonoBehaviour
             {
                 sr.sprite = jumpSprite;
             }
+
+            // Flip sprite depending on direction
+            if (moveInput > 0)
+            {
+                sr.flipX = false; // Face right
+            }
+            else if (moveInput < 0)
+            {
+                sr.flipX = true;  // Face left
+            }
         }
     }
 

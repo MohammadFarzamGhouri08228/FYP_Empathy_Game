@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class CandyGameManager : MonoBehaviour
 {
@@ -9,6 +10,9 @@ public class CandyGameManager : MonoBehaviour
     public int winScoreThreshold = 10;
     public bool isGameActive = false;
     public bool isGameOver = false;
+
+    [Header("Level Transition")]
+    public string nextCutsceneName;
 
     [Header("UI Elements")]
     public TextMeshProUGUI scoreText;
@@ -86,16 +90,47 @@ public class CandyGameManager : MonoBehaviour
         if (gameOverText != null)
         {
             gameOverText.gameObject.SetActive(true);
-            if (score > winScoreThreshold)
+            // Player won! (Got 7 or more candies)
+            if (score >= 7)
             {
                 gameOverText.text = "You Win!\nScore: " + score;
                 gameOverText.color = Color.green;
+                
+                // Wait 3 seconds, then load the next cutscene!
+                Invoke(nameof(LoadNextScene), 3f);
             }
-            else
+            else // Player lost! (Got less than 7 candies)
             {
-                gameOverText.text = "Game Over!\nScore: " + score;
+                gameOverText.text = "Game Over!\nScore: " + score + "\nRestarting...";
                 gameOverText.color = Color.red;
+                
+                // Call the RestartLevel function after 2 seconds so the player can read the Game Over text
+                Invoke(nameof(RestartLevel), 2f);
             }
+        }
+        else
+        {
+            // If the text UI is missing, we still want it to restart or transition
+            if (score < 7) Invoke(nameof(RestartLevel), 2f);
+            else Invoke(nameof(LoadNextScene), 3f);
+        }
+    }
+
+    private void RestartLevel()
+    {
+        // Reloads the exact scene that is currently active
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    private void LoadNextScene()
+    {
+        if (!string.IsNullOrEmpty(nextCutsceneName))
+        {
+            SceneManager.LoadScene(nextCutsceneName);
+        }
+        else
+        {
+            Debug.LogWarning("Next Cutscene Name is empty! Please type the name of the next scene in the CandyGameManager inspector.");
         }
     }
 }
