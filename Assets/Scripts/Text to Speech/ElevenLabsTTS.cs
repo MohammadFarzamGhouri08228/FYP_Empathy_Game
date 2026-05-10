@@ -69,6 +69,12 @@ public class ElevenLabsTTS : MonoBehaviour
             StopCoroutine(currentSpeechCoroutine);
         }
 
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+            if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
+        }
+
         if (audioSource != null) audioSource.Stop();
 
         currentSpeechCoroutine = StartCoroutine(FetchAudioAndPlay(textToSay));
@@ -142,6 +148,12 @@ public class ElevenLabsTTS : MonoBehaviour
 
             float clipLength = clip.length;
             Debug.Log($"ElevenLabsTTS: [6/6] AudioClip created. Duration: {clipLength:F2}s, Samples: {clip.samples}");
+
+            if (audioSource == null)
+            {
+                audioSource = GetComponent<AudioSource>();
+                if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
+            }
 
             audioSource.clip = clip;
             audioSource.Play();

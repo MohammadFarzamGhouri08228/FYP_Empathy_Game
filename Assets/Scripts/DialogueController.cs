@@ -65,6 +65,9 @@ public class DialogueController : MonoBehaviour
     public ElevenLabsTTS ttsSystem;
     public bool readDialogueAloud = true;
 
+    [Header("Audio")]
+    private AudioSource audioSource;
+
     // State
     private DialogueLine[] currentDialogue;
     private int index;
@@ -96,6 +99,9 @@ public class DialogueController : MonoBehaviour
         
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null) playerRb = player.GetComponent<Rigidbody2D>();
+
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
     }
 
     void Update()
@@ -221,6 +227,8 @@ public class DialogueController : MonoBehaviour
             ttsSystem.StopSpeaking();
         }
         
+        if (audioSource != null) audioSource.Stop();
+        
         StopAllCoroutines();
     }
 
@@ -245,12 +253,31 @@ public class DialogueController : MonoBehaviour
 
         string displayAndSpokenText = currentDialogue[index].text;
 
+        // 1. Try to load and play pre-recorded audio
+        AudioClip lineAudio = TryLoadAudioForLine(currentDialogue[index].text);
+        if (lineAudio != null)
+        {
+            if (audioSource != null)
+            {
+                audioSource.clip = lineAudio;
+                audioSource.Play();
+            }
+        }
+
+        // 2. Clean up display text (Remove "No.X")
+        int noIndex = displayAndSpokenText.LastIndexOf("No.");
+        if (noIndex != -1)
+        {
+            displayAndSpokenText = displayAndSpokenText.Substring(0, noIndex).Trim();
+        }
+
         if (isPlayerLine && displayAndSpokenText.StartsWith("Musa:"))
         {
             displayAndSpokenText = displayAndSpokenText.Substring(5).Trim();
         }
 
-        if (readDialogueAloud && ttsSystem != null && !string.IsNullOrWhiteSpace(displayAndSpokenText))
+        // 3. Fallback to TTS if no pre-recorded audio was found
+        if (lineAudio == null && readDialogueAloud && ttsSystem != null && !string.IsNullOrWhiteSpace(displayAndSpokenText))
         {
             ttsSystem.Speak(displayAndSpokenText);
         }
@@ -442,5 +469,46 @@ public class DialogueController : MonoBehaviour
     {
         if (string.IsNullOrEmpty(line)) return false;
         return line.TrimStart().StartsWith("Musa:");
+    }
+
+    private AudioClip TryLoadAudioForLine(string lineText)
+    {
+        if (string.IsNullOrEmpty(lineText)) return null;
+
+        // Expected format: "CharacterName: .... No.X"
+        int colonIndex = lineText.IndexOf(':');
+        if (colonIndex == -1) return null;
+
+        string charName = lineText.Substring(0, colonIndex).Trim();
+
+        int noIndex = lineText.LastIndexOf("No.");
+        if (noIndex == -1) return null;
+
+        string numberStr = lineText.Substring(noIndex + 3).Trim();
+        
+        // Extract only digits to handle cases like "No.1." or "No. 12 "
+        string cleanNum = "";
+        foreach (char c in numberStr)
+        {
+            if (char.IsDigit(c)) cleanNum += c;
+        }
+
+        if (string.IsNullOrEmpty(cleanNum)) return null;
+
+        string fileName = $"{charName}'sDialogue#{cleanNum}";
+        
+        // Load from Resources folder (we moved Level1Audios to Resources)
+        AudioClip clip = Resources.Load<AudioClip>($"Level1Audios/{fileName}");
+        
+        if (clip == null)
+        {
+            Debug.LogWarning($"[DialogueAudio] Could not load audio clip at Resources/Level1Audios/{fileName}");
+        }
+        else
+        {
+            Debug.Log($"[DialogueAudio] Successfully loaded audio: {fileName}");
+        }
+        
+        return clip;
     }
 }
