@@ -19,9 +19,12 @@ public class DialogueLine
 {
     [TextArea(2, 5)]
     public string text;
-    [Tooltip("If true, this line will display options instead of the continue button.")]
-    public bool isQuestion;
     public DialogueOption[] options;
+
+    /// <summary>
+    /// Returns true if this line has any options configured.
+    /// </summary>
+    public bool HasOptions => options != null && options.Length > 0;
 }
 
 public class DialogueController : MonoBehaviour
@@ -42,8 +45,14 @@ public class DialogueController : MonoBehaviour
     public GameObject playerNameTitle;
 
     [Header("Options UI")]
+    [Tooltip("The panel/container that holds the option buttons. Will be shown/hidden automatically.")]
     public GameObject optionsPanel;
-    public GameObject choiceButtonPrefab;
+
+    [Tooltip("Pre-placed option button GameObjects inside the optionsPanel. Set up 2-4 buttons in the Canvas and drag them here.")]
+    public GameObject[] optionButtons;
+
+    [Tooltip("The TMP_Text components on each option button. Must match optionButtons array order.")]
+    public TMP_Text[] optionButtonTexts;
 
     [Header("Settings")]
     public float wordSpeed = 0.03f;
@@ -75,6 +84,8 @@ public class DialogueController : MonoBehaviour
     {
         if (dialogPanel != null) dialogPanel.SetActive(false);
         if (optionsPanel != null) optionsPanel.SetActive(false);
+        HideAllOptionButtons();
+
         if (ttsSystem == null) ttsSystem = FindFirstObjectByType<ElevenLabsTTS>();
         
         GameObject player = GameObject.FindGameObjectWithTag("Player");
@@ -83,69 +94,71 @@ public class DialogueController : MonoBehaviour
 
     void Update()
     {
-        if (dialogPanel != null && dialogPanel.activeInHierarchy)
+        if (dialogPanel == null || !dialogPanel.activeInHierarchy) return;
+
+        // Empathy tracking: count frames while NPC is speaking
+        if (isTyping && currentDialogue != null && index < currentDialogue.Length && !IsPlayerDialogue(currentDialogue[index].text))
         {
-            if (isTyping && currentDialogue != null && index < currentDialogue.Length && !IsPlayerDialogue(currentDialogue[index].text))
+            dialogueTotalFrames++;
+            if (playerRb != null && playerRb.linearVelocity.magnitude < STILL_VELOCITY_THRESHOLD)
             {
-                dialogueTotalFrames++;
-                if (playerRb != null && playerRb.linearVelocity.magnitude < STILL_VELOCITY_THRESHOLD)
-                {
-                    dialogueStillFrames++;
-                }
-                else if (playerRb == null)
-                {
-                    dialogueStillFrames++;
-                }
+                dialogueStillFrames++;
             }
-
-            // Input handling for continuing dialogue
-            if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+            else if (playerRb == null)
             {
-                if (currentDialogue != null && index < currentDialogue.Length && !IsPlayerDialogue(currentDialogue[index].text))
-                {
-                    if (isTyping && dialogText.maxVisibleCharacters < dialogText.textInfo.characterCount)
-                    {
-                        // Skip typing
-                        StopAllCoroutines();
-                        dialogText.maxVisibleCharacters = dialogText.textInfo.characterCount;
-                        isTyping = false;
+                dialogueStillFrames++;
+            }
+        }
 
-                        if (currentDialogue[index].isQuestion && currentDialogue[index].options != null && currentDialogue[index].options.Length > 0)
-                        {
-                            ShowOptions(currentDialogue[index].options);
-                        }
-                        else if (contButton != null)
-                        {
-                            contButton.SetActive(true);
-                        }
-                    }
-                    else if (optionsPanel == null || !optionsPanel.activeInHierarchy)
+        // ---- E key: skip typing OR advance line ----
+        if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+        {
+            if (currentDialogue != null && index < currentDialogue.Length && !IsPlayerDialogue(currentDialogue[index].text))
+            {
+                if (isTyping)
+                {
+                    // Skip typing animation — show full text immediately
+                    StopAllCoroutines();
+                    dialogText.maxVisibleCharacters = dialogText.textInfo.characterCount;
+                    isTyping = false;
+
+                    // After skipping, show the appropriate UI
+                    if (currentDialogue[index].HasOptions)
                     {
-                        if (!currentDialogue[index].isQuestion) // Prevent skipping past a question with E
-                        {
-                            NextLine();
-                        }
+                        ShowOptions(currentDialogue[index].options);
+                    }
+                    else if (contButton != null)
+                    {
+                        contButton.SetActive(true);
                     }
                 }
-            }
-
-            // Keyboard support for selecting options (1, 2, 3, etc.)
-            if (optionsPanel != null && optionsPanel.activeInHierarchy && currentDialogue[index].options != null)
-            {
-                if (Keyboard.current != null)
+                else if (optionsPanel == null || !optionsPanel.activeInHierarchy)
                 {
-                    if (Keyboard.current.digit1Key.wasPressedThisFrame) TrySelectOptionByIndex(0);
-                    else if (Keyboard.current.digit2Key.wasPressedThisFrame) TrySelectOptionByIndex(1);
-                    else if (Keyboard.current.digit3Key.wasPressedThisFrame) TrySelectOptionByIndex(2);
-                    else if (Keyboard.current.digit4Key.wasPressedThisFrame) TrySelectOptionByIndex(3);
+                    // Not typing and options aren't showing — advance to next line
+                    if (!currentDialogue[index].HasOptions)
+                    {
+                        NextLine();
+                    }
                 }
+            }
+        }
+
+        // ---- Number keys: select options (1, 2, 3, 4) ----
+        if (optionsPanel != null && optionsPanel.activeInHierarchy)
+        {
+            if (Keyboard.current != null)
+            {
+                if (Keyboard.current.digit1Key.wasPressedThisFrame) TrySelectOptionByIndex(0);
+                else if (Keyboard.current.digit2Key.wasPressedThisFrame) TrySelectOptionByIndex(1);
+                else if (Keyboard.current.digit3Key.wasPressedThisFrame) TrySelectOptionByIndex(2);
+                else if (Keyboard.current.digit4Key.wasPressedThisFrame) TrySelectOptionByIndex(3);
             }
         }
     }
 
     private void TrySelectOptionByIndex(int optionIndex)
     {
-        if (currentDialogue != null && index < currentDialogue.Length && currentDialogue[index].options != null)
+        if (currentDialogue != null && index < currentDialogue.Length && currentDialogue[index].HasOptions)
         {
             if (optionIndex < currentDialogue[index].options.Length)
             {
@@ -154,8 +167,12 @@ public class DialogueController : MonoBehaviour
         }
     }
 
+    // ========================================================================
+    // PUBLIC API
+    // ========================================================================
+
     /// <summary>
-    /// Starts a dialogue sequence with branching options.
+    /// Starts a dialogue sequence. Called by Checkpoint / Checkpoint2 scripts.
     /// </summary>
     public void StartDialogue(DialogueLine[] dialogue, Action<int, ChoiceCategory> onOptionChosen = null, Action onComplete = null)
     {
@@ -169,15 +186,7 @@ public class DialogueController : MonoBehaviour
         
         dialogPanel.SetActive(true);
         if (optionsPanel != null) optionsPanel.SetActive(false);
-
-        // Hide old option buttons
-        if (optionsPanel != null)
-        {
-            foreach (Transform child in optionsPanel.transform)
-            {
-                Destroy(child.gameObject);
-            }
-        }
+        HideAllOptionButtons();
 
         if (contButton != null)
         {
@@ -192,27 +201,6 @@ public class DialogueController : MonoBehaviour
         StartCoroutine(Typing());
     }
 
-    private void SelectOption(int choiceIndex, DialogueOption chosenOption)
-    {
-        if (optionsPanel != null) optionsPanel.SetActive(false);
-        
-        // Report option selection immediately
-        onOptionSelected?.Invoke(choiceIndex, chosenOption.category);
-
-        // Handle Branching
-        if (chosenOption.nextDialogueIndex >= 0 && chosenOption.nextDialogueIndex < currentDialogue.Length)
-        {
-            index = chosenOption.nextDialogueIndex;
-            StartCoroutine(Typing());
-        }
-        else
-        {
-            // End dialogue
-            CloseDialogue();
-            onDialogueComplete?.Invoke();
-        }
-    }
-
     public void CloseDialogue()
     {
         if (dialogText != null) dialogText.text = "";
@@ -220,6 +208,7 @@ public class DialogueController : MonoBehaviour
         if (dialogText != null) dialogText.maxVisibleCharacters = 0;
         if (dialogPanel != null) dialogPanel.SetActive(false);
         if (optionsPanel != null) optionsPanel.SetActive(false);
+        HideAllOptionButtons();
         
         if (readDialogueAloud && ttsSystem != null)
         {
@@ -229,16 +218,22 @@ public class DialogueController : MonoBehaviour
         StopAllCoroutines();
     }
 
+    // ========================================================================
+    // DIALOGUE FLOW
+    // ========================================================================
+
     IEnumerator Typing()
     {
         isTyping = true;
         if (contButton != null) contButton.SetActive(false);
+        if (optionsPanel != null) optionsPanel.SetActive(false);
+        HideAllOptionButtons();
 
         bool isPlayerLine = IsPlayerDialogue(currentDialogue[index].text);
 
+        // Toggle NPC vs Player portrait/name
         if (portraitImage != null) portraitImage.SetActive(!isPlayerLine);
         if (nameTitle != null) nameTitle.SetActive(!isPlayerLine);
-
         if (playerPortraitImage != null) playerPortraitImage.SetActive(isPlayerLine);
         if (playerNameTitle != null) playerNameTitle.SetActive(isPlayerLine);
 
@@ -272,14 +267,17 @@ public class DialogueController : MonoBehaviour
 
         isTyping = false;
 
+        // ---- After typing completes ----
         if (isPlayerLine)
         {
+            // Player line: show briefly then auto-advance
             yield return new WaitForSeconds(1.2f);
             NextLine();
         }
         else
         {
-            if (currentDialogue[index].isQuestion && currentDialogue[index].options != null && currentDialogue[index].options.Length > 0)
+            // NPC line: show options if available, otherwise show continue button
+            if (currentDialogue[index].HasOptions)
             {
                 ShowOptions(currentDialogue[index].options);
             }
@@ -295,9 +293,9 @@ public class DialogueController : MonoBehaviour
         if (isTyping) return;
         if (contButton != null) contButton.SetActive(false);
 
-        if (currentDialogue[index].isQuestion)
+        // Don't advance if this line has options waiting for player input
+        if (currentDialogue[index].HasOptions)
         {
-            // Do not advance line normally if it's a question waiting for input
             return;
         }
 
@@ -313,74 +311,117 @@ public class DialogueController : MonoBehaviour
         }
     }
 
-    private void ShowOptions(DialogueOption[] options)
+    // ========================================================================
+    // OPTIONS DISPLAY (BMo tutorial approach: pre-placed UI buttons)
+    // ========================================================================
+
+    private void SelectOption(int choiceIndex, DialogueOption chosenOption)
     {
-        Debug.Log($"[DialogueController] ShowOptions called with {options?.Length ?? 0} options.");
+        if (optionsPanel != null) optionsPanel.SetActive(false);
+        HideAllOptionButtons();
         
-        if (optionsPanel == null)
+        // Report option selection to checkpoint
+        onOptionSelected?.Invoke(choiceIndex, chosenOption.category);
+
+        // Handle branching: jump to the specified index or end dialogue
+        if (chosenOption.nextDialogueIndex >= 0 && chosenOption.nextDialogueIndex < currentDialogue.Length)
         {
-            Debug.LogError("[DialogueController] Cannot show options: OptionsPanel is NULL!");
-            return;
+            index = chosenOption.nextDialogueIndex;
+            StartCoroutine(Typing());
         }
-        if (choiceButtonPrefab == null)
+        else
         {
-            Debug.LogError("[DialogueController] Cannot show options: choiceButtonPrefab is NULL! Please assign it in the Inspector.");
-            return;
-        }
-
-        optionsPanel.SetActive(true);
-        
-        // Clear existing buttons
-        foreach (Transform child in optionsPanel.transform)
-        {
-            Destroy(child.gameObject);
-        }
-
-        string optionsAloudText = "";
-
-        if (options != null && options.Length > 0)
-        {
-            for (int i = 0; i < options.Length; i++)
-            {
-                GameObject btnObj = Instantiate(choiceButtonPrefab, optionsPanel.transform);
-                btnObj.SetActive(true);
-                
-                // Force scale to 1 in case the prefab imports weirdly
-                btnObj.transform.localScale = Vector3.one;
-
-                TMP_Text btnText = btnObj.GetComponentInChildren<TMP_Text>();
-                if (btnText != null)
-                {
-                    btnText.text = options[i].optionText;
-                    optionsAloudText += $"Option {i + 1}: {options[i].optionText}. ";
-                }
-                else
-                {
-                    Debug.LogWarning($"[DialogueController] Button Prefab is missing a TMP_Text component in its children!");
-                }
-                
-                Button btn = btnObj.GetComponent<Button>();
-                if (btn != null)
-                {
-                    int choiceIndex = i; 
-                    DialogueOption chosenOption = options[i]; // Capture for lambda
-                    btn.onClick.RemoveAllListeners();
-                    btn.onClick.AddListener(() => SelectOption(choiceIndex, chosenOption));
-                }
-                else
-                {
-                    Debug.LogWarning($"[DialogueController] Button Prefab is missing a Button component!");
-                }
-            }
-            Debug.Log($"[DialogueController] Successfully instantiated {options.Length} option buttons.");
-        }
-
-        // Read options aloud for accessibility and empathy immersion
-        if (readDialogueAloud && ttsSystem != null && !string.IsNullOrWhiteSpace(optionsAloudText))
-        {
-            ttsSystem.Speak("Your choices are. " + optionsAloudText);
+            // -1 or out of range = end dialogue
+            CloseDialogue();
+            onDialogueComplete?.Invoke();
         }
     }
+
+    private void ShowOptions(DialogueOption[] options)
+    {
+        if (contButton != null) contButton.SetActive(false);
+
+        // Validate references
+        if (optionsPanel == null)
+        {
+            Debug.LogError("[DialogueController] optionsPanel is not assigned! Drag your Options Panel into the Inspector.");
+            return;
+        }
+        if (optionButtons == null || optionButtons.Length == 0)
+        {
+            Debug.LogError("[DialogueController] optionButtons array is empty! Drag your option button GameObjects into the Inspector.");
+            return;
+        }
+
+        // Show the options panel
+        optionsPanel.SetActive(true);
+
+        // Configure each button
+        for (int i = 0; i < optionButtons.Length; i++)
+        {
+            if (optionButtons[i] == null) continue;
+
+            if (i < options.Length)
+            {
+                // This button has a corresponding option — show it
+                optionButtons[i].SetActive(true);
+
+                // Set the text
+                if (optionButtonTexts != null && i < optionButtonTexts.Length && optionButtonTexts[i] != null)
+                {
+                    optionButtonTexts[i].text = options[i].optionText;
+                }
+
+                // Wire the click handler
+                Button btn = optionButtons[i].GetComponent<Button>();
+                if (btn != null)
+                {
+                    btn.onClick.RemoveAllListeners();
+                    int choiceIndex = i;
+                    DialogueOption chosenOption = options[i];
+                    btn.onClick.AddListener(() => SelectOption(choiceIndex, chosenOption));
+                }
+            }
+            else
+            {
+                // No option for this button — hide it
+                optionButtons[i].SetActive(false);
+            }
+        }
+
+        Debug.Log($"[DialogueController] Showing {options.Length} options.");
+
+        // Read options aloud for accessibility
+        if (readDialogueAloud && ttsSystem != null)
+        {
+            string optionsAloudText = "";
+            for (int i = 0; i < options.Length; i++)
+            {
+                optionsAloudText += $"Option {i + 1}: {options[i].optionText}. ";
+            }
+            if (!string.IsNullOrWhiteSpace(optionsAloudText))
+            {
+                ttsSystem.Speak(optionsAloudText);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Hides all option buttons. Called at dialogue start, close, and before each new line.
+    /// </summary>
+    private void HideAllOptionButtons()
+    {
+        if (optionButtons == null) return;
+        for (int i = 0; i < optionButtons.Length; i++)
+        {
+            if (optionButtons[i] != null)
+                optionButtons[i].SetActive(false);
+        }
+    }
+
+    // ========================================================================
+    // HELPERS
+    // ========================================================================
 
     private bool IsPlayerDialogue(string line)
     {
