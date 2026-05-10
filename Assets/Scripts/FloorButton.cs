@@ -51,21 +51,25 @@ public class FloorButton : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
+        Debug.Log($"FloorButton: OnTriggerEnter2D called with object {other.name}, tag {other.tag}");
         if (isPressed) return; // Already pressed, do nothing
 
         if (other.CompareTag("Player"))
         {
+            Debug.Log("FloorButton: Player tag detected, pressing button!");
             PressButton();
         }
     }
 
     void OnTriggerExit2D(Collider2D other)
     {
+        Debug.Log($"FloorButton: OnTriggerExit2D called with object {other.name}, tag {other.tag}");
         if (!isPressed) return;
         if (oneShot) return; // One-shot buttons stay pressed forever
 
         if (other.CompareTag("Player"))
         {
+            Debug.Log("FloorButton: Player tag detected, releasing button!");
             ReleaseButton();
         }
     }

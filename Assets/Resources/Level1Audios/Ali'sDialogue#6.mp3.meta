@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:Assets/Resources/Level1Audios/Ali'sDialogue#6.mp3.meta
 guid: 764ae73f56a8b6046b2b3dbcce0252a2
+=======
+guid: be7c3c464286b854fa1153c2b67811ee
+>>>>>>> 447aed8cb0c863a9370be691bb7b08013b78f47e:Assets/Audio/DS Audio/Level1Audios/Ali'sDialogue#6.mp3.meta
 AudioImporter:
   externalObjects: {}
   serializedVersion: 8

@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:Assets/Resources/Level1Audios/Musa'sDialogue#2.mp3.meta
 guid: 51db4b6f0b022214ebfdd883a408b346
+=======
+guid: 0d697a094e2d36148ac6c27f28bd5c09
+>>>>>>> 447aed8cb0c863a9370be691bb7b08013b78f47e:Assets/Audio/DS Audio/Level1Audios/Musa'sDialogue#2.mp3.meta
 AudioImporter:
   externalObjects: {}
   serializedVersion: 8
