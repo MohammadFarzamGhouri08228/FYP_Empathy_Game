@@ -271,12 +271,26 @@ public class DialogueController : MonoBehaviour
             displayAndSpokenText = displayAndSpokenText.Substring(0, noIndex).Trim();
         }
 
+        // 3. Clean up display text (Remove "1) " at the start)
+        int colonIdx = displayAndSpokenText.IndexOf(':');
+        if (colonIdx != -1)
+        {
+            string prefix = displayAndSpokenText.Substring(0, colonIdx);
+            int parenIdx = prefix.IndexOf(')');
+            if (parenIdx != -1)
+            {
+                // Turn "1) Musa: Hello" -> "Musa: Hello"
+                string namePart = prefix.Substring(parenIdx + 1).Trim();
+                displayAndSpokenText = namePart + displayAndSpokenText.Substring(colonIdx);
+            }
+        }
+
         if (isPlayerLine && displayAndSpokenText.StartsWith("Musa:"))
         {
             displayAndSpokenText = displayAndSpokenText.Substring(5).Trim();
         }
 
-        // 3. Fallback to TTS if no pre-recorded audio was found
+        // 4. Fallback to TTS if no pre-recorded audio was found
         if (lineAudio == null && readDialogueAloud && ttsSystem != null && !string.IsNullOrWhiteSpace(displayAndSpokenText))
         {
             ttsSystem.Speak(displayAndSpokenText);
@@ -468,6 +482,14 @@ public class DialogueController : MonoBehaviour
     private bool IsPlayerDialogue(string line)
     {
         if (string.IsNullOrEmpty(line)) return false;
+        
+        int colonIdx = line.IndexOf(':');
+        if (colonIdx != -1)
+        {
+            string prefix = line.Substring(0, colonIdx);
+            if (prefix.Contains("Musa")) return true;
+        }
+        
         return line.TrimStart().StartsWith("Musa:");
     }
 
@@ -475,40 +497,71 @@ public class DialogueController : MonoBehaviour
     {
         if (string.IsNullOrEmpty(lineText)) return null;
 
-        // Expected format: "CharacterName: .... No.X"
+        // Expected formats: "CharacterName: .... No.X" or "X) CharacterName: ...."
         int colonIndex = lineText.IndexOf(':');
         if (colonIndex == -1) return null;
 
-        string charName = lineText.Substring(0, colonIndex).Trim();
-
-        int noIndex = lineText.LastIndexOf("No.");
-        if (noIndex == -1) return null;
-
-        string numberStr = lineText.Substring(noIndex + 3).Trim();
-        
-        // Extract only digits to handle cases like "No.1." or "No. 12 "
+        string prefix = lineText.Substring(0, colonIndex).Trim();
+        string charName = prefix;
         string cleanNum = "";
-        foreach (char c in numberStr)
+
+        int parenIndex = prefix.IndexOf(')');
+        if (parenIndex != -1)
         {
-            if (char.IsDigit(c)) cleanNum += c;
+            // Level 2 format: "1) Musa"
+            string numPart = prefix.Substring(0, parenIndex);
+            foreach (char c in numPart) if (char.IsDigit(c)) cleanNum += c;
+            
+            charName = prefix.Substring(parenIndex + 1).Trim();
+        }
+        else
+        {
+            // Level 1 format: "Musa", index is at the end "No.1"
+            int noIndex = lineText.LastIndexOf("No.");
+            if (noIndex != -1)
+            {
+                string numberStr = lineText.Substring(noIndex + 3).Trim();
+                foreach (char c in numberStr) if (char.IsDigit(c)) cleanNum += c;
+            }
         }
 
         if (string.IsNullOrEmpty(cleanNum)) return null;
 
         string fileName = $"{charName}'sDialogue#{cleanNum}";
         
-        // Load from Resources folder (we moved Level1Audios to Resources)
-        AudioClip clip = Resources.Load<AudioClip>($"Level1Audios/{fileName}");
-        
-        if (clip == null)
+        // Prioritize folders based on the current scene so we don't accidentally load Level 1 audio in Level 2
+        string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        string[] foldersToCheck;
+
+        if (sceneName.Contains("2") || sceneName.Contains("Level2") || sceneName.Contains("Level 2"))
         {
-            Debug.LogWarning($"[DialogueAudio] Could not load audio clip at Resources/Level1Audios/{fileName}");
+            foldersToCheck = new string[] { "Level2Dialogues", "Level1Audios", "CutScene4Dialogues", "CutScene5Dialogues" };
+        }
+        else if (sceneName.Contains("4"))
+        {
+            foldersToCheck = new string[] { "CutScene4Dialogues", "Level1Audios", "Level2Dialogues", "CutScene5Dialogues" };
+        }
+        else if (sceneName.Contains("5"))
+        {
+            foldersToCheck = new string[] { "CutScene5Dialogues", "Level1Audios", "Level2Dialogues", "CutScene4Dialogues" };
         }
         else
         {
-            Debug.Log($"[DialogueAudio] Successfully loaded audio: {fileName}");
+            // Default to Level 1
+            foldersToCheck = new string[] { "Level1Audios", "Level2Dialogues", "CutScene4Dialogues", "CutScene5Dialogues" };
         }
         
-        return clip;
+        foreach (string folder in foldersToCheck)
+        {
+            AudioClip clip = Resources.Load<AudioClip>($"{folder}/{fileName}");
+            if (clip != null)
+            {
+                Debug.Log($"[DialogueAudio] Successfully loaded audio: {fileName} from {folder}");
+                return clip;
+            }
+        }
+
+        Debug.LogWarning($"[DialogueAudio] Could not load audio clip {fileName} from any Resources folder.");
+        return null;
     }
 }
