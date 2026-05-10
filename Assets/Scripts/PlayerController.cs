@@ -85,6 +85,13 @@ public class PlayerController : MonoBehaviour
             Debug.LogWarning("PlayerController: Ground Layer is set to 'Nothing'! This will break animations and jumping. Automatically falling back to 'Default' layer.");
             groundLayer = LayerMask.GetMask("Default");
         }
+        
+        // Also ensure "Ground" layer is included just in case
+        int groundIdx = LayerMask.NameToLayer("Ground");
+        if (groundIdx != -1)
+        {
+            groundLayer |= (1 << groundIdx);
+        }
     }
     
     void Update()
@@ -128,7 +135,17 @@ public class PlayerController : MonoBehaviour
         // Check if grounded (check in Update for responsive jump)
         if (groundCheck != null)
         {
+            // First try with the assigned ground layer
             isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+            
+            // If still not grounded, fallback check against everything except "Player" and "Ignore Raycast"
+            // This is especially useful for different levels with unassigned ground layers
+            if (!isGrounded)
+            {
+                int playerLayer = LayerMask.NameToLayer("Player");
+                int mask = ~((playerLayer != -1 ? 1 << playerLayer : 0) | (1 << LayerMask.NameToLayer("Ignore Raycast")));
+                isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, mask);
+            }
         }
         else
         {
@@ -191,14 +208,28 @@ public class PlayerController : MonoBehaviour
     
     void UpdateSprite()
     {
-        if (isWalking)
+        if (isJumping)
+        {
+            // Check if jumping horizontally (left or right)
+            if (isJumpingHorizontally && hangSprite != null)
+            {
+                // Show hang sprite when jumping left or right
+                spriteRenderer.sprite = hangSprite;
+            }
+            else if (jumpSprite != null)
+            {
+                // Show regular jump sprite when jumping straight up
+                spriteRenderer.sprite = jumpSprite;
+            }
+        }
+        else if (isWalking)
         {
             // Reset delay timer when walking starts
             idleDelayTimer = 0.15f; 
 
             // Animate walking
             walkAnimationTimer += Time.deltaTime;
-            float walkCycleSpeed = 0.2f; // Adjust for faster/slower animation
+            float walkCycleSpeed = 0.4f; // Slower animation, better transition delay
             
             if (walkAnimationTimer >= walkCycleSpeed * 2)
             {
@@ -212,20 +243,6 @@ public class PlayerController : MonoBehaviour
             else if (walkSprite2 != null)
             {
                 spriteRenderer.sprite = walkSprite2;
-            }
-        }
-        else if (isJumping)
-        {
-            // Check if jumping horizontally (left or right)
-            if (isJumpingHorizontally && hangSprite != null)
-            {
-                // Show hang sprite when jumping left or right
-                spriteRenderer.sprite = hangSprite;
-            }
-            else if (jumpSprite != null)
-            {
-                // Show regular jump sprite when jumping straight up
-                spriteRenderer.sprite = jumpSprite;
             }
         }
         else

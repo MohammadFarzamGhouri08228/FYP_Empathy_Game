@@ -159,12 +159,20 @@ public class PlayerMotor : MonoBehaviour
 
     private void UpdateGroundCheck()
     {
+        // If groundLayer is set to "Nothing" (0), fallback to checking everything Except Player / Ignore Raycast
+        int currentMask = groundLayer.value;
+        if (currentMask == 0)
+        {
+            int playerLayer = LayerMask.NameToLayer("Player");
+            currentMask = ~((playerLayer != -1 ? 1 << playerLayer : 0) | (1 << LayerMask.NameToLayer("Ignore Raycast")));
+        }
+
         // Check all colliders in the circle, then filter out ourselves and triggers.
         // This prevents the player's own collider from counting as "ground".
         Collider2D[] hits = Physics2D.OverlapCircleAll(
             (Vector2)transform.position + groundCheckOffset,
             groundCheckRadius,
-            groundLayer
+            currentMask
         );
 
         IsGrounded = false;

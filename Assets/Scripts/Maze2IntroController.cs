@@ -12,7 +12,7 @@ public class Maze2IntroController : MonoBehaviour
     [SerializeField] private MonoBehaviour dialogueController;
     
     [Tooltip("Reference to the player controller")]
-    [SerializeField] private PlayerController2 playerController;
+    [SerializeField] private PlayerController playerController;
     
     [Tooltip("Reference to the stopwatch timer")]
     [SerializeField] private StopwatchTimer stopwatchTimer;
@@ -35,7 +35,7 @@ public class Maze2IntroController : MonoBehaviour
         // Auto-find components if not assigned
         if (playerController == null)
         {
-            playerController = FindFirstObjectByType<PlayerController2>();
+            playerController = FindFirstObjectByType<PlayerController>();
         }
         
         if (stopwatchTimer == null)
@@ -58,7 +58,7 @@ public class Maze2IntroController : MonoBehaviour
         // Verify required components
         if (playerController == null)
         {
-            Debug.LogError("Maze2IntroController: PlayerController2 not found! Cannot freeze player.");
+            Debug.LogError("Maze2IntroController: PlayerController not found! Cannot freeze player.");
         }
         
         if (stopwatchTimer == null)
@@ -159,7 +159,7 @@ public class Maze2IntroController : MonoBehaviour
     }
     
     /// <summary>
-    /// Freezes the player by disabling the PlayerController2 component
+    /// Freezes the player by disabling the PlayerController component
     /// </summary>
     private void FreezePlayer()
     {
@@ -172,7 +172,7 @@ public class Maze2IntroController : MonoBehaviour
     }
     
     /// <summary>
-    /// Unfreezes the player by re-enabling the PlayerController2 component
+    /// Unfreezes the player by re-enabling the PlayerController component
     /// </summary>
     private void UnfreezePlayer()
     {
