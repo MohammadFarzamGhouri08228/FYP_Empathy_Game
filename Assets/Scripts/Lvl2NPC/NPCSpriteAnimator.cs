@@ -35,16 +35,14 @@ public class NPCSpriteAnimator : MonoBehaviour
 
     // ═══════════════════════════════════════════
     //  Private Fields
-    // ═══════════════════════════════════════════
-
     private NPCMotor motor;
     private NPCController controller;
     private SpriteRenderer spriteRenderer;
     private float animTimer;
     private Vector3 normalScale;
     private static readonly Vector3 fallenScale = new Vector3(0.1f, 0.1f, 1f);
-
-    // ═══════════════════════════════════════════
+    
+    private Vector3 lastPosition;
     //  Unity Lifecycle
     // ═══════════════════════════════════════════
 
@@ -56,17 +54,37 @@ public class NPCSpriteAnimator : MonoBehaviour
 
         // Store the original scale so we can restore it after fallen state
         normalScale = transform.localScale;
+        lastPosition = transform.position;
     }
 
     void LateUpdate()
     {
-        if (spriteRenderer == null || motor == null) return;
+        if (spriteRenderer == null) return;
 
-        // Flip sprite based on walk direction (supports future left-walk)
-        if (motor.WalkDirection.x > 0.1f)
-            spriteRenderer.flipX = false;
-        else if (motor.WalkDirection.x < -0.1f)
-            spriteRenderer.flipX = true;
+        // Determine if walking by checking velocity (motor) OR position changes (Level 3 Sorter)
+        bool isWalking = false;
+        
+        if (motor != null && motor.IsWalking)
+        {
+            isWalking = true;
+            // Flip sprite based on walk direction (Level 2)
+            if (motor.WalkDirection.x > 0.1f)
+                spriteRenderer.flipX = false;
+            else if (motor.WalkDirection.x < -0.1f)
+                spriteRenderer.flipX = true;
+        }
+        else
+        {
+            // Level 3 Sorter override: check position delta
+            float distanceMoved = Vector3.Distance(transform.position, lastPosition);
+            if (distanceMoved > 0.001f)
+            {
+                isWalking = true;
+                // NPCSorter flips via localScale, so we don't need to touch flipX here
+            }
+        }
+        
+        lastPosition = transform.position;
 
         // Pick animation based on priority
         if (controller != null && controller.CurrentState == NPCState.Fallen)
@@ -78,15 +96,20 @@ public class NPCSpriteAnimator : MonoBehaviour
         else
         {
             // Restore normal scale for all non-fallen states
-            transform.localScale = normalScale;
+            // NOTE: Only restore if NPCSorter is NOT attached (as Sorter modifies localScale for flipping!)
+            if (GetComponent<NPCSorter>() == null)
+            {
+                transform.localScale = normalScale;
+            }
 
             if (controller != null && controller.CurrentState == NPCState.Climbing)
             {
-                // Climbing animation (two-frame cycle)
+                // Climbing animation
                 AnimateCycle(climbSprite1, climbSprite2, climbCycleSpeed);
             }
-            else if (motor.IsWalking)
+            else if (isWalking)
             {
+                // Walk animation
                 AnimateCycle(walkSprite1, walkSprite2, walkCycleSpeed);
             }
             else

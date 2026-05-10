@@ -167,10 +167,19 @@ public class PlayerMotor : MonoBehaviour
             currentMask = ~((playerLayer != -1 ? 1 << playerLayer : 0) | (1 << LayerMask.NameToLayer("Ignore Raycast")));
         }
 
+        Vector2 checkPos = (Vector2)transform.position + groundCheckOffset;
+        
+        // Auto-adjust: place the ground check at the actual bottom of the player's collider
+        Collider2D col = GetComponent<Collider2D>();
+        if (col != null)
+        {
+            checkPos = new Vector2(transform.position.x + groundCheckOffset.x, col.bounds.min.y);
+        }
+
         // Check all colliders in the circle, then filter out ourselves and triggers.
         // This prevents the player's own collider from counting as "ground".
         Collider2D[] hits = Physics2D.OverlapCircleAll(
-            (Vector2)transform.position + groundCheckOffset,
+            checkPos,
             groundCheckRadius,
             currentMask
         );
@@ -214,7 +223,7 @@ public class PlayerMotor : MonoBehaviour
         bool jumpPressed = false;
 
         if (Keyboard.current != null)
-            jumpPressed = Keyboard.current.spaceKey.wasPressedThisFrame;
+            jumpPressed = Keyboard.current.spaceKey.wasPressedThisFrame || Keyboard.current.upArrowKey.wasPressedThisFrame || Keyboard.current.wKey.wasPressedThisFrame;
 
         // Mobile button jump
         if (buttonJumpRequested)
@@ -293,6 +302,14 @@ public class PlayerMotor : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = IsGrounded ? Color.green : Color.red;
-        Gizmos.DrawWireSphere((Vector2)transform.position + groundCheckOffset, groundCheckRadius);
+        
+        Vector2 checkPos = (Vector2)transform.position + groundCheckOffset;
+        Collider2D col = GetComponent<Collider2D>();
+        if (col != null)
+        {
+            checkPos = new Vector2(transform.position.x + groundCheckOffset.x, col.bounds.min.y);
+        }
+        
+        Gizmos.DrawWireSphere(checkPos, groundCheckRadius);
     }
 }
