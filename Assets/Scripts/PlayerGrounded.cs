@@ -9,9 +9,6 @@ public class PlayerGrounded : MonoBehaviour
 
     [Header("Jump")]
     public float jumpForce = 10f;
-    public LayerMask groundLayer;      // Set this to your "Ground" layer in Inspector
-    public float groundCheckRadius = 0.2f; 
-    public Vector2 groundCheckOffset = new Vector2(0, -0.5f);
 
     [Header("Sprites")]
     public Sprite idleSprite;
@@ -23,28 +20,28 @@ public class PlayerGrounded : MonoBehaviour
     private SpriteRenderer sr;
     private Rigidbody2D rb;
     private Vector2 moveInput;
-    private bool isGrounded;
+    private bool isGrounded = false;
     private float walkTimer;
     private bool isWalkSprite1 = true;
+    
+    // Reference to check if UI buttons are moving the player
+    private PlayerMovementController uiMovement;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         rb.freezeRotation = true;
         sr = GetComponent<SpriteRenderer>();
+        uiMovement = GetComponent<PlayerMovementController>();
     }
 
     void Update()
     {
-        // Ground Check Logic
-        // We check if the circle at our feet overlaps with anything on the "groundLayer"
-        isGrounded = Physics2D.OverlapCircle((Vector2)transform.position + groundCheckOffset, groundCheckRadius, groundLayer);
-
         moveInput = Vector2.zero;
 
         if (Keyboard.current != null)
         {
-            // Horizontal movement (Left/Right)
+            // Horizontal movement (Left/Right) via Keyboard
             if (Keyboard.current.leftArrowKey.isPressed || Keyboard.current.aKey.isPressed)
             {
                 moveInput.x = -1f;
@@ -57,28 +54,33 @@ public class PlayerGrounded : MonoBehaviour
             // Jump (Space) - Only if grounded
             if (Keyboard.current.spaceKey.wasPressedThisFrame && isGrounded)
             {
-                Debug.Log("Jumped from ground!");
-                // Using linearVelocity (Unity 2023+) or velocity
                 rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+                isGrounded = false; // We jumped!
             }
         }
 
-        // Update Sprite
+        // Update Sprite based on actual physical velocity (Works for both Keyboard and UI Buttons!)
         if (sr != null)
         {
-            // Flip sprite depending on direction
-            if (moveInput.x < 0)
+            // Use velocity for animation so on-screen buttons work too!
+            float currentSpeed = Mathf.Abs(rb.linearVelocity.x);
+
+            // Flip sprite depending on physical direction
+            if (rb.linearVelocity.x < -0.1f)
                 sr.flipX = true;
-            else if (moveInput.x > 0)
+            else if (rb.linearVelocity.x > 0.1f)
                 sr.flipX = false;
 
-            if (!isGrounded && jumpSprite != null)
+            if (!isGrounded && Mathf.Abs(rb.linearVelocity.y) > 0.1f)
             {
-                sr.sprite = jumpSprite;
+                if (jumpSprite != null)
+                    sr.sprite = jumpSprite;
+                else
+                    Debug.LogWarning("Jump Sprite is missing! Please assign it in the Inspector.");
             }
-            else if (isGrounded)
+            else
             {
-                if (Mathf.Abs(moveInput.x) > 0.1f)
+                if (currentSpeed > 0.1f)
                 {
                     walkTimer += Time.deltaTime;
                     if (walkTimer >= walkAnimSpeed)
@@ -96,6 +98,8 @@ public class PlayerGrounded : MonoBehaviour
                 {
                     if (idleSprite != null)
                         sr.sprite = idleSprite;
+                    else
+                        Debug.LogWarning("Idle Sprite is missing! Please assign it in the Inspector.");
                 }
             }
         }
@@ -103,13 +107,24 @@ public class PlayerGrounded : MonoBehaviour
 
     void FixedUpdate()
     {
-        rb.linearVelocity = new Vector2(moveInput.x * moveSpeed, rb.linearVelocity.y);
+        // Only apply keyboard movement if the UI controller isn't actively moving the player
+        // This prevents the two scripts from fighting each other!
+        if (true)
+        {
+            rb.linearVelocity = new Vector2(moveInput.x * moveSpeed, rb.linearVelocity.y);
+        }
     }
 
-    // Optional: Visualizes the ground check in the Editor
-    private void OnDrawGizmosSelected()
+    // --- FOOLPROOF GROUND DETECTION ---
+    private void OnCollisionStay2D(Collision2D collision)
     {
-        Gizmos.color = isGrounded ? Color.green : Color.red;
-        Gizmos.DrawWireSphere((Vector2)transform.position + groundCheckOffset, groundCheckRadius);
+        // If we are touching anything solid, we are grounded
+        isGrounded = true;
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        // When we stop touching something, we are no longer grounded
+        isGrounded = false;
     }
 }

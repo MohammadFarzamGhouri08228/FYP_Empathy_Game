@@ -599,7 +599,7 @@ MonoBehaviour:
   moveSpeed: 8
   jumpForce: 12
   idleSprite: {fileID: -8661631120289437419, guid: 1e5b5d3acf623434c88780d5ba9e2122, type: 3}
-  jumpSprite: {fileID: 0}
+  jumpSprite: {fileID: -3907737023286246741, guid: 014346d64f8478e4bb78a636f70ca1b0, type: 3}
 --- !u!1 &279534148
 GameObject:
   m_ObjectHideFlags: 0
@@ -1654,7 +1654,7 @@ Transform:
   m_GameObject: {fileID: 1481785701}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 8.73, y: 4.3, z: 0}
+  m_LocalPosition: {x: 7.86, y: 3.67, z: 0}
   m_LocalScale: {x: 0.39, y: 0.39, z: 0.39}
   m_ConstrainProportionsScale: 1
   m_Children: []
