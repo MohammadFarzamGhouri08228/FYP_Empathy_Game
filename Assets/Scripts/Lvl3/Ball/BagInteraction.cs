@@ -44,30 +44,58 @@ public class BagInteraction : MonoBehaviour
 
         // Check if player is near AND holding the ball
         float dist = Vector2.Distance(transform.position, playerTransform.position);
-        bool inRange = dist <= interactRange && BallPickup.hasBall;
-
-        // Only show prompt if the player is in range AND actually carrying a ball
-        if (interactPrompt != null)
+        BallPickup heldBall = BallPickup.currentlyHeldBall;
+        bool inRange = dist <= interactRange && heldBall != null;
+        
+        bool isColorMatch = false;
+        if (heldBall != null)
         {
-            interactPrompt.SetActive(inRange);
+            // Default to GameObject names
+            string bagRefName = gameObject.name.ToLower();
+            string ballRefName = heldBall.gameObject.name.ToLower();
+            
+            // Prefer Sprite names if available (since visual sprite is what the player actually sees!)
+            SpriteRenderer bagSR = GetComponentInChildren<SpriteRenderer>();
+            if (bagSR != null && bagSR.sprite != null) bagRefName = bagSR.sprite.name.ToLower();
+            
+            SpriteRenderer ballSR = heldBall.GetComponentInChildren<SpriteRenderer>();
+            if (ballSR != null && ballSR.sprite != null) ballRefName = ballSR.sprite.name.ToLower();
+            
+            if (bagRefName.Contains("red") && ballRefName.Contains("red")) isColorMatch = true;
+            else if (bagRefName.Contains("blue") && ballRefName.Contains("blue")) isColorMatch = true;
+            else if (bagRefName.Contains("yellow") && ballRefName.Contains("yellow")) isColorMatch = true;
+            else if (!bagRefName.Contains("red") && !bagRefName.Contains("blue") && !bagRefName.Contains("yellow")) isColorMatch = true; 
         }
 
-        // Press E to deposit the ball into the bag
+        // Only show prompt if the player is in range AND actually carrying a ball of matching color
+        if (interactPrompt != null)
+        {
+            interactPrompt.SetActive(inRange && isColorMatch);
+        }
+
+        // Press interact key to deposit the ball into the bag
         if (inRange && Input.GetKeyDown(interactKey))
         {
-            InsertBall();
+            if (isColorMatch)
+            {
+                InsertBall(heldBall);
+            }
+            else
+            {
+                // Vibrate to indicate wrong bag
+                StartCoroutine(VibrateAnimation());
+                Debug.Log($"Cannot put {heldBall.gameObject.name} into {gameObject.name} - Colors do not match!");
+            }
         }
     }
 
-    private void InsertBall()
+    private void InsertBall(BallPickup heldBall)
     {
         if (isAnimating) return;
 
         // Hide the prompt
         if (interactPrompt != null) interactPrompt.SetActive(false);
 
-        // Find the currently held ball to get its sprite before consuming
-        BallPickup heldBall = Object.FindObjectOfType<BallPickup>();
         Sprite ballSprite = null;
         Vector3 startPos = playerTransform.position + new Vector3(0, 1.5f, 0); // Default if indicator is missing
 
