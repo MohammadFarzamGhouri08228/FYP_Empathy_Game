@@ -727,7 +727,7 @@ PlayableDirector:
     value: {fileID: 219026557}
   - key: {fileID: -6248750028159492436, guid: b92a4bdb9e002764f9931ea7591e168b, type: 2}
     value: {fileID: 2113376480}
-  - key: {fileID: -1206764665695354495, guid: b92a4bdb9e002764f9931ea7591e168b, type: 2}
+  - key: {fileID: 6323168934013372393, guid: b92a4bdb9e002764f9931ea7591e168b, type: 2}
     value: {fileID: 1569992894}
   m_ExposedReferences:
     m_References: []
@@ -894,7 +894,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 236829209475656886, guid: 6793d613752ac474a84c8341149abcc5, type: 3}
       propertyPath: m_FlipX
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 236829209475656886, guid: 6793d613752ac474a84c8341149abcc5, type: 3}
       propertyPath: m_Sprite

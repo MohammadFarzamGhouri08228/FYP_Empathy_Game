@@ -1295,7 +1295,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb8ea1c6c10e4404cabb23cc12aed30e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MainMenuStartButton
-  sceneToLoad: Maze2
+  sceneToLoad: Cutscene
   buttonSprite: {fileID: 0}
   buttonImage: {fileID: 0}
 --- !u!114 &972309458
