@@ -2281,6 +2281,7 @@ MonoBehaviour:
   winScoreThreshold: 10
   isGameActive: 0
   isGameOver: 0
+  nextCutsceneName: Aftercandyscene
   scoreText: {fileID: 1819018549}
   instructionsText: {fileID: 1566686133}
   gameOverText: {fileID: 1106533541}
