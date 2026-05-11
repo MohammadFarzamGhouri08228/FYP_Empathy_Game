@@ -529,25 +529,27 @@ public class DialogueController : MonoBehaviour
 
         string fileName = $"{charName}'sDialogue#{cleanNum}";
         
-        // Prioritize folders based on the current scene so we don't accidentally load Level 1 audio in Level 2
+        // Prioritize folders based on the current scene so we don't accidentally load wrong level's audio.
+        // IMPORTANT: "Maze2" is Level 1's scene, "Level2" is Level 2's scene.
+        // We must use exact name matching, NOT Contains("2"), because "Maze2" would falsely match Level 2.
         string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         string[] foldersToCheck;
 
-        if (sceneName.Contains("2") || sceneName.Contains("Level2") || sceneName.Contains("Level 2"))
+        if (sceneName == "Level2")
         {
             foldersToCheck = new string[] { "Level2Dialogues", "Level1Audios", "CutScene4Dialogues", "CutScene5Dialogues" };
         }
-        else if (sceneName.Contains("4"))
+        else if (sceneName == "lvl2endcutscene" || sceneName.Contains("cutscene4") || sceneName.Contains("Cutscene4"))
         {
             foldersToCheck = new string[] { "CutScene4Dialogues", "Level1Audios", "Level2Dialogues", "CutScene5Dialogues" };
         }
-        else if (sceneName.Contains("5"))
+        else if (sceneName == "Aftercandyscene" || sceneName.Contains("cutscene5") || sceneName.Contains("Cutscene5"))
         {
             foldersToCheck = new string[] { "CutScene5Dialogues", "Level1Audios", "Level2Dialogues", "CutScene4Dialogues" };
         }
         else
         {
-            // Default to Level 1
+            // Default to Level 1 (covers "Maze2" and any other Level 1 scenes)
             foldersToCheck = new string[] { "Level1Audios", "Level2Dialogues", "CutScene4Dialogues", "CutScene5Dialogues" };
         }
         

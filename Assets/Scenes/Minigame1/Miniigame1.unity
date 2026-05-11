@@ -2216,7 +2216,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4067632282247864623, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
       propertyPath: nextSceneName
-      value: lvl2endcutscene
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 4067632282247864623, guid: 2fea228f6ebc9804eb8e8cce2579067e, type: 3}
       propertyPath: inactiveColor.b
@@ -2388,7 +2388,7 @@ MonoBehaviour:
   checkpointID: 2
   allowMultipleActivations: 0
   isFinalCheckpoint: 0
-  nextSceneName: Level2
+  nextSceneName: 
   useDistanceDetection: 1
   detectionRadius: 1.5
   playerIsClose: 0

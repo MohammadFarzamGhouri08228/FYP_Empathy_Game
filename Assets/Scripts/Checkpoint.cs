@@ -408,14 +408,11 @@ public class Checkpoint : MonoBehaviour
         // Notify manager of our ID for robust end-level evaluation
         checkpointManager.NotifyCheckpointReached(checkpointID);
 
-        // IMMEDIATE TELEPORT IF FINAL CHECKPOINT
+        // WAIT FOR NPC AND DELAY IF FINAL CHECKPOINT
         if (isFinalCheckpoint)
         {
-            Debug.Log($"<color=green>Final Checkpoint {checkpointID} Reached! Teleporting to {nextSceneName}...</color>");
-            
-            // Unpause time just in case it was frozen elsewhere
-            Time.timeScale = 1f;
-            UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
+            Debug.Log($"<color=green>Final Checkpoint {checkpointID} Reached! Waiting for NPC before teleporting to {nextSceneName}...</color>");
+            StartCoroutine(WaitForNPCAndTransition());
             return; // Exit out of the rest of the activation logic so no empty dialogues pop up!
         }
         
@@ -517,4 +514,40 @@ public class Checkpoint : MonoBehaviour
         }
     }
 
+    private IEnumerator WaitForNPCAndTransition()
+    {
+        // Try to find the NPC in the scene
+        GameObject npc = GameObject.FindGameObjectWithTag("NPC");
+        if (npc == null)
+        {
+            NPCBehaviour npcBehavior = FindFirstObjectByType<NPCBehaviour>();
+            if (npcBehavior != null) npc = npcBehavior.gameObject;
+            else
+            {
+                DSmovementScript dsMovement = FindFirstObjectByType<DSmovementScript>();
+                if (dsMovement != null) npc = dsMovement.gameObject;
+            }
+        }
+
+        if (npc != null)
+        {
+            // Wait until the NPC gets close enough to the checkpoint
+            while (Vector2.Distance(transform.position, npc.transform.position) > 4f)
+            {
+                yield return null; // Wait until next frame
+            }
+            Debug.Log("<color=green>NPC reached the final checkpoint!</color>");
+        }
+        else
+        {
+            Debug.LogWarning("<color=yellow>NPC not found! Proceeding without waiting for NPC.</color>");
+        }
+
+        // Wait 3 seconds
+        Debug.Log("<color=green>Both reached final checkpoint. Waiting 3 seconds before transition...</color>");
+        yield return new WaitForSeconds(3f);
+
+        Time.timeScale = 1f;
+        UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
+    }
 }
