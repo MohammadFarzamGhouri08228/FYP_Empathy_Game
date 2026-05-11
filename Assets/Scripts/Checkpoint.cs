@@ -46,6 +46,7 @@ public class Checkpoint : MonoBehaviour
     // Dialogue Tracking State
     private bool dialogueCompleted = false; 
     private bool hasDialogOpened = false;
+    private string confirmedDirectionText = "";
 
     private CheckpointInteraction choiceInteraction; // Legacy component reference (kept for compatibility if needed)
 
@@ -138,18 +139,39 @@ public class Checkpoint : MonoBehaviour
             if (checkpointManager != null)
             {
                 checkpointManager.RecordDialogueInteraction(checkpointID, listenRatio);
+                
+                // Start movement tracking based on confirmed direction
+                if (player != null && !string.IsNullOrEmpty(confirmedDirectionText))
+                {
+                    Vector2 expectedDir = Vector2.zero;
+                    string lowerText = confirmedDirectionText.ToLower();
+                    if (lowerText.Contains("left") || lowerText.Contains("back")) expectedDir = Vector2.left;
+                    else if (lowerText.Contains("right") || lowerText.Contains("forward") || lowerText.Contains("ahead")) expectedDir = Vector2.right;
+                    else if (lowerText.Contains("up") || lowerText.Contains("jump")) expectedDir = Vector2.up;
+                    else if (lowerText.Contains("down")) expectedDir = Vector2.down;
+                    
+                    if (expectedDir != Vector2.zero)
+                    {
+                        checkpointManager.StartTrackingMovement(checkpointID, player.transform, expectedDir);
+                    }
+                }
             }
+            
+            // Reset for next potential activation
+            confirmedDirectionText = "";
         }
     }
 
-    private void HandleOptionSelection(int choiceIndex, ChoiceCategory selectedCategory)
+    private void HandleOptionSelection(int choiceIndex, ChoiceCategory selectedCategory, string optionText)
     {
-        Debug.Log($"Checkpoint {checkpointID}: Option {choiceIndex + 1} chosen - Category: {selectedCategory}");
+        Debug.Log($"Checkpoint {checkpointID}: Option {choiceIndex + 1} chosen - Category: {selectedCategory}, Text: {optionText}");
 
         int optionNumber = choiceIndex + 1;
         PlayerPrefs.SetInt($"Checkpoint_{checkpointID}_SelectedOptionNumber", optionNumber);
         PlayerPrefs.SetString($"Checkpoint_{checkpointID}_SelectedCategory", selectedCategory.ToString());
         PlayerPrefs.Save();
+        
+        confirmedDirectionText = optionText;
 
         if (checkpointManager != null)
         {

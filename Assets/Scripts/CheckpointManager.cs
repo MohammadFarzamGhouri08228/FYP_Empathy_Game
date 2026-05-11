@@ -460,6 +460,65 @@ public class CheckpointManager : MonoBehaviour
     }
 
     // ========================================================================
+    // METRIC TRACKING — Post-Dialogue Movement (Metric 4: Following Instructions)
+    // ========================================================================
+
+    /// <summary>
+    /// Starts a coroutine to track player movement after a dialogue choice is made.
+    /// This determines if the player followed the "confirmed direction" based on NPC advice.
+    /// </summary>
+    public void StartTrackingMovement(int checkpointID, Transform playerTransform, Vector2 expectedDirection)
+    {
+        StartCoroutine(TrackMovementCoroutine(checkpointID, playerTransform, expectedDirection));
+    }
+
+    private IEnumerator TrackMovementCoroutine(int checkpointID, Transform playerTransform, Vector2 expectedDirection)
+    {
+        if (playerTransform == null) yield break;
+
+        Vector3 startPos = playerTransform.position;
+        
+        // Wait for a few seconds to track movement
+        yield return new WaitForSeconds(4f); 
+        
+        if (playerTransform == null) yield break;
+        
+        Vector3 endPos = playerTransform.position;
+        Vector3 movement = endPos - startPos;
+        
+        // Check if movement aligns with expected direction
+        float dotProduct = Vector2.Dot(((Vector2)movement).normalized, expectedDirection.normalized);
+        
+        // Net movement magnitude
+        float distance = movement.magnitude;
+        
+        // Thresholds: Must move at least 1 unit, and the direction must roughly match the expected one (>0.5 means within 60 degrees)
+        bool followedInstruction = (distance > 1.0f && dotProduct > 0.5f);
+        
+        Debug.Log($"<color=cyan>[Movement Tracking]</color> Checkpoint {checkpointID}: Moved {distance:F2} units. Expected: {expectedDirection}, Dot: {dotProduct:F2}. Followed: {followedInstruction}");
+        
+        if (empathyMeter != null)
+        {
+            if (followedInstruction)
+            {
+                empathyMeter.AddEmpathy(0.15f); // Followed instruction => Add 15% Empathy
+                Debug.Log($"<color=cyan>[Movement Tracking]</color> Empathy increased! Player followed the confirmed direction.");
+            }
+            else
+            {
+                empathyMeter.ReduceEmpathy(0.15f); // Ignored instruction => Reduce 15% Empathy
+                Debug.Log($"<color=cyan>[Movement Tracking]</color> Empathy reduced! Player ignored the confirmed direction.");
+            }
+        }
+        
+        // Record in Adaptive Backend if available
+        if (AdaptiveBackend.Instance != null)
+        {
+            AdaptiveBackend.Instance.ReceiveData($"Checkpoint_{checkpointID}", "FollowedInstruction", followedInstruction ? 1.0f : 0.0f);
+        }
+    }
+
+    // ========================================================================
     // EVALUATION — End of Level
     // ========================================================================
 

@@ -73,7 +73,7 @@ public class DialogueController : MonoBehaviour
     private int index;
     private bool isTyping;
     private Action onDialogueComplete;
-    private Action<int, ChoiceCategory> onOptionSelected;
+    private Action<int, ChoiceCategory, string> onOptionSelected;
 
     // Empathy tracking
     public float dialogueStillFrames { get; private set; }
@@ -186,7 +186,7 @@ public class DialogueController : MonoBehaviour
     /// <summary>
     /// Starts a dialogue sequence. Called by Checkpoint / Checkpoint2 scripts.
     /// </summary>
-    public void StartDialogue(DialogueLine[] dialogue, Action<int, ChoiceCategory> onOptionChosen = null, Action onComplete = null)
+    public void StartDialogue(DialogueLine[] dialogue, Action<int, ChoiceCategory, string> onOptionChosen = null, Action onComplete = null)
     {
         currentDialogue = dialogue;
         onOptionSelected = onOptionChosen;
@@ -368,7 +368,7 @@ public class DialogueController : MonoBehaviour
         HideAllOptionButtons();
         
         // Report option selection to checkpoint
-        onOptionSelected?.Invoke(choiceIndex, chosenOption.category);
+        onOptionSelected?.Invoke(choiceIndex, chosenOption.category, chosenOption.optionText);
 
         // Handle branching: jump to the specified index or end dialogue
         if (chosenOption.nextDialogueIndex >= 0 && chosenOption.nextDialogueIndex < currentDialogue.Length)
