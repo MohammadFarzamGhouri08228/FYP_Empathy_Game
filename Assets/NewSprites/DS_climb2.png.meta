@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 45c2af63e32f2aa48a41b035dc53d9e9
+guid: aafa61274eba53a45b80ada3d70ee1ca
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -3079960315968680228
-    second: New_DS_climb1_0
+      213: 2512101009502886581
+    second: DS_climb2_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -126,13 +126,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: New_DS_climb1_0
+      name: DS_climb2_0
       rect:
         serializedVersion: 2
-        x: 277
-        y: 90
-        width: 1227
-        height: 2133
+        x: 269
+        y: 83
+        width: 1236
+        height: 2140
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,8 +141,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: cde03643968c145d0800000000000000
-      internalID: -3079960315968680228
+      spriteID: 5bad157fe86ccd220800000000000000
+      internalID: 2512101009502886581
       vertices: []
       indices: 
       edges: []
@@ -161,7 +161,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      New_DS_climb1_0: -3079960315968680228
+      DS_climb2_0: 2512101009502886581
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
