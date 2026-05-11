@@ -1560,8 +1560,24 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 0}
     - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: dialogue.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
       propertyPath: allowMultipleActivations
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: dialogue.Array.data[0].text
+      value: '1) Musa: Now where should we go?'
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: dialogue.Array.data[1].text
+      value: '1) ALI: O I c at dooor faa awa, mybe a away out'
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: dialogue.Array.data[2].text
+      value: '2) Musa: Yeah seems like I have no other option but to listen to you'
       objectReference: {fileID: 0}
     - target: {fileID: 4461469451757565049, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3380,6 +3396,47 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 11551e18cce5fec439db66c2f83eb3e6, type: 3}
+--- !u!1 &613870507 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9109801046042644346, guid: 11551e18cce5fec439db66c2f83eb3e6, type: 3}
+  m_PrefabInstance: {fileID: 613870506}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &613870508 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2057580697084859557, guid: 11551e18cce5fec439db66c2f83eb3e6, type: 3}
+  m_PrefabInstance: {fileID: 613870506}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &613870509 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1592854277697469733, guid: 11551e18cce5fec439db66c2f83eb3e6, type: 3}
+  m_PrefabInstance: {fileID: 613870506}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+--- !u!1 &613870510 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6766976717342931278, guid: 11551e18cce5fec439db66c2f83eb3e6, type: 3}
+  m_PrefabInstance: {fileID: 613870506}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &613870511 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1956991349971559836, guid: 11551e18cce5fec439db66c2f83eb3e6, type: 3}
+  m_PrefabInstance: {fileID: 613870506}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &613870512 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3902342707843666726, guid: 11551e18cce5fec439db66c2f83eb3e6, type: 3}
+  m_PrefabInstance: {fileID: 613870506}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &613870513 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4821039309655602932, guid: 11551e18cce5fec439db66c2f83eb3e6, type: 3}
+  m_PrefabInstance: {fileID: 613870506}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &635571682
 GameObject:
   m_ObjectHideFlags: 0
@@ -3550,6 +3607,43 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &671156929 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1225346690230411027, guid: 11551e18cce5fec439db66c2f83eb3e6, type: 3}
+  m_PrefabInstance: {fileID: 613870506}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+--- !u!1 &671156930 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3993954725400989506, guid: 11551e18cce5fec439db66c2f83eb3e6, type: 3}
+  m_PrefabInstance: {fileID: 613870506}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &671156931 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4170445583440695542, guid: 11551e18cce5fec439db66c2f83eb3e6, type: 3}
+  m_PrefabInstance: {fileID: 613870506}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+--- !u!1 &671156932 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2239229018419631380, guid: 11551e18cce5fec439db66c2f83eb3e6, type: 3}
+  m_PrefabInstance: {fileID: 613870506}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &671156933 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 371772906690436415, guid: 11551e18cce5fec439db66c2f83eb3e6, type: 3}
+  m_PrefabInstance: {fileID: 613870506}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &708944619
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3595,8 +3689,20 @@ PrefabInstance:
       value: 0.9622642
       objectReference: {fileID: 0}
     - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: dialogue.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
       propertyPath: allowMultipleActivations
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: dialogue.Array.data[0].text
+      value: '7) Musa: Do u have trouble moving at times because of your condition? '
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: dialogue.Array.data[1].text
+      value: '4) Ali: yeaah , bu I manage'
       objectReference: {fileID: 0}
     - target: {fileID: 4461469451757565049, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3995,6 +4101,111 @@ Transform:
   - {fileID: 1910296621}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &941600260
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 4699136716136489349, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: m_Name
+      value: DIalogue Controller
+      objectReference: {fileID: 0}
+    - target: {fileID: 6241847730115555247, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: nameTitle
+      value: 
+      objectReference: {fileID: 613870511}
+    - target: {fileID: 6241847730115555247, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: contButton
+      value: 
+      objectReference: {fileID: 613870508}
+    - target: {fileID: 6241847730115555247, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: dialogText
+      value: 
+      objectReference: {fileID: 613870509}
+    - target: {fileID: 6241847730115555247, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: dialogPanel
+      value: 
+      objectReference: {fileID: 613870513}
+    - target: {fileID: 6241847730115555247, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: optionsPanel
+      value: 
+      objectReference: {fileID: 671156933}
+    - target: {fileID: 6241847730115555247, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: portraitImage
+      value: 
+      objectReference: {fileID: 613870512}
+    - target: {fileID: 6241847730115555247, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: playerNameTitle
+      value: 
+      objectReference: {fileID: 613870510}
+    - target: {fileID: 6241847730115555247, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: playerPortraitImage
+      value: 
+      objectReference: {fileID: 613870507}
+    - target: {fileID: 6241847730115555247, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: 'optionButtons.Array.data[0]'
+      value: 
+      objectReference: {fileID: 671156932}
+    - target: {fileID: 6241847730115555247, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: 'optionButtons.Array.data[1]'
+      value: 
+      objectReference: {fileID: 671156930}
+    - target: {fileID: 6241847730115555247, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: 'optionButtonTexts.Array.data[0]'
+      value: 
+      objectReference: {fileID: 671156931}
+    - target: {fileID: 6241847730115555247, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: 'optionButtonTexts.Array.data[1]'
+      value: 
+      objectReference: {fileID: 671156929}
+    - target: {fileID: 8940839822313004521, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 51.89674
+      objectReference: {fileID: 0}
+    - target: {fileID: 8940839822313004521, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -1.59252
+      objectReference: {fileID: 0}
+    - target: {fileID: 8940839822313004521, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8940839822313004521, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8940839822313004521, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8940839822313004521, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8940839822313004521, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8940839822313004521, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8940839822313004521, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8940839822313004521, guid: e506133e24c9c0945bb61e826d867378, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e506133e24c9c0945bb61e826d867378, type: 3}
 --- !u!1001 &944346156
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9472,8 +9683,17 @@ PrefabInstance:
       value: 0.9622642
       objectReference: {fileID: 0}
     - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: dialogue.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
       propertyPath: allowMultipleActivations
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: dialogue.Array.data[0].text
+      value: "6) Musa: There are spikes ahead but there\u2019s a button , let me
+        clear them for you and then I\u2019ll tell you to cross "
       objectReference: {fileID: 0}
     - target: {fileID: 4461469451757565049, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
       propertyPath: m_LocalPosition.x
@@ -9569,8 +9789,21 @@ PrefabInstance:
       value: 0.9622642
       objectReference: {fileID: 0}
     - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: dialogue.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
       propertyPath: allowMultipleActivations
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: dialogue.Array.data[0].text
+      value: '5) Ali:  Door key, upp!!'
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: dialogue.Array.data[1].text
+      value: '8) Musa: oohh okayyy thanksss!!, I was just wondering how to open that
+        door '
       objectReference: {fileID: 0}
     - target: {fileID: 4461469451757565049, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
       propertyPath: m_LocalPosition.x
@@ -9666,8 +9899,30 @@ PrefabInstance:
       value: 0.9622642
       objectReference: {fileID: 0}
     - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: dialogue.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
       propertyPath: allowMultipleActivations
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: dialogue.Array.data[0].text
+      value: '3) Musa: Come on down '
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: dialogue.Array.data[1].text
+      value: "2) ALI: Noo I\u2019ll falll"
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: dialogue.Array.data[2].text
+      value: "4) Musa: Okay how about you try to come down slowlyyyy I\u2019ll stay
+        here "
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067632282247864623, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
+      propertyPath: dialogue.Array.data[3].text
+      value: "4) Musa: Okay how about you try to come down slowlyyyy I\u2019ll stay
+        here "
       objectReference: {fileID: 0}
     - target: {fileID: 4461469451757565049, guid: c95cdd90b79eea644aeb78a8361ea786, type: 3}
       propertyPath: m_LocalPosition.x
@@ -14881,6 +15136,7 @@ SceneRoots:
   - {fileID: 719084957}
   - {fileID: 1207199181}
   - {fileID: 6559723842073568983}
+  - {fileID: 941600260}
   - {fileID: 613870506}
   - {fileID: 1133645780}
   - {fileID: 880920390}
