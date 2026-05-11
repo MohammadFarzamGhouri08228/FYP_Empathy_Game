@@ -43,6 +43,24 @@ public class ExpandableBridge : MonoBehaviour
         if (col == null && autoSizeCollider)
             col = gameObject.AddComponent<BoxCollider2D>();
 
+        // Fix for objects falling through moving/resizing colliders:
+        // We must have a Kinematic Rigidbody2D on the bridge so Unity updates its physics contacts continuously.
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb == null)
+        {
+            rb = gameObject.AddComponent<Rigidbody2D>();
+        }
+        rb.bodyType = RigidbodyType2D.Kinematic;
+        rb.useFullKinematicContacts = true; // Ensures it collides properly with other kinematic/dynamic bodies
+        rb.interpolation = RigidbodyInterpolation2D.Interpolate;
+
+        // Ensure the bridge is on the "Ground" layer so all characters collide with it properly
+        int groundLayer = LayerMask.NameToLayer("Ground");
+        if (groundLayer != -1)
+        {
+            gameObject.layer = groundLayer;
+        }
+
         // Start contracted
         currentWidth = minWidth;
         targetWidth = minWidth;
