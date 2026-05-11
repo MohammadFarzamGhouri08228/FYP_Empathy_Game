@@ -11904,10 +11904,10 @@ MonoBehaviour:
   walkSprite1: {fileID: -3938545476696949806, guid: afe3f83ae4dde5046b8a1f8d5fbe8838, type: 3}
   walkSprite2: {fileID: -4476854758332004113, guid: 25ba32767e784f840a0e444597d0c360, type: 3}
   walkCycleSpeed: 0.2
-  climbSprite1: {fileID: 8286349962277291442, guid: 2865c665ba8cda34199d72fbbb71deb5, type: 3}
-  climbSprite2: {fileID: -5870312433423937532, guid: 1b3fef8c53cd92443894053d66869016, type: 3}
+  climbSprite1: {fileID: -3079960315968680228, guid: 45c2af63e32f2aa48a41b035dc53d9e9, type: 3}
+  climbSprite2: {fileID: 2512101009502886581, guid: aafa61274eba53a45b80ada3d70ee1ca, type: 3}
   climbCycleSpeed: 0.2
-  fallenSprite: {fileID: -286651180930907939, guid: 1f445b41a5a42e541a1e5c7afdc2efc1, type: 3}
+  fallenSprite: {fileID: -5953674177143715131, guid: 23f8452046943be4c8d0a26524ac8d14, type: 3}
 --- !u!114 &1572805632
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12494,7 +12494,7 @@ Transform:
   m_GameObject: {fileID: 1636258241}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 18.98, y: 1.61, z: 0}
+  m_LocalPosition: {x: 19.06, y: 1.98, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
