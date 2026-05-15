@@ -25,10 +25,10 @@ public class DSmovementScript : MonoBehaviour
 
     public void Respawn()
     {
-        if (visitedCheckpoints.Count > 1)
+        if (visitedCheckpoints.Count > 0)
         {
-            transform.position = visitedCheckpoints[visitedCheckpoints.Count - 2];
-            Debug.Log($"DS Respawning one checkpoint before at {transform.position}");
+            transform.position = visitedCheckpoints[visitedCheckpoints.Count - 1];
+            Debug.Log($"DS Respawning at {transform.position}");
         }
         else
         {
